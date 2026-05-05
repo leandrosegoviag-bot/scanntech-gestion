@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Scanntech · Gestión Comercial</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:          #f4f5f7;
+  --surface:     #ffffff;
+  --surface2:    #f0f1f4;
+  --surface3:    #e4e6eb;
+  --border:      #e0e2e8;
+  --border2:     #c8cad4;
+  --text:        #0d0e12;
+  --text2:       #4a4d5e;
+  --text3:       #9397a8;
+
+  --navy:        #0a2463;
+  --navy2:       #1a3a80;
+  --navy-dim:    rgba(10,36,99,0.08);
+  --navy-dim2:   rgba(10,36,99,0.14);
+
+  --orange:      #f4600c;
+  --orange2:     #ff7a2f;
+  --orange-dim:  rgba(244,96,12,0.10);
+  --orange-dim2: rgba(244,96,12,0.18);
+
+  --green:       #1a9e6a;
+  --green-dim:   rgba(26,158,106,0.10);
+  --red:         #d93025;
+  --red-dim:     rgba(217,48,37,0.10);
+  --amber:       #d97706;
+  --amber-dim:   rgba(217,119,6,0.10);
+
+  --radius:    14px;
+  --radius-sm:  9px;
+  --shadow:    0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.05);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Layout ────────────────────────────────── */
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+
+/* ── Sidebar ───────────────────────────────── */
+.sidebar{background:var(--navy);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo-area{padding:26px 22px 22px;border-bottom:1px solid rgba(255,255,255,.1)}
+.logo-row{display:flex;align-items:center;gap:11px}
+.logo-icon{width:36px;height:36px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:20px;height:20px;fill:white}
+.logo-text{font-size:15px;font-weight:600;color:#fff;letter-spacing:.01em}
+.logo-sub{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;font-family:'DM Mono',monospace;letter-spacing:.04em}
+
+.nav{padding:18px 12px;flex:1;display:flex;flex-direction:column;gap:2px}
+.nav-section-label{font-size:9px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;padding:0 10px;margin:14px 0 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;color:rgba(255,255,255,.55);font-size:13px;font-weight:400;transition:all .18s;border:none;background:none;width:100%;text-align:left;position:relative}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;stroke:currentColor}
+.nav-item:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--orange);color:#fff;font-weight:500}
+.nav-item.active svg{stroke:#fff}
+.nav-badge{margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:1px 7px;border-radius:10px}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.25);color:#fff}
+
+.sidebar-footer{padding:16px 22px;border-top:1px solid rgba(255,255,255,.08)}
+.sidebar-footer p{font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace}
+.sidebar-footer span{color:rgba(255,255,255,.5)}
+
+/* ── Main ──────────────────────────────────── */
+.main{display:flex;flex-direction:column;min-height:100vh;overflow:hidden}
+
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow-sm)}
+.topbar-left{}
+.topbar-left h1{font-size:17px;font-weight:600;color:var(--text)}
+.topbar-left p{font-size:12px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+.btn{font-size:13px;font-weight:500;padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--surface2);border-color:var(--border2)}
+.btn-primary{background:var(--orange);border-color:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange2);border-color:var(--orange2)}
+
+.content{padding:28px 32px;flex:1}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── Stat cards ────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.sc-orange::after{background:var(--orange)}
+.sc-navy::after{background:var(--navy)}
+.sc-green::after{background:var(--green)}
+.sc-red::after{background:var(--red)}
+.stat-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-family:'DM Mono',monospace}
+.stat-val{font-size:28px;font-weight:600;color:var(--text);line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:5px}
+
+/* ── Table wrap ────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.panel-head h3{font-size:14px;font-weight:600;color:var(--text)}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;transition:all .15s}
+.chip:hover{border-color:var(--border2);color:var(--text2)}
+.chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+
+.search-input{font-size:12px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:170px;transition:border .15s}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:var(--navy)}
+
+table{width:100%;border-collapse:collapse}
+thead th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 18px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace}
+thead th.sortable{cursor:pointer;user-select:none;transition:color .15s}
+thead th.sortable:hover{color:var(--navy)}
+tbody td{padding:12px 18px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--navy-dim)}
+
+.client-name{font-weight:600;color:var(--text);font-size:13px}
+
+/* Pills */
+.tier-pill{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:6px;display:inline-block;letter-spacing:.04em}
+.tier-A{background:var(--orange-dim2);color:var(--orange);border:1.5px solid rgba(244,96,12,.25)}
+.tier-B{background:var(--navy-dim2);color:var(--navy);border:1.5px solid rgba(10,36,99,.2)}
+.tier-C{background:var(--surface2);color:var(--text3);border:1.5px solid var(--border)}
+
+.status-pill{font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;display:inline-block;cursor:pointer;transition:opacity .15s;user-select:none}
+.status-pill:hover{opacity:.8}
+.st-pendiente{background:var(--red-dim);color:var(--red)}
+.st-en-proceso{background:var(--amber-dim);color:var(--amber)}
+.st-presentada{background:var(--green-dim);color:var(--green)}
+.st-sin-asignar{background:var(--surface2);color:var(--text3)}
+
+.date-ok{color:var(--text3);font-family:'DM Mono',monospace;font-size:12px}
+.date-warn{color:var(--amber);font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+.date-over{color:var(--red);font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+
+.note-input{font-size:12px;border:none;background:transparent;color:var(--text3);width:100%;outline:none;font-family:'DM Sans',sans-serif}
+.note-input:focus{color:var(--text2)}
+.note-input::placeholder{color:var(--text3)}
+
+.del-btn{background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:12px;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.del-btn:hover{background:var(--red-dim);color:var(--red)}
+
+/* ── Task cards ────────────────────────────── */
+.tasks-body{padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.task-card{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;border-left:4px solid transparent;transition:box-shadow .15s,border-color .15s;background:var(--surface)}
+.task-card:hover{box-shadow:var(--shadow)}
+.task-card.urgente{border-left-color:var(--red)}
+.task-card.en-curso{border-left-color:var(--orange)}
+.task-card.pendiente{border-left-color:var(--navy)}
+.task-card.completado{border-left-color:var(--green);opacity:.6}
+
+.task-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:7px}
+.task-title{font-size:14px;font-weight:600;color:var(--text);flex:1;line-height:1.3}
+.task-desc{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px}
+
+.steps{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.step-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.step-row input[type=checkbox]{width:13px;height:13px;cursor:pointer;accent-color:var(--green);flex-shrink:0}
+.step-row.done span{text-decoration:line-through;color:var(--text3)}
+
+.task-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag-pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--navy-dim);color:var(--navy);border:1.5px solid rgba(10,36,99,.15)}
+
+.progress-wrap{flex:1;min-width:80px;display:flex;align-items:center;gap:8px}
+.progress-bar{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s}
+.progress-pct{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;min-width:28px;text-align:right}
+
+.task-status-sel{font-size:11px;font-weight:500;padding:4px 8px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif;cursor:pointer;margin-left:auto;outline:none;transition:border .15s}
+.task-status-sel:focus{border-color:var(--navy)}
+
+/* ── Add panel ─────────────────────────────── */
+.add-panel{background:var(--surface2);border:1.5px dashed var(--border2);border-radius:var(--radius);padding:22px;margin-top:16px}
+.add-panel h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:16px}
+.form-grid{display:flex;flex-direction:column;gap:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+.field input,.field select,.field textarea{width:100%;font-size:13px;padding:9px 13px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--navy)}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
+.field textarea{resize:vertical;min-height:58px}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239397a8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+.empty-row td{text-align:center;padding:36px !important;color:var(--text3);font-size:13px}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── SIDEBAR ───────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm13 0a4 4 0 110 8 4 4 0 010-8z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">Scanntech</div>
+        <div class="logo-sub">Servicios al Retail · AR</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section-label">Gestión</div>
+    <button class="nav-item active" onclick="goTab('tareas',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Tareas
+      <span class="nav-badge" id="badge-tareas">0</span>
+    </button>
+    <button class="nav-item" onclick="goTab('cuentas',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Cuentas
+      <span class="nav-badge" id="badge-cuentas">0</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <p>Hoy: <span id="today-str"></span></p>
+  </div>
+</aside>
+
+<!-- ── MAIN ──────────────────────────────── -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="tab-title">Tareas pendientes</h1>
+      <p id="tab-sub">Panel de gestión comercial</p>
+    </div>
+    <button class="btn btn-primary" onclick="toggleAddPanel()">+ Agregar</button>
+  </div>
+
+  <div class="content">
+
+    <!-- TAB TAREAS -->
+    <div class="tab-content active" id="tab-tareas">
+      <div class="stats" id="task-stats"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Todas las tareas</h3>
+          <div class="chips" id="task-filters">
+            <span class="chip active" onclick="setTaskFilter('todos')">Todos</span>
+            <span class="chip" onclick="setTaskFilter('urgente')">Urgente</span>
+            <span class="chip" onclick="setTaskFilter('en-curso')">En curso</span>
+            <span class="chip" onclick="setTaskFilter('pendiente')">Pendiente</span>
+            <span class="chip" onclick="setTaskFilter('completado')">Completado</span>
+          </div>
+        </div>
+        <div class="tasks-body" id="task-list"></div>
+      </div>
+      <div class="add-panel" id="task-add-panel" style="display:none">
+        <h3>Nueva tarea</h3>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><input type="text" id="nt-title" placeholder="Título de la tarea"/></div>
+            <div class="field">
+              <select id="nt-status">
+                <option value="urgente">Urgente</option>
+                <option value="en-curso" selected>En curso</option>
+                <option value="pendiente">Pendiente</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><textarea id="nt-desc" placeholder="Descripción (opcional)"></textarea></div>
+          <div class="form-row">
+            <div class="field"><input type="text" id="nt-tag" placeholder="Área (ej: Cliente, Interno)"/></div>
+            <div class="field"><input type="text" id="nt-steps" placeholder="Próximos pasos, separados por coma"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="addTask()" style="width:fit-content">Agregar tarea</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB CUENTAS -->
+    <div class="tab-content" id="tab-cuentas">
+      <div class="stats" id="acc-stats"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Cartera de cuentas</h3>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="chips" id="acc-filters">
+              <span class="chip active" onclick="setAccFilter('todos')">Todos</span>
+              <span class="chip" onclick="setAccFilter('A')">Tier A</span>
+              <span class="chip" onclick="setAccFilter('B')">Tier B</span>
+              <span class="chip" onclick="setAccFilter('C')">Tier C</span>
+              <span class="chip" onclick="setAccFilter('pendiente')">Pendiente</span>
+              <span class="chip" onclick="setAccFilter('presentada')">Presentada</span>
+            </div>
+            <input class="search-input" type="text" placeholder="Buscar cuenta..." oninput="setAccSearch(this.value)"/>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th class="sortable" onclick="sortAcc('nombre')">Cliente</th>
+              <th class="sortable" onclick="sortAcc('tier')">Tier</th>
+              <th>Estado presentación</th>
+              <th class="sortable" onclick="sortAcc('fecha')">Fecha</th>
+              <th>Notas</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="acc-tbody"></tbody>
+        </table>
+      </div>
+      <div class="add-panel" id="acc-add-panel" style="display:none">
+        <h3>Nueva cuenta</h3>
+        <div class="form-grid">
+          <div class="form-row three">
+            <div class="field"><input type="text" id="na-nombre" placeholder="Nombre del cliente"/></div>
+            <div class="field">
+              <select id="na-tier">
+                <option value="A">Tier A</option>
+                <option value="B" selected>Tier B</option>
+                <option value="C">Tier C</option>
+              </select>
+            </div>
+            <div class="field">
+              <select id="na-status">
+                <option value="sin-asignar">Sin asignar</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="en-proceso">En proceso</option>
+                <option value="presentada">Presentada</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><input type="date" id="na-fecha"/></div>
+            <div class="field"><input type="text" id="na-notas" placeholder="Notas (opcional)"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="addAccount()" style="width:fit-content">Agregar cuenta</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const todayDate=new Date(); todayDate.setHours(0,0,0,0);
+const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+document.getElementById('today-str').textContent=`${todayDate.getDate()} ${months[todayDate.getMonth()]} ${todayDate.getFullYear()}`;
+
+let tasks=[
+  {id:1,title:"Informe regional",status:"en-curso",tag:"Interno",desc:"Terminar el framework del informe provincial con KPI cards y análisis de canasta share.",steps:[
+    {text:"Definir estructura de KPI cards",done:true},{text:"Cargar datos por provincia",done:false},{text:"Agregar canasta share por categoría",done:false},{text:"Revisión final y envío",done:false}
+  ]},
+  {id:2,title:"Seguimiento Dashboard Libertad",status:"en-curso",tag:"Cliente",desc:"Dar seguimiento al dashboard del cliente Libertad y validar que los indicadores estén actualizados.",steps:[
+    {text:"Verificar estado actual del dashboard",done:false},{text:"Agendar call de seguimiento",done:false}
+  ]},
+  {id:3,title:"Onboarding Cencosud",status:"urgente",tag:"Cliente",desc:"Integración finalizada. Cargar datos de PDVs en Odoo CRM y luego gestionar dashboards.",steps:[
+    {text:"Cargar datos de PDVs en Odoo CRM",done:false},{text:"Verificar carga completa",done:false},{text:"Solicitar habilitación de dashboards",done:false},{text:"Confirmar accesos con el cliente",done:false}
+  ]},
+  {id:4,title:"Presentación Cooperativa Obrera",status:"urgente",tag:"Recuperación",desc:"Armar presentación para recuperar al cliente. Coordinar visita presencial a Bahía Blanca.",steps:[
+    {text:"Definir propuesta de valor",done:false},{text:"Armar slides de presentación",done:false},{text:"Coordinar visita a Bahía Blanca",done:false},{text:"Confirmar fecha y asistentes",done:false}
+  ]}
+];
+let accounts=[
+  {id:1,nombre:"Cooperativa Obrera",tier:"A",status:"pendiente",fecha:"2026-05-20",notas:"Recuperación activa · Visita Bahía Blanca"},
+  {id:2,nombre:"Cencosud",tier:"A",status:"en-proceso",fecha:"2026-05-15",notas:"Onboarding en curso · Dashboards pendientes"},
+  {id:3,nombre:"Libertad",tier:"B",status:"en-proceso",fecha:"2026-05-12",notas:"Seguimiento dashboard activo"}
+];
+
+let taskNextId=5,accNextId=4;
+let taskFilter="todos",accFilter="todos",accSearch="",accSortCol="tier",accSortDir=1;
+let currentTab="tareas";
+
+const taskStatusLabel={urgente:"Urgente","en-curso":"En curso",pendiente:"Pendiente",completado:"Completado"};
+const accStatusLabel={"sin-asignar":"Sin asignar",pendiente:"Pendiente","en-proceso":"En proceso",presentada:"Presentada"};
+const accStatusClass={"sin-asignar":"st-sin-asignar",pendiente:"st-pendiente","en-proceso":"st-en-proceso",presentada:"st-presentada"};
+const accStatusCycle=["sin-asignar","pendiente","en-proceso","presentada"];
+
+function goTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  el.classList.add('active');
+  const titles={tareas:["Tareas pendientes","Gestioná y seguí tus tareas activas"],cuentas:["Cartera de cuentas","Presentaciones por tier · Estado y fechas"]};
+  document.getElementById('tab-title').textContent=titles[tab][0];
+  document.getElementById('tab-sub').textContent=titles[tab][1];
+  document.getElementById('task-add-panel').style.display='none';
+  document.getElementById('acc-add-panel').style.display='none';
+  render();
+}
+
+function toggleAddPanel(){
+  const p=currentTab==='tareas'?'task-add-panel':'acc-add-panel';
+  const el=document.getElementById(p);
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function setTaskFilter(f){
+  taskFilter=f;
+  const labels={todos:"Todos",urgente:"Urgente","en-curso":"En curso",pendiente:"Pendiente",completado:"Completado"};
+  document.querySelectorAll('#task-filters .chip').forEach(c=>c.classList.toggle('active',c.textContent===labels[f]));
+  renderTasks();
+}
+
+function toggleStep(tid,idx,val){const t=tasks.find(t=>t.id===tid);if(t){t.steps[idx].done=val;renderTasks();}}
+function changeTaskStatus(tid,val){const t=tasks.find(t=>t.id===tid);if(t){t.status=val;renderTasks();}}
+function deleteTask(tid){tasks=tasks.filter(t=>t.id!==tid);renderTasks();}
+
+function addTask(){
+  const title=document.getElementById('nt-title').value.trim();if(!title)return;
+  const raw=document.getElementById('nt-steps').value.trim();
+  const steps=raw?raw.split(',').map(s=>({text:s.trim(),done:false})):[];
+  tasks.push({id:taskNextId++,title,status:document.getElementById('nt-status').value,tag:document.getElementById('nt-tag').value.trim()||'General',desc:document.getElementById('nt-desc').value.trim()||'',steps});
+  ['nt-title','nt-desc','nt-tag','nt-steps'].forEach(id=>document.getElementById(id).value='');
+  renderTasks();
+}
+
+function renderTasks(){
+  const counts={urgente:0,"en-curso":0,pendiente:0,completado:0};
+  tasks.forEach(t=>counts[t.status]=(counts[t.status]||0)+1);
+  document.getElementById('badge-tareas').textContent=tasks.length;
+  document.getElementById('task-stats').innerHTML=`
+    <div class="stat-card sc-orange"><div class="stat-label">Total</div><div class="stat-val">${tasks.length}</div><div class="stat-sub">tareas activas</div></div>
+    <div class="stat-card sc-red"><div class="stat-label">Urgente</div><div class="stat-val">${counts.urgente}</div><div class="stat-sub">requieren atención</div></div>
+    <div class="stat-card sc-navy"><div class="stat-label">En curso</div><div class="stat-val">${counts["en-curso"]}</div><div class="stat-sub">en progreso</div></div>
+    <div class="stat-card sc-green"><div class="stat-label">Completado</div><div class="stat-val">${counts.completado}</div><div class="stat-sub">finalizadas</div></div>`;
+  const order=["urgente","en-curso","pendiente","completado"];
+  let data=taskFilter==="todos"?[...tasks]:tasks.filter(t=>t.status===taskFilter);
+  data.sort((a,b)=>order.indexOf(a.status)-order.indexOf(b.status));
+  const list=document.getElementById('task-list');
+  if(!data.length){list.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">Sin tareas en esta categoría</div>';return;}
+  list.innerHTML=data.map(t=>{
+    const done=t.steps.filter(s=>s.done).length;
+    const pct=t.steps.length?Math.round(done/t.steps.length*100):0;
+    return`<div class="task-card ${t.status}">
+      <div class="task-top">
+        <div class="task-title">${t.title}</div>
+        <button class="del-btn" onclick="deleteTask(${t.id})">✕</button>
+      </div>
+      ${t.desc?`<div class="task-desc">${t.desc}</div>`:''}
+      ${t.steps.length?`<div class="steps">${t.steps.map((s,i)=>`<div class="step-row${s.done?' done':''}"><input type="checkbox"${s.done?' checked':''} onchange="toggleStep(${t.id},${i},this.checked)"/><span>${s.text}</span></div>`).join('')}</div>`:''}
+      <div class="task-footer">
+        <span class="tag-pill">${t.tag}</span>
+        ${t.steps.length?`<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><span class="progress-pct">${pct}%</span></div>`:''}
+        <select class="task-status-sel" onchange="changeTaskStatus(${t.id},this.value)">
+          ${["urgente","en-curso","pendiente","completado"].map(s=>`<option value="${s}"${t.status===s?' selected':''}>${taskStatusLabel[s]}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setAccFilter(f){
+  accFilter=f;
+  const labels={todos:"Todos",A:"Tier A",B:"Tier B",C:"Tier C",pendiente:"Pendiente",presentada:"Presentada"};
+  document.querySelectorAll('#acc-filters .chip').forEach(c=>c.classList.toggle('active',c.textContent===labels[f]));
+  renderAccounts();
+}
+function setAccSearch(v){accSearch=v.toLowerCase();renderAccounts();}
+function sortAcc(col){if(accSortCol===col)accSortDir*=-1;else{accSortCol=col;accSortDir=1;}renderAccounts();}
+function cycleAccStatus(id){const a=accounts.find(a=>a.id===id);if(!a)return;a.status=accStatusCycle[(accStatusCycle.indexOf(a.status)+1)%accStatusCycle.length];renderAccounts();}
+function editNota(id,val){const a=accounts.find(a=>a.id===id);if(a)a.notas=val;}
+function deleteAcc(id){accounts=accounts.filter(a=>a.id!==id);renderAccounts();}
+
+function fmtDate(f){if(!f)return'—';const[y,m,d]=f.split('-');return`${d}/${m}/${y}`;}
+function dateClass(f){
+  if(!f)return'date-ok';
+  const d=new Date(f+'T00:00:00');
+  const diff=Math.floor((d-todayDate)/86400000);
+  if(diff<0)return'date-over';
+  if(diff<=7)return'date-warn';
+  return'date-ok';
+}
+
+function addAccount(){
+  const nombre=document.getElementById('na-nombre').value.trim();if(!nombre)return;
+  accounts.push({id:accNextId++,nombre,tier:document.getElementById('na-tier').value,status:document.getElementById('na-status').value,fecha:document.getElementById('na-fecha').value,notas:document.getElementById('na-notas').value.trim()});
+  ['na-nombre','na-fecha','na-notas'].forEach(id=>document.getElementById(id).value='');
+  renderAccounts();
+}
+
+function renderAccounts(){
+  const total=accounts.length;
+  const pend=accounts.filter(a=>a.status==='pendiente').length;
+  const proc=accounts.filter(a=>a.status==='en-proceso').length;
+  const pres=accounts.filter(a=>a.status==='presentada').length;
+  document.getElementById('badge-cuentas').textContent=total;
+  document.getElementById('acc-stats').innerHTML=`
+    <div class="stat-card sc-orange"><div class="stat-label">Cuentas</div><div class="stat-val">${total}</div><div class="stat-sub">en cartera</div></div>
+    <div class="stat-card sc-red"><div class="stat-label">Pendiente</div><div class="stat-val">${pend}</div><div class="stat-sub">sin presentar</div></div>
+    <div class="stat-card sc-navy"><div class="stat-label">En proceso</div><div class="stat-val">${proc}</div><div class="stat-sub">en preparación</div></div>
+    <div class="stat-card sc-green"><div class="stat-label">Presentada</div><div class="stat-val">${pres}</div><div class="stat-sub">finalizadas</div></div>`;
+  let data=[...accounts];
+  if(accFilter!=='todos'){
+    if(['A','B','C'].includes(accFilter))data=data.filter(a=>a.tier===accFilter);
+    else data=data.filter(a=>a.status===accFilter);
+  }
+  if(accSearch)data=data.filter(a=>a.nombre.toLowerCase().includes(accSearch));
+  data.sort((a,b)=>{let va=a[accSortCol]||'',vb=b[accSortCol]||'';return va<vb?-accSortDir:va>vb?accSortDir:0;});
+  const tbody=document.getElementById('acc-tbody');
+  if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="6">Sin cuentas en esta categoría</td></tr>';return;}
+  tbody.innerHTML=data.map(a=>`<tr>
+    <td class="client-name">${a.nombre}</td>
+    <td><span class="tier-pill tier-${a.tier}">${a.tier}</span></td>
+    <td><span class="status-pill ${accStatusClass[a.status]}" onclick="cycleAccStatus(${a.id})" title="Clic para cambiar estado">${accStatusLabel[a.status]}</span></td>
+    <td class="${dateClass(a.fecha)}">${fmtDate(a.fecha)}${a.fecha&&dateClass(a.fecha)==='date-over'?' ⚠':a.fecha&&dateClass(a.fecha)==='date-warn'?' →':''}</td>
+    <td><input class="note-input" type="text" value="${a.notas}" onchange="editNota(${a.id},this.value)" placeholder="—"/></td>
+    <td><button class="del-btn" onclick="deleteAcc(${a.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+function render(){renderTasks();renderAccounts();}
+render();
+</script>
+</body>
+</html>
