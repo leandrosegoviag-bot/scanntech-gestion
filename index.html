@@ -346,10 +346,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
       Cuentas<span class="nav-badge" id="badge-cuentas">—</span>
     </button>
-    <button class="nav-item" onclick="goTab('historial',this)">
-      <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
-      Historial<span class="nav-badge" id="badge-historial">—</span>
-    </button>
     <button class="nav-item" onclick="goTab('tareas',this)">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       Tareas<span class="nav-badge" id="badge-tareas">—</span>
@@ -480,21 +476,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     </div>
 
     <!-- HISTORIAL -->
-    <div class="tab-content" id="tab-historial">
-      <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px" id="hist-stats">
-        <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val" id="hist-total">—</div><div class="stat-sub">interacciones</div></div>
-        <div class="stat-card sc-orange"><div class="stat-label">Este mes</div><div class="stat-val" id="hist-mes">—</div><div class="stat-sub">registradas</div></div>
-        <div class="stat-card sc-green"><div class="stat-label">Cuentas</div><div class="stat-val" id="hist-cuentas">—</div><div class="stat-sub">con actividad</div></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h3>Registro de interacciones</h3>
-          <input style="font-size:12px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);outline:none;width:200px" type="text" placeholder="Buscar cuenta o autor..." oninput="filterHistorial(this.value)"/>
-        </div>
-        <div style="padding:16px" id="historial-list"><div class="loading-state">Sin interacciones aún</div></div>
-      </div>
-    </div>
-
     <!-- TAREAS -->
     <div class="tab-content" id="tab-tareas">
       <div class="stats" id="task-stats"></div>
@@ -535,7 +516,11 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 
     <!-- HISTORIAL -->
     <div class="tab-content" id="tab-historial">
-      <div class="stats" style="grid-template-columns:repeat(3,1fr)" id="hist-stats"></div>
+      <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px" id="hist-stats">
+        <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val" id="hist-total">—</div><div class="stat-sub">interacciones</div></div>
+        <div class="stat-card sc-orange"><div class="stat-label">Este mes</div><div class="stat-val" id="hist-mes">—</div><div class="stat-sub">registradas</div></div>
+        <div class="stat-card sc-green"><div class="stat-label">Cuentas</div><div class="stat-val" id="hist-cuentas">—</div><div class="stat-sub">con actividad</div></div>
+      </div>
       <div class="panel" style="margin-top:0">
         <div class="panel-head">
           <h3>Registro de interacciones</h3>
@@ -993,62 +978,9 @@ function renderAccounts(){
 }
 
 // ── HISTORIAL
-window.filterHistorial=function(v){histSearch=v.toLowerCase();renderHistorial();};
-function getAllInteracciones(){
-  const all=[];
-  accounts.forEach(a=>{
-    (a.interacciones||[]).forEach(i=>{
-      all.push({...i,cuentaNombre:a.nombre,cuentaId:a.id});
-    });
-  });
-  all.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
-  return all;
-}
-function renderHistorial(){
-  const all=getAllInteracciones();
-  const filtered=histSearch?all.filter(i=>[i.cuentaNombre,i.texto,i.autor,i.tipo].join(' ').toLowerCase().includes(histSearch)):all;
-  el('badge-historial').textContent=all.length;
-  el('hist-stats').innerHTML=`
-    <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${all.length}</div><div class="stat-sub">interacciones</div></div>
-    <div class="stat-card sc-orange"><div class="stat-label">Este mes</div><div class="stat-val">${all.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length}</div><div class="stat-sub">registradas</div></div>
-    <div class="stat-card sc-green"><div class="stat-label">Cuentas</div><div class="stat-val">${new Set(all.map(i=>i.cuentaId)).size}</div><div class="stat-sub">con actividad</div></div>`;
-  const list=el('historial-list');
-  if(!filtered.length){list.innerHTML='<div class="empty-state">Sin interacciones registradas aún</div>';return;}
-  list.innerHTML=filtered.map(i=>`<div class="historial-item">
-    <div class="historial-avatar">${(i.autor||'?').slice(0,2).toUpperCase()}</div>
-    <div class="historial-body">
-      <div class="historial-header">
-        <span class="historial-cuenta">${i.cuentaNombre}</span>
-        <span class="historial-tipo">${i.tipo||'Nota'}</span>
-        <span class="historial-autor">${i.autor||'—'}</span>
-        <span class="historial-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</span>
-      </div>
-      <div class="historial-text">${i.texto}</div>
-    </div>
-  </div>`).join('');
-}
-
 // ── INTERACCIONES
-window.selectTipo=function(btn,tipo){
-  selectedTipo=tipo;
-  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-};
-window.addInteraccion=async function(){
-  if(!currentDrawerAccId)return;
-  const texto=el('interaccion-texto').value.trim();if(!texto)return;
-  const autor=el('interaccion-autor').value;
-  const interaccion={tipo:selectedTipo,texto,autor,ts:new Date().toISOString()};
-  setSyncStatus('syncing');
-  try{
-    await updateDoc(doc(db,'accounts',currentDrawerAccId),{
-      interacciones:arrayUnion(interaccion),
-      ultimoContacto:new Date().toISOString().split('T')[0]
-    });
-    el('interaccion-texto').value='';
-    setSyncStatus('ok');
-  }catch{setSyncStatus('error');}
-};
+
+
 
 // ── DRAWER
 window.openDrawer=function(id){
@@ -1156,13 +1088,6 @@ function isCaidoEsteSemestre(a){
 }
 function isSinRespuesta(a){ return (a.statusAlerta||'')==='sin-respuesta'; }
 
-function getAllInteracciones(){
-  const all=[];
-  accounts.forEach(a=>{
-    (a.interacciones||[]).forEach(i=>{ all.push({...i, cuentaNombre:a.nombre, cuentaId:a.id}); });
-  });
-  return all.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
-}
 
 window.selectMonth = function(m){
   selectedMonth=m;
@@ -1383,8 +1308,6 @@ function renderDashboard(){
     <div class="ops-card"><div class="ops-icon">🔴</div><div class="ops-val">${caidos.length}</div><div class="ops-label">Caídos</div><div class="ops-sub">${caidos.filter(a=>['A+','A'].includes(normTier(a.tier))).length} son Tier A+/A</div></div>
     <div class="ops-card"><div class="ops-icon">⚡</div><div class="ops-val">${tasks.filter(t=>t.status==='urgente').length}</div><div class="ops-label">Urgentes</div><div class="ops-sub">requieren atención</div></div>`;
 
-  // Charts
-  renderCharts();
 }
 
 
