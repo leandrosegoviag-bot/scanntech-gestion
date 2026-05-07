@@ -323,10 +323,52 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
   .field-item.full{grid-column:span 1}
   .dash-grid,.ops-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ── LOGIN ── */
+.login-overlay{display:none;position:fixed;inset:0;background:var(--navy);z-index:999;align-items:center;justify-content:center}
+.login-overlay.show{display:flex}
+.login-card{background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-logo-icon{width:40px;height:40px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.login-logo-icon svg{width:22px;height:22px;fill:white}
+.login-logo-text{font-size:18px;font-weight:600;color:var(--navy)}
+.login-logo-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.login-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:24px}
+.login-field{margin-bottom:14px}
+.login-field label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;display:block}
+.login-field input{width:100%;font-size:13px;padding:10px 13px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border .15s}
+.login-field input:focus{border-color:var(--navy);background:#fff}
+.login-btn{width:100%;padding:11px;border-radius:var(--radius-sm);border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;margin-top:4px}
+.login-btn:hover{background:var(--orange2)}
+.login-btn:disabled{background:#ccc;cursor:not-allowed}
+.login-error{font-size:12px;color:var(--red);margin-top:10px;text-align:center;min-height:18px}
+.user-info{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.1);margin-top:auto}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--orange);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.user-name{font-size:12px;color:rgba(255,255,255,.8);flex:1}
+.user-role{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px}
+.logout-btn{background:transparent;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:11px;padding:4px 6px;border-radius:4px;font-family:'DM Sans',sans-serif}
+.logout-btn:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
 </style>
 </head>
 <body>
-<div class="app">
+<!-- LOGIN -->
+<div class="login-overlay show" id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm13 0a4 4 0 110 8 4 4 0 010-8z"/></svg></div>
+      <div><div class="login-logo-text">SAR</div><div class="login-logo-sub">Servicios al Retail · AR</div></div>
+    </div>
+    <div class="login-title">Iniciá sesión</div>
+    <div class="login-sub">Ingresá con tu cuenta de Scanntech</div>
+    <div class="login-field"><label>Email</label><input type="email" id="login-email" placeholder="nombre@scanntech.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div class="app" id="main-app" style="display:none">
 
 <aside class="sidebar">
   <div class="logo-area">
@@ -354,6 +396,14 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       Historial<span class="nav-badge" id="badge-historial">—</span>
     </button>
   </nav>
+  <div class="user-info" id="user-info" style="display:none">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <div>
+      <div class="user-name" id="user-name">—</div>
+      <div class="user-role" id="user-role">—</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Salir</button>
+  </div>
   <div class="sidebar-footer"><p>Hoy: <span id="today-str"></span></p></div>
 </aside>
 
@@ -630,6 +680,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, arrayUnion, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyDzIeTDhr9RDB7ckUDO_xu9ufNVoilV8tE",
@@ -1272,6 +1323,71 @@ function renderCharts(){
   const ctxJ=el('chart-ejec');if(!ctxJ)return;
   chartEjec=new Chart(ctxJ,{type:'bar',data:{labels:ejecutivos,datasets:[{label:'Con Analytics',data:ejCounts,backgroundColor:COLORS.slice(0,ejecutivos.length),borderRadius:6,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
 
+}
+
+
+// ── AUTH
+const auth = getAuth(app);
+
+// Roles: add emails here
+const ROLES = {
+  'leandro.segovia@scanntech.com': {name:'Leandro', role:'admin'},
+  'leandrosegovia.g@gmail.com':    {name:'Leandro (test)', role:'member'},
+};
+
+let currentUser = null;
+let currentRole = null;
+
+window.doLogin = async function(){
+  const email = el('login-email').value.trim();
+  const pass  = el('login-pass').value;
+  const btn   = el('login-btn');
+  const err   = el('login-error');
+  if(!email||!pass){err.textContent='Completá email y contraseña.';return;}
+  btn.disabled=true; btn.textContent='Ingresando...'; err.textContent='';
+  try{
+    await signInWithEmailAndPassword(auth, email, pass);
+  }catch(e){
+    err.textContent = e.code==='auth/invalid-credential'?'Email o contraseña incorrectos.':e.message;
+    btn.disabled=false; btn.textContent='Ingresar';
+  }
+};
+
+window.doLogout = async function(){
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, user=>{
+  if(user){
+    const info = ROLES[user.email] || {name: user.email.split('@')[0], role:'member'};
+    currentUser = user;
+    currentRole = info.role;
+    // Show app, hide login
+    el('login-overlay').classList.remove('show');
+    el('main-app').style.display='grid';
+    // Update user info in sidebar
+    el('user-info').style.display='flex';
+    el('user-avatar').textContent=info.name.slice(0,2).toUpperCase();
+    el('user-name').textContent=info.name;
+    el('user-role').textContent=info.role==='admin'?'Administrador':'Integrante';
+    // Apply role restrictions
+    applyRoleUI();
+  } else {
+    currentUser=null; currentRole=null;
+    el('login-overlay').classList.add('show');
+    el('main-app').style.display='none';
+    el('user-info').style.display='none';
+    // Reset login form
+    el('login-btn').disabled=false;
+    el('login-btn').textContent='Ingresar';
+    el('login-error').textContent='';
+  }
+});
+
+function applyRoleUI(){
+  if(currentRole==='admin') return; // admin sees everything
+  // Members: hide delete buttons and add panels
+  document.querySelectorAll('.del-btn').forEach(b=>b.style.display='none');
 }
 
 setSyncStatus('syncing');
