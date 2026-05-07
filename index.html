@@ -1090,6 +1090,16 @@ window.saveDrawer=async function(){
 };
 
 // ── DASHBOARD
+const SEMESTRE_START = new Date('2026-01-01');
+const SEMESTRE_END   = new Date('2026-06-30T23:59:59');
+function isCaidoEsteSemestre(a){
+  if(isActivo(a)) return false;
+  if(!a.fechaBaja) return false;
+  const d=new Date(a.fechaBaja);
+  return d>=SEMESTRE_START && d<=SEMESTRE_END;
+}
+function isSinRespuesta(a){ return (a.statusAlerta||'')==='sin-respuesta'; }
+
 let selectedMonth = new Date().getMonth();
 let selectedYear  = new Date().getFullYear();
 window.selectMonth = function(m){ selectedMonth=m; renderDashboard(); };
@@ -1148,6 +1158,7 @@ function renderDashboard(){
     </div>`;
 
   // OKR 2
+  const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
   el('okr-grid-2').innerHTML=`
     <div class="okr-card">
       <div class="okr-label">KR 2.1 · Churn rate</div>
@@ -1157,25 +1168,25 @@ function renderDashboard(){
       <div class="okr-target">Caídos: ${caidos.length} · Activos: ${activos.length}</div>
     </div>
     <div class="okr-card">
-      <div class="okr-label">KR 2.2 · Reactivación <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span></div>
-      <div class="okr-title">Cuentas caídas A+/A identificadas para reactivar</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidos.filter(a=>['A+','A'].includes(normTier(a.tier))).length}</span><span style="font-size:12px;color:var(--text3)"> cuentas</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(caidos.filter(a=>['A+','A'].includes(normTier(a.tier))).length*20,100)}%"></div></div>
-      <div class="okr-target">Objetivo recuperación: ≥20%</div>
+      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span> Caídos semestre</div>
+      <div class="okr-title">Cuentas A+/A caídas Ene–Jun 2026</div>
+      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥20%</span></div>
+      <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length*20,100)}%"></div></div>
+      <div class="okr-target">Total caídos semestre: ${caidosSemestre.length} · Cargá fecha de baja en cada cuenta</div>
     </div>
     <div class="okr-card">
-      <div class="okr-label">KR 2.2 · Reactivación <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span></div>
-      <div class="okr-title">Cuentas caídas B para reactivar</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidos.filter(a=>normTier(a.tier)==='B').length}</span><span style="font-size:12px;color:var(--text3)"> cuentas</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(caidos.filter(a=>normTier(a.tier)==='B').length*10,100)}%"></div></div>
-      <div class="okr-target">Objetivo recuperación: ≥25%</div>
+      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span> Caídos semestre</div>
+      <div class="okr-title">Cuentas B caídas Ene–Jun 2026</div>
+      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='B').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥25%</span></div>
+      <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='B').length*10,100)}%"></div></div>
+      <div class="okr-target">Objetivo: ≥25% de recuperación</div>
     </div>
     <div class="okr-card">
-      <div class="okr-label">KR 2.2 · Reactivación <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span></div>
-      <div class="okr-title">Cuentas caídas C para reactivar</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidos.filter(a=>normTier(a.tier)==='C').length}</span><span style="font-size:12px;color:var(--text3)"> cuentas</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(caidos.filter(a=>normTier(a.tier)==='C').length*2,100)}%"></div></div>
-      <div class="okr-target">Objetivo recuperación: ≥35%</div>
+      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span> Caídos semestre</div>
+      <div class="okr-title">Cuentas C caídas Ene–Jun 2026</div>
+      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='C').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥35%</span></div>
+      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='C').length*2,100)}%"></div></div>
+      <div class="okr-target">Objetivo: ≥35% de recuperación</div>
     </div>`;
 
   // Métricas operativas
