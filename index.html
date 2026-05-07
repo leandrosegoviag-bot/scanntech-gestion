@@ -397,12 +397,12 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 
       <div class="dash-charts-row" id="dash-charts-row">
         <div class="dash-chart-wrap">
-          <div class="dash-chart-title">Distribución por Tier</div>
-          <canvas id="chart-tier" height="180"></canvas>
-        </div>
-        <div class="dash-chart-wrap">
           <div class="dash-chart-title">Activos vs Caídos</div>
           <canvas id="chart-estado" height="180"></canvas>
+        </div>
+        <div class="dash-chart-wrap">
+          <div class="dash-chart-title">Tier · Activos con Analytics</div>
+          <canvas id="chart-tier" height="180"></canvas>
         </div>
         <div class="dash-chart-wrap">
           <div class="dash-chart-title">Distribución por Ejecutivo</div>
@@ -1198,7 +1198,7 @@ function renderDashboard(){
   const sinRespuesta=accounts.filter(a=>isSinRespuesta(a));
   const sinPresent=activos.filter(a=>!a.ultimaPresentacion||a.ultimaPresentacion==='');
   el('ops-grid').innerHTML=`
-    <div class="ops-card"><div class="ops-icon">📊</div><div class="ops-val">${conAnalytics.length}</div><div class="ops-label">Con Analytics</div><div class="ops-sub">de ${activos.length} activos</div></div>
+    <div class="ops-card"><div class="ops-icon">📊</div><div class="ops-val">${conAnalytics.length}</div><div class="ops-label">${activos.length} cuentas activas</div><div class="ops-sub" style="font-size:10px">con analytics</div></div>
     <div class="ops-card"><div class="ops-icon">🏪</div><div class="ops-val">${totalLocales.toLocaleString('es-AR')}</div><div class="ops-label">Locales totales</div><div class="ops-sub">en cartera activa</div></div>
     <div class="ops-card"><div class="ops-icon">📞</div><div class="ops-val">${intsMes.length}</div><div class="ops-label">Interacciones</div><div class="ops-sub">${months12[selectedMonth]}</div></div>
     <div class="ops-card"><div class="ops-icon">🎯</div><div class="ops-val">${pctCobertura}%</div><div class="ops-label">Cobertura</div><div class="ops-sub">cuentas con actividad</div></div>
@@ -1213,31 +1213,32 @@ function renderDashboard(){
 
 function renderCharts(){
   const COLORS=['#f4600c','#0a2463','#1a9e6a','#d97706','#7c3aed','#d93025','#92400e'];
-  // Tier donut
-  const tierData=[
-    {label:'A+',count:accounts.filter(a=>normTier(a.tier)==='A+').length,color:'#92400e'},
-    {label:'A',count:accounts.filter(a=>normTier(a.tier)==='A').length,color:'#f4600c'},
-    {label:'B',count:accounts.filter(a=>normTier(a.tier)==='B').length,color:'#0a2463'},
-    {label:'C',count:accounts.filter(a=>normTier(a.tier)==='C').length,color:'#9397a8'},
-  ].filter(d=>d.count>0);
+  const activosAll=accounts.filter(a=>isActivo(a));
+  const caidosAll=accounts.filter(a=>!isActivo(a));
+  const activosAnalytics=activosAll.filter(a=>(a.tipoServicio||'').includes('Analytics'));
 
+  // 1. Activos vs Caídos
+  if(chartEstado)chartEstado.destroy();
+  const ctxE=el('chart-estado');if(!ctxE)return;
+  chartEstado=new Chart(ctxE,{type:'doughnut',data:{labels:['Activos','Caídos'],datasets:[{data:[activosAll.length,caidosAll.length],backgroundColor:['#1a9e6a','#d93025'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}});
+
+  // 2. Tier - solo activos con Analytics
+  const tierData=[
+    {label:'A+',count:activosAnalytics.filter(a=>normTier(a.tier)==='A+').length,color:'#92400e'},
+    {label:'A', count:activosAnalytics.filter(a=>normTier(a.tier)==='A').length, color:'#f4600c'},
+    {label:'B', count:activosAnalytics.filter(a=>normTier(a.tier)==='B').length, color:'#0a2463'},
+    {label:'C', count:activosAnalytics.filter(a=>normTier(a.tier)==='C').length, color:'#9397a8'},
+  ].filter(d=>d.count>0);
   if(chartTier)chartTier.destroy();
   const ctxT=el('chart-tier');if(!ctxT)return;
   chartTier=new Chart(ctxT,{type:'doughnut',data:{labels:tierData.map(d=>d.label),datasets:[{data:tierData.map(d=>d.count),backgroundColor:tierData.map(d=>d.color),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}});
 
-  // Estado donut
-  const activos=accounts.filter(a=>isActivo(a)).length;
-  const caidos=accounts.filter(a=>!isActivo(a)).length;
-  if(chartEstado)chartEstado.destroy();
-  const ctxE=el('chart-estado');if(!ctxE)return;
-  chartEstado=new Chart(ctxE,{type:'doughnut',data:{labels:['Activos','Caídos'],datasets:[{data:[activos,caidos],backgroundColor:['#1a9e6a','#d93025'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}});
-
-  // Ejecutivo bar
-  const ejecutivos=[...new Set(accounts.map(a=>(a.ejecutivo||'Sin asignar').trim()))].filter(Boolean).sort();
-  const ejCounts=ejecutivos.map(e=>accounts.filter(a=>(a.ejecutivo||'Sin asignar').trim()===e).length);
+  // 3. Ejecutivo - solo activos con Analytics
+  const ejecutivos=[...new Set(activosAnalytics.map(a=>(a.ejecutivo||'S/A').trim()))].filter(Boolean).sort();
+  const ejCounts=ejecutivos.map(e=>activosAnalytics.filter(a=>(a.ejecutivo||'S/A').trim()===e).length);
   if(chartEjec)chartEjec.destroy();
   const ctxJ=el('chart-ejec');if(!ctxJ)return;
-  chartEjec=new Chart(ctxJ,{type:'bar',data:{labels:ejecutivos,datasets:[{label:'Cuentas',data:ejCounts,backgroundColor:COLORS.slice(0,ejecutivos.length),borderRadius:6,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+  chartEjec=new Chart(ctxJ,{type:'bar',data:{labels:ejecutivos,datasets:[{label:'Con Analytics',data:ejCounts,backgroundColor:COLORS.slice(0,ejecutivos.length),borderRadius:6,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
 }
 
 setSyncStatus('syncing');
