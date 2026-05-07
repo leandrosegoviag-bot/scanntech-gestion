@@ -91,7 +91,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cuentas-layout.collapsed{grid-template-columns:44px 1fr}
 
 /* Filter sidebar */
-.filter-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:12px;position:sticky;top:80px;transition:all .25s ease;overflow:hidden}
+.filter-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:12px;position:sticky;top:80px;transition:all .25s ease;overflow:hidden;max-height:calc(100vh - 100px);overflow-y:auto}
 .filter-sidebar.collapsed{padding:8px 4px;border-color:transparent;box-shadow:none;background:transparent}
 .filter-sidebar.collapsed .filter-group,.filter-sidebar.collapsed .filter-search,.filter-sidebar.collapsed .filter-divider,.filter-sidebar.collapsed .btn-clear-filters{display:none}
 .filter-toggle-btn{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:7px;padding:7px 9px;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s;margin-bottom:2px}
@@ -349,6 +349,66 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .user-role{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px}
 .logout-btn{background:transparent;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:11px;padding:4px 6px;border-radius:4px;font-family:'DM Sans',sans-serif}
 .logout-btn:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+
+/* ── CALENDARIO ── */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.cal-nav{display:flex;align-items:center;gap:10px}
+.cal-nav-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s}
+.cal-nav-btn:hover{background:var(--surface2)}
+.cal-month-title{font-size:15px;font-weight:600;color:var(--text);min-width:160px;text-align:center}
+.cal-view-toggle{display:flex;gap:4px}
+.cal-view-btn{font-size:11px;padding:5px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;transition:all .15s}
+.cal-view-btn.active{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* Monthly grid */
+.cal-grid-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border)}
+.cal-weekday{font-size:10px;font-weight:600;color:var(--text3);text-align:center;padding:8px 4px;text-transform:uppercase;letter-spacing:.06em;font-family:'DM Mono',monospace}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-day{min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px;position:relative;vertical-align:top}
+.cal-day:nth-child(7n){border-right:none}
+.cal-day.other-month{background:var(--surface2)}
+.cal-day.today{background:rgba(10,36,99,.04)}
+.cal-day-num{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;font-family:'DM Mono',monospace}
+.cal-day.today .cal-day-num{background:var(--navy);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.cal-event{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.4}
+.cal-event.tier-Aplus{background:#fef3c7;color:#92400e}
+.cal-event.tier-A{background:var(--orange-dim2);color:var(--orange)}
+.cal-event.tier-B{background:var(--navy-dim2);color:var(--navy)}
+.cal-event.overdue{background:var(--red-dim);color:var(--red)}
+.cal-event.pending{background:var(--surface3);color:var(--text3)}
+
+/* Weekly view */
+.cal-week-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+.cal-week-header{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border)}
+.cal-week-day-head{padding:10px 8px;text-align:center;border-right:1px solid var(--border)}
+.cal-week-day-head:last-child{border-right:none}
+.cal-week-day-name{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.cal-week-day-num{font-size:16px;font-weight:600;color:var(--text);margin-top:2px}
+.cal-week-day-head.today .cal-week-day-num{background:var(--navy);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:2px auto 0}
+.cal-week-body{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-week-col{min-height:200px;padding:8px;border-right:1px solid var(--border)}
+.cal-week-col:last-child{border-right:none}
+.cal-week-event{font-size:11px;padding:5px 8px;border-radius:6px;margin-bottom:5px;cursor:pointer;line-height:1.4}
+.cal-week-event.tier-Aplus{background:#fef3c7;color:#92400e;border-left:3px solid #92400e}
+.cal-week-event.tier-A{background:var(--orange-dim2);color:var(--orange);border-left:3px solid var(--orange)}
+.cal-week-event.tier-B{background:var(--navy-dim2);color:var(--navy);border-left:3px solid var(--navy)}
+.cal-week-event.overdue{background:var(--red-dim);color:var(--red);border-left:3px solid var(--red)}
+.cal-week-event.pending{background:var(--surface2);color:var(--text3);border-left:3px solid var(--border2)}
+.cal-week-event-name{font-weight:600;margin-bottom:1px}
+.cal-week-event-sub{font-size:10px;opacity:.8}
+
+/* Legend */
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* Pending list */
+.pending-section{margin-top:16px}
+.pending-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-family:'DM Mono',monospace}
+.pending-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px}
+.pending-item-name{font-size:13px;font-weight:500;color:var(--text);flex:1}
+.pending-item-sub{font-size:11px;color:var(--text3)}
 </style>
 </head>
 <body>
@@ -394,6 +454,10 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <button class="nav-item" onclick="goTab('historial',this)">
       <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
       Historial<span class="nav-badge" id="badge-historial">—</span>
+    </button>
+    <button class="nav-item" onclick="goTab('calendario',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+      Calendario<span class="nav-badge" id="badge-calendario">—</span>
     </button>
   </nav>
   <div class="user-info" id="user-info" style="display:none">
@@ -539,6 +603,35 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       </div>
     </div>
 
+
+    <!-- CALENDARIO -->
+    <div class="tab-content" id="tab-calendario">
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+          <div class="cal-month-title" id="cal-title">—</div>
+          <button class="cal-nav-btn" onclick="calNext()">›</button>
+          <button class="cal-nav-btn" onclick="calToday()" style="font-size:11px">Hoy</button>
+        </div>
+        <div class="cal-view-toggle">
+          <button class="cal-view-btn active" id="btn-view-month" onclick="setCalView('month')">Mes</button>
+          <button class="cal-view-btn" id="btn-view-week" onclick="setCalView('week')">Semana</button>
+        </div>
+      </div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fef3c7;border:1px solid #92400e"></div>Tier A+ (semanal)</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--orange-dim2);border:1px solid var(--orange)"></div>Tier A (semanal)</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--navy-dim2);border:1px solid var(--navy)"></div>Tier B (mensual)</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--red-dim);border:1px solid var(--red)"></div>Vencida</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--surface3);border:1px solid var(--border2)"></div>Sin fecha</div>
+      </div>
+      <div id="cal-content"></div>
+      <div class="pending-section">
+        <div class="pending-title">Sin fecha de presentación cargada</div>
+        <div id="cal-pending"></div>
+      </div>
+    </div>
+
     <!-- TAREAS -->
     <div class="tab-content" id="tab-tareas">
       <div class="stats" id="task-stats"></div>
@@ -612,6 +705,10 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <button class="mobile-nav-item" id="mob-nav-historial" onclick="goTabMobile('historial')">
       <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
       Historial
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-calendario" onclick="goTabMobile('calendario')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+      Agenda
     </button>
   </div>
 </nav>
@@ -752,6 +849,7 @@ window.goTab=function(tab,e){
   const titles={dashboard:["Dashboard","OKRs · Métricas operativas · 2026"],cuentas:["Cartera de cuentas","Activos · Caídos · Tier A+ / A / B / C"],tareas:["Tareas pendientes","Gestioná y seguí tus tareas activas"],historial:["Historial de interacciones","Registro de llamadas, reuniones y seguimientos"]};
   el('tab-title').textContent=titles[tab][0];el('tab-sub').textContent=titles[tab][1];
   el('task-add-panel').style.display='none';
+  if(tab==='calendario') renderCalendario();
   const btnAgregar=el('btn-agregar');
   if(btnAgregar)btnAgregar.style.display=tab==='tareas'?'inline-flex':'none';
   if(tab==='dashboard')renderDashboard();
@@ -1433,6 +1531,205 @@ function applyRoleUI(){
   if(currentRole==='admin') return; // admin sees everything
   // Members: hide delete buttons and add panels
   document.querySelectorAll('.del-btn').forEach(b=>b.style.display='none');
+}
+
+
+// ── CALENDARIO
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let calView  = 'month'; // 'month' | 'week'
+let calWeekStart = new Date(); // start of current week
+
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS_ES   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+// Frequency by tier: days until next presentation
+const TIER_FREQ = {'A+':7, 'A':7, 'B':30};
+
+function getCalEvents(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const events = [];
+  accounts.filter(a=>isActivo(a) && ['A+','A','B'].includes(normTier(a.tier))).forEach(a=>{
+    const tier = normTier(a.tier);
+    const freq = TIER_FREQ[tier];
+    let nextDate = null;
+    let cls = '';
+
+    if(a.ultimaPresentacion && a.ultimaPresentacion !== '—'){
+      // Parse date - could be YYYY-MM-DD or DD/MM/YYYY
+      let d;
+      if(a.ultimaPresentacion.includes('-')){
+        d = new Date(a.ultimaPresentacion + 'T00:00:00');
+      } else if(a.ultimaPresentacion.includes('/')){
+        const parts = a.ultimaPresentacion.split('/');
+        d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+      }
+      if(d && !isNaN(d)){
+        nextDate = new Date(d);
+        nextDate.setDate(nextDate.getDate() + freq);
+        cls = nextDate < today ? 'overdue' : 'tier-'+tier.replace('+','plus');
+      }
+    } else {
+      cls = 'pending';
+    }
+
+    events.push({
+      id: a.id,
+      nombre: a.nombre,
+      tier,
+      nextDate,
+      cls,
+      ejecutivo: a.ejecutivo||''
+    });
+  });
+  return events;
+}
+
+window.setCalView = function(v){
+  calView = v;
+  el('btn-view-month').classList.toggle('active', v==='month');
+  el('btn-view-week').classList.toggle('active', v==='week');
+  renderCalendario();
+};
+window.calPrev = function(){
+  if(calView==='month'){
+    calMonth--; if(calMonth<0){calMonth=11;calYear--;}
+  } else {
+    calWeekStart = new Date(calWeekStart);
+    calWeekStart.setDate(calWeekStart.getDate()-7);
+  }
+  renderCalendario();
+};
+window.calNext = function(){
+  if(calView==='month'){
+    calMonth++; if(calMonth>11){calMonth=0;calYear++;}
+  } else {
+    calWeekStart = new Date(calWeekStart);
+    calWeekStart.setDate(calWeekStart.getDate()+7);
+  }
+  renderCalendario();
+};
+window.calToday = function(){
+  const now = new Date();
+  calYear=now.getFullYear(); calMonth=now.getMonth();
+  calWeekStart = new Date(now);
+  calWeekStart.setDate(now.getDate()-now.getDay());
+  renderCalendario();
+};
+
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+function dateKey(d){ return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+
+function renderCalendario(){
+  if(!el('tab-calendario')) return;
+  const events = getCalEvents();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Pending (no date)
+  const pending = events.filter(e=>!e.nextDate);
+  el('cal-pending').innerHTML = pending.length
+    ? pending.map(e=>`<div class="pending-item">
+        <span class="tier-pill tier-${e.tier.replace('+','plus')}" style="font-size:10px">${e.tier}</span>
+        <span class="pending-item-name">${e.nombre}</span>
+        <span class="pending-item-sub">${e.ejecutivo}</span>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:var(--text3);padding:8px 0">Todas las cuentas tienen fecha cargada ✓</div>';
+
+  // Badge
+  const upcoming = events.filter(e=>e.nextDate).length;
+  el('badge-calendario').textContent = upcoming;
+
+  if(calView==='month') renderMonthView(events, today);
+  else renderWeekView(events, today);
+}
+
+function renderMonthView(events, today){
+  el('cal-title').textContent = `${MONTHS_ES[calMonth]} ${calYear}`;
+
+  // Build event map by date key
+  const eventMap = {};
+  events.filter(e=>e.nextDate).forEach(e=>{
+    const k = dateKey(e.nextDate);
+    if(!eventMap[k]) eventMap[k]=[];
+    eventMap[k].push(e);
+  });
+
+  // First day of month
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  let html = `<div class="cal-grid-wrap">
+    <div class="cal-weekdays">${DAYS_ES.map(d=>`<div class="cal-weekday">${d}</div>`).join('')}</div>
+    <div class="cal-days">`;
+
+  // Prev month days
+  for(let i=firstDay-1;i>=0;i--){
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${daysInPrev-i}</div></div>`;
+  }
+  // Current month days
+  for(let d=1;d<=daysInMonth;d++){
+    const date = new Date(calYear,calMonth,d);
+    const isToday = sameDay(date,today);
+    const k = dateKey(date);
+    const dayEvents = eventMap[k]||[];
+    const numHtml = isToday ? `<div class="cal-day-num"><div style="background:var(--navy);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center">${d}</div></div>`
+                            : `<div class="cal-day-num">${d}</div>`;
+    const evHtml = dayEvents.map(e=>`<div class="cal-event ${e.cls}" title="${e.nombre}">${e.nombre}</div>`).join('');
+    html+=`<div class="cal-day${isToday?' today':''}">${numHtml}${evHtml}</div>`;
+  }
+  // Next month fill
+  const total = firstDay + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total%7);
+  for(let i=1;i<=remaining;i++){
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  }
+  html+='</div></div>';
+  el('cal-content').innerHTML = html;
+}
+
+function renderWeekView(events, today){
+  // Get start of week (Sunday)
+  const start = new Date(calWeekStart);
+  start.setHours(0,0,0,0);
+  const end = new Date(start); end.setDate(end.getDate()+6);
+
+  const startFmt = `${start.getDate()} ${MONTHS_ES[start.getMonth()].slice(0,3)}`;
+  const endFmt   = `${end.getDate()} ${MONTHS_ES[end.getMonth()].slice(0,3)} ${end.getFullYear()}`;
+  el('cal-title').textContent = `${startFmt} – ${endFmt}`;
+
+  // Build columns for each day of week
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    days.push(d);
+  }
+
+  // Map events to days
+  const eventsByDay = days.map(d=>{
+    return events.filter(e=>e.nextDate && sameDay(e.nextDate, d));
+  });
+
+  let headHtml = days.map((d,i)=>{
+    const isToday = sameDay(d,today);
+    return`<div class="cal-week-day-head${isToday?' today':''}">
+      <div class="cal-week-day-name">${DAYS_ES[d.getDay()]}</div>
+      <div class="cal-week-day-num">${d.getDate()}</div>
+    </div>`;
+  }).join('');
+
+  let bodyHtml = days.map((d,i)=>{
+    const evs = eventsByDay[i];
+    return`<div class="cal-week-col">${evs.map(e=>`<div class="cal-week-event ${e.cls}">
+      <div class="cal-week-event-name">${e.nombre}</div>
+      <div class="cal-week-event-sub">${e.tier} · ${e.ejecutivo}</div>
+    </div>`).join('')}</div>`;
+  }).join('');
+
+  el('cal-content').innerHTML = `<div class="cal-week-wrap">
+    <div class="cal-week-header">${headHtml}</div>
+    <div class="cal-week-body">${bodyHtml}</div>
+  </div>`;
 }
 
 setSyncStatus('syncing');
