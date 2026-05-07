@@ -409,11 +409,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           <canvas id="chart-ejec" height="180"></canvas>
         </div>
       </div>
-      <div class="dash-section-title" style="margin-top:8px">Evolutivo semanal de interacciones</div>
-      <div class="dash-chart-wrap" style="margin-bottom:20px">
-        <div class="dash-chart-title">Interacciones por semana (últimas 12 semanas)</div>
-        <canvas id="chart-evolutivo" height="90"></canvas>
-      </div>
     </div>
 
     <!-- CUENTAS -->
@@ -1039,8 +1034,6 @@ window.openDrawer=function(id){
       <select id="df-tier">${['A+','A','B','C'].map(v=>`<option value="${v}"${tier===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Estado</label>
       <select id="df-estado">${['Activo','Caído'].map(v=>`<option value="${v}"${(a.estado||a.segmento)===v?' selected':''}>${v}</option>`).join('')}</select></div>
-    <div class="field-item"><label>Alerta</label>
-      <select id="df-alerta"><option value="">Sin alerta</option><option value="sin-respuesta"${(a.statusAlerta||'')==='sin-respuesta'?' selected':''}>🔕 Sin respuesta (+2m)</option></select></div>
     <div class="field-item"><label>Provincia</label><input id="df-localidad" type="text" value="${a.localidad||''}" placeholder="—"/></div>
     <div class="field-item"><label>Cant. locales</label><input id="df-locales" type="number" value="${a.locales?Math.round(parseFloat(a.locales)):''}" placeholder="—"/></div>
     <div class="field-item"><label>Contacto</label><input id="df-contacto" type="text" value="${a.contacto||''}" placeholder="—"/></div>
@@ -1054,9 +1047,8 @@ window.openDrawer=function(id){
   }else{
     el('drawer-section-activo').style.display='none';el('drawer-section-caido').style.display='block';
     el('drawer-fields-caido').innerHTML=`
-      <div class="field-item"><label>Fecha de baja</label><input id="df-fechaBaja" type="date" value="${a.fechaBaja||''}"/></div>
-      <div class="field-item"><label>Motivo de baja</label><input id="df-motivoBaja" type="text" value="${a.motivoBaja||''}" placeholder="—"/></div>
-      <div class="field-item full"><label>Últ. movimiento</label><input id="df-ultimoMovimiento" type="text" value="${a.ultimoMovimiento||''}" placeholder="—"/></div>`;
+      <div class="field-item"><label>Últ. movimiento</label><input id="df-ultimoMovimiento" type="text" value="${a.ultimoMovimiento||''}" placeholder="—"/></div>
+      <div class="field-item"><label>Motivo de baja</label><input id="df-motivoBaja" type="text" value="${a.motivoBaja||''}" placeholder="—"/></div>`;
   }
   // Interacciones
   const ints=(a.interacciones||[]).slice().reverse();
@@ -1091,69 +1083,44 @@ window.saveDrawer=async function(){
   const histEntries=changes.map(c=>({action:c,ts:new Date().toISOString()}));
   const upd={ejecutivo:el('df-ejecutivo').value,tipoServicio:el('df-servicio').value,tier:newTier,estado:newEstado,segmento:newEstado,localidad:el('df-localidad').value.trim(),locales:el('df-locales').value.trim(),contacto:el('df-contacto').value.trim(),email:el('df-email').value.trim(),notas:el('df-notas').value.trim()};
   if(activo){upd.ultimoContacto=el('df-ultimoContacto')?.value||'';upd.ultimaPresentacion=el('df-ultimaPresentacion')?.value||'';}
-  else{
-    upd.fechaBaja=el('df-fechaBaja')?.value||'';
-    upd.motivoBaja=el('df-motivoBaja')?.value||'';
-    upd.ultimoMovimiento=el('df-ultimoMovimiento')?.value||'';
-  }
-  upd.statusAlerta=el('df-alerta')?.value||'';
+  else{upd.ultimoMovimiento=el('df-ultimoMovimiento')?.value||'';upd.motivoBaja=el('df-motivoBaja')?.value||'';}
   if(histEntries.length)upd.history=arrayUnion(...histEntries);
   setSyncStatus('syncing');
   try{await updateDoc(doc(db,'accounts',currentDrawerAccId),upd);setSyncStatus('ok');closeDrawer();}catch{setSyncStatus('error');}
 };
 
 // ── DASHBOARD
-const SEMESTRE_START = new Date('2026-01-01');
-const SEMESTRE_END   = new Date('2026-06-30T23:59:59');
 let selectedMonth = new Date().getMonth();
 let selectedYear  = new Date().getFullYear();
-let chartEvoInst  = null;
-
-function isCaidoEsteSemestre(a){
-  if(isActivo(a)) return false;
-  if(!a.fechaBaja) return false;
-  const d = new Date(a.fechaBaja);
-  return d >= SEMESTRE_START && d <= SEMESTRE_END;
-}
-function isSinRespuesta(a){ return (a.statusAlerta||'')==='sin-respuesta'; }
-
-window.selectMonth = function(m){
-  selectedMonth = m;
-  renderDashboard();
-};
+window.selectMonth = function(m){ selectedMonth=m; renderDashboard(); };
 
 function renderDashboard(){
   if(!accounts.length)return;
   const months12=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  // Month selector
   const msWrap=el('month-selector-wrap');
   if(msWrap) msWrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</span>${months12.map((m,i)=>`<button onclick="selectMonth(${i})" style="font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid ${i===selectedMonth?'var(--navy)':'var(--border)'};background:${i===selectedMonth?'var(--navy)':'transparent'};color:${i===selectedMonth?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif">${m}</button>`).join('')}</div>`;
-
   const total=accounts.length;
   const activos=accounts.filter(a=>isActivo(a));
   const caidos=accounts.filter(a=>!isActivo(a));
-  const allInts=getAllInteracciones();
-  const intsMes=allInts.filter(i=>{const d=new Date(i.ts);return d.getMonth()===selectedMonth&&d.getFullYear()===selectedYear;});
   const conAnalytics=activos.filter(a=>(a.tipoServicio||'').includes('Analytics'));
-  const totalAA=activos.filter(a=>['A+','A'].includes(normTier(a.tier)));
-  const analAA=totalAA.filter(a=>(a.tipoServicio||'').includes('Analytics'));
-  const pctAA=totalAA.length?Math.round(analAA.length/totalAA.length*100):0;
-  const totalB=activos.filter(a=>normTier(a.tier)==='B');
-  const analB=totalB.filter(a=>(a.tipoServicio||'').includes('Analytics'));
-  const pctBpct=totalB.length?Math.round(analB.length/totalB.length*100):0;
-  const totalC=activos.filter(a=>normTier(a.tier)==='C');
-  const analC=totalC.filter(a=>(a.tipoServicio||'').includes('Analytics'));
-  const pctCpct=totalC.length?Math.round(analC.length/totalC.length*100):0;
+  const pctAnalyticsAA=activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics')).length;
+  const totalAA=activos.filter(a=>['A+','A'].includes(normTier(a.tier))).length;
+  const pctAA=totalAA?Math.round(pctAnalyticsAA/totalAA*100):0;
+  const pctB=activos.filter(a=>normTier(a.tier)==='B').length;
+  const pctBAnalytics=activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics')).length;
+  const pctBpct=pctB?Math.round(pctBAnalytics/pctB*100):0;
+  const pctC=activos.filter(a=>normTier(a.tier)==='C').length;
+  const pctCAnalytics=activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics')).length;
+  const pctCpct=pctC?Math.round(pctCAnalytics/pctC*100):0;
   const churnRate=total?Math.round(caidos.length/total*100):0;
-  const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
-  const sinRespuesta=accounts.filter(a=>isSinRespuesta(a));
-  const sinPresent=activos.filter(a=>!a.ultimaPresentacion||a.ultimaPresentacion==='');
+  const allInts=getAllInteracciones();
+  const intEsteMes=allInts.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length;
 
   // OKR 1
   el('okr-grid-1').innerHTML=`
     <div class="okr-card">
       <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span></div>
-      <div class="okr-title">Cuentas A+/A utilizando dashboards</div>
+      <div class="okr-title">Cuentas utilizando dashboards regularmente</div>
       <div class="okr-progress-row"><span class="okr-pct">${pctAA}%</span><span style="font-size:12px;color:var(--text3)">/ 100%</span></div>
       <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(pctAA,100)}%"></div></div>
       <div class="okr-target">Punto de partida: 11% · Objetivo: 100%</div>
@@ -1173,10 +1140,10 @@ function renderDashboard(){
       <div class="okr-target">Punto de partida: 8% · Objetivo: 20%</div>
     </div>
     <div class="okr-card">
-      <div class="okr-label">KR 1.2 · Insights · ${months12[selectedMonth]}</div>
-      <div class="okr-title">Interacciones registradas este mes</div>
-      <div class="okr-progress-row"><span class="okr-pct">${intsMes.length}</span><span style="font-size:12px;color:var(--text3)"> registradas</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(intsMes.length*5,100)}%"></div></div>
+      <div class="okr-label">KR 1.2 · Insights</div>
+      <div class="okr-title">Presentaciones / insights generados este mes</div>
+      <div class="okr-progress-row"><span class="okr-pct">${intEsteMes}</span><span style="font-size:12px;color:var(--text3)"> registradas</span></div>
+      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(intEsteMes*10,100)}%"></div></div>
       <div class="okr-target">Objetivo A+/A: 1/semana · B: 1/mes</div>
     </div>`;
 
@@ -1190,25 +1157,25 @@ function renderDashboard(){
       <div class="okr-target">Caídos: ${caidos.length} · Activos: ${activos.length}</div>
     </div>
     <div class="okr-card">
-      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span> Caídos semestre</div>
-      <div class="okr-title">Cuentas A+/A caídas en Ene–Jun 2026</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥20%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length*20,100)}%"></div></div>
-      <div class="okr-target">Total caídos semestre: ${caidosSemestre.length} · Ingresá fecha de baja en cada cuenta</div>
+      <div class="okr-label">KR 2.2 · Reactivación <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span></div>
+      <div class="okr-title">Cuentas caídas A+/A identificadas para reactivar</div>
+      <div class="okr-progress-row"><span class="okr-pct">${caidos.filter(a=>['A+','A'].includes(normTier(a.tier))).length}</span><span style="font-size:12px;color:var(--text3)"> cuentas</span></div>
+      <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(caidos.filter(a=>['A+','A'].includes(normTier(a.tier))).length*20,100)}%"></div></div>
+      <div class="okr-target">Objetivo recuperación: ≥20%</div>
     </div>
     <div class="okr-card">
-      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span> Caídos semestre</div>
-      <div class="okr-title">Cuentas B caídas en Ene–Jun 2026</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='B').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥25%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='B').length*10,100)}%"></div></div>
-      <div class="okr-target">Objetivo: ≥25% de recuperación</div>
+      <div class="okr-label">KR 2.2 · Reactivación <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span></div>
+      <div class="okr-title">Cuentas caídas B para reactivar</div>
+      <div class="okr-progress-row"><span class="okr-pct">${caidos.filter(a=>normTier(a.tier)==='B').length}</span><span style="font-size:12px;color:var(--text3)"> cuentas</span></div>
+      <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(caidos.filter(a=>normTier(a.tier)==='B').length*10,100)}%"></div></div>
+      <div class="okr-target">Objetivo recuperación: ≥25%</div>
     </div>
     <div class="okr-card">
-      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span> Caídos semestre</div>
-      <div class="okr-title">Cuentas C caídas en Ene–Jun 2026</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='C').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥35%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='C').length*2,100)}%"></div></div>
-      <div class="okr-target">Objetivo: ≥35% de recuperación</div>
+      <div class="okr-label">KR 2.2 · Reactivación <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span></div>
+      <div class="okr-title">Cuentas caídas C para reactivar</div>
+      <div class="okr-progress-row"><span class="okr-pct">${caidos.filter(a=>normTier(a.tier)==='C').length}</span><span style="font-size:12px;color:var(--text3)"> cuentas</span></div>
+      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(caidos.filter(a=>normTier(a.tier)==='C').length*2,100)}%"></div></div>
+      <div class="okr-target">Objetivo recuperación: ≥35%</div>
     </div>`;
 
   // Métricas operativas
@@ -1216,17 +1183,15 @@ function renderDashboard(){
   const cuentasConInt=new Set(getAllInteracciones().map(i=>i.cuentaId)).size;
   const tareasAbiertas=tasks.filter(t=>t.status!=='completado').length;
   const pctCobertura=total?Math.round(cuentasConInt/activos.length*100):0;
-  const cuentasConInt=new Set(allInts.map(i=>i.cuentaId)).size;
-  const pctCobertura=activos.length?Math.round(cuentasConInt/activos.length*100):0;
   el('ops-grid').innerHTML=`
-    <div class="ops-card"><div class="ops-icon">📊</div><div class="ops-val">${conAnalytics.length}</div><div class="ops-label">Con Analytics</div><div class="ops-sub">de ${activos.length} activos</div></div>
     <div class="ops-card"><div class="ops-icon">🏪</div><div class="ops-val">${totalLocales.toLocaleString('es-AR')}</div><div class="ops-label">Locales totales</div><div class="ops-sub">en cartera activa</div></div>
-    <div class="ops-card"><div class="ops-icon">📞</div><div class="ops-val">${intsMes.length}</div><div class="ops-label">Interacciones</div><div class="ops-sub">en ${months12[selectedMonth]}</div></div>
+    <div class="ops-card"><div class="ops-icon">📊</div><div class="ops-val">${Math.round(activos.length?totalLocales/activos.length:0)}</div><div class="ops-label">Locales promedio</div><div class="ops-sub">por cuenta activa</div></div>
+    <div class="ops-card"><div class="ops-icon">📞</div><div class="ops-val">${allInts.length}</div><div class="ops-label">Interacciones totales</div><div class="ops-sub">${intEsteMes} este mes</div></div>
     <div class="ops-card"><div class="ops-icon">🎯</div><div class="ops-val">${pctCobertura}%</div><div class="ops-label">Cobertura</div><div class="ops-sub">cuentas con actividad</div></div>
-    <div class="ops-card"><div class="ops-icon">🔕</div><div class="ops-val" style="color:${sinRespuesta.length>0?'var(--red)':'var(--text)'}">${sinRespuesta.length}</div><div class="ops-label">Sin respuesta</div><div class="ops-sub">+2 meses inactivas</div></div>
-    <div class="ops-card"><div class="ops-icon">📉</div><div class="ops-val" style="color:${caidosSemestre.length>0?'var(--red)':'var(--text)'}">${caidosSemestre.length}</div><div class="ops-label">Caídos semestre</div><div class="ops-sub">Ene–Jun 2026</div></div>
-    <div class="ops-card"><div class="ops-icon">⚡</div><div class="ops-val" style="color:${tasks.filter(t=>t.status==='urgente').length>0?'var(--red)':'var(--text)'}">${tasks.filter(t=>t.status==='urgente').length}</div><div class="ops-label">Tareas urgentes</div><div class="ops-sub">requieren atención</div></div>
-    <div class="ops-card"><div class="ops-icon">📋</div><div class="ops-val" style="color:${sinPresent.length>10?'var(--amber)':'var(--text)'}">${sinPresent.length}</div><div class="ops-label">Sin presentación</div><div class="ops-sub">cuentas activas</div></div>`;
+    <div class="ops-card"><div class="ops-icon">✅</div><div class="ops-val">${tareasAbiertas}</div><div class="ops-label">Tareas abiertas</div><div class="ops-sub">${tasks.filter(t=>t.status==='urgente').length} urgentes</div></div>
+    <div class="ops-card"><div class="ops-icon">📈</div><div class="ops-val">${conAnalytics.length}</div><div class="ops-label">Con Analytics</div><div class="ops-sub">de ${activos.length} activos</div></div>
+    <div class="ops-card"><div class="ops-icon">🔴</div><div class="ops-val">${caidos.length}</div><div class="ops-label">Caídos</div><div class="ops-sub">${caidos.filter(a=>['A+','A'].includes(normTier(a.tier))).length} son Tier A+/A</div></div>
+    <div class="ops-card"><div class="ops-icon">⚡</div><div class="ops-val">${tasks.filter(t=>t.status==='urgente').length}</div><div class="ops-label">Urgentes</div><div class="ops-sub">requieren atención</div></div>`;
 
   // Charts
   renderCharts();
@@ -1234,43 +1199,31 @@ function renderDashboard(){
 
 function renderCharts(){
   const COLORS=['#f4600c','#0a2463','#1a9e6a','#d97706','#7c3aed','#d93025','#92400e'];
-  const activosAll=accounts.filter(a=>isActivo(a));
-  const caidosAll=accounts.filter(a=>!isActivo(a));
-  const activosAnalytics=activosAll.filter(a=>(a.tipoServicio||'').includes('Analytics'));
-
-  // 1. Estado donut (Activos vs Caídos)
-  if(chartEstado)chartEstado.destroy();
-  const ctxE=el('chart-estado');if(!ctxE)return;
-  chartEstado=new Chart(ctxE,{type:'doughnut',data:{labels:['Activos','Caídos'],datasets:[{data:[activosAll.length,caidosAll.length],backgroundColor:['#1a9e6a','#d93025'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}});
-
-  // 2. Tier donut (solo activos con Analytics)
+  // Tier donut
   const tierData=[
-    {label:'A+',count:activosAnalytics.filter(a=>normTier(a.tier)==='A+').length,color:'#92400e'},
-    {label:'A',count:activosAnalytics.filter(a=>normTier(a.tier)==='A').length,color:'#f4600c'},
-    {label:'B',count:activosAnalytics.filter(a=>normTier(a.tier)==='B').length,color:'#0a2463'},
-    {label:'C',count:activosAnalytics.filter(a=>normTier(a.tier)==='C').length,color:'#9397a8'},
+    {label:'A+',count:accounts.filter(a=>normTier(a.tier)==='A+').length,color:'#92400e'},
+    {label:'A',count:accounts.filter(a=>normTier(a.tier)==='A').length,color:'#f4600c'},
+    {label:'B',count:accounts.filter(a=>normTier(a.tier)==='B').length,color:'#0a2463'},
+    {label:'C',count:accounts.filter(a=>normTier(a.tier)==='C').length,color:'#9397a8'},
   ].filter(d=>d.count>0);
+
   if(chartTier)chartTier.destroy();
   const ctxT=el('chart-tier');if(!ctxT)return;
   chartTier=new Chart(ctxT,{type:'doughnut',data:{labels:tierData.map(d=>d.label),datasets:[{data:tierData.map(d=>d.count),backgroundColor:tierData.map(d=>d.color),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}});
 
-  // 3. Ejecutivo bar (solo activos con Analytics)
-  const ejecutivos=[...new Set(activosAnalytics.map(a=>(a.ejecutivo||'S/A').trim()))].filter(Boolean).sort();
+  // Estado donut
+  const activos=accounts.filter(a=>isActivo(a)).length;
+  const caidos=accounts.filter(a=>!isActivo(a)).length;
+  if(chartEstado)chartEstado.destroy();
+  const ctxE=el('chart-estado');if(!ctxE)return;
+  chartEstado=new Chart(ctxE,{type:'doughnut',data:{labels:['Activos','Caídos'],datasets:[{data:[activos,caidos],backgroundColor:['#1a9e6a','#d93025'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}});
+
+  // Ejecutivo bar
+  const ejecutivos=[...new Set(accounts.map(a=>(a.ejecutivo||'Sin asignar').trim()))].filter(Boolean).sort();
+  const ejCounts=ejecutivos.map(e=>accounts.filter(a=>(a.ejecutivo||'Sin asignar').trim()===e).length);
   if(chartEjec)chartEjec.destroy();
   const ctxJ=el('chart-ejec');if(!ctxJ)return;
-  chartEjec=new Chart(ctxJ,{type:'bar',data:{labels:ejecutivos,datasets:[{label:'Con Analytics',data:ejecutivos.map(e=>activosAnalytics.filter(a=>(a.ejecutivo||'S/A').trim()===e).length),backgroundColor:COLORS,borderRadius:6,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
-
-  // 4. Evolutivo semanal
-  const allI=getAllInteracciones();
-  const weeks=[];const now=new Date();
-  for(let i=11;i>=0;i--){
-    const s=new Date(now);s.setDate(s.getDate()-i*7-s.getDay());s.setHours(0,0,0,0);
-    const e=new Date(s);e.setDate(e.getDate()+6);e.setHours(23,59,59,999);
-    weeks.push({label:`${s.getDate()}/${s.getMonth()+1}`,count:allI.filter(x=>{const d=new Date(x.ts);return d>=s&&d<=e;}).length});
-  }
-  if(chartEvoInst)chartEvoInst.destroy();
-  const ctxEvo=el('chart-evolutivo');if(!ctxEvo)return;
-  chartEvoInst=new Chart(ctxEvo,{type:'line',data:{labels:weeks.map(w=>w.label),datasets:[{label:'Interacciones',data:weeks.map(w=>w.count),borderColor:'#0a2463',backgroundColor:'rgba(10,36,99,.08)',fill:true,tension:.35,pointBackgroundColor:'#f4600c',pointRadius:4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+  chartEjec=new Chart(ctxJ,{type:'bar',data:{labels:ejecutivos,datasets:[{label:'Cuentas',data:ejCounts,backgroundColor:COLORS.slice(0,ejecutivos.length),borderRadius:6,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
 }
 
 setSyncStatus('syncing');
