@@ -112,7 +112,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .client-name{font-weight:600;color:var(--text);font-size:13px}
 .client-sub{font-size:10px;color:var(--text3);margin-top:1px;font-family:'DM Mono',monospace}
 .tier-pill{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:5px;display:inline-block}
-.tier-AA{background:#fef3c7;color:#92400e;border:1.5px solid rgba(146,64,14,.25)}
+.tier-Aplus{background:#fef3c7;color:#92400e;border:1.5px solid rgba(146,64,14,.25)}
 .tier-A{background:var(--orange-dim2);color:var(--orange);border:1.5px solid rgba(244,96,12,.25)}
 .tier-B{background:var(--navy-dim2);color:var(--navy);border:1.5px solid rgba(10,36,99,.2)}
 .tier-C{background:var(--surface2);color:var(--text3);border:1.5px solid var(--border)}
@@ -353,7 +353,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div class="stat-card sc-orange"><div class="stat-label">Total</div><div class="stat-val">—</div></div>
         <div class="stat-card sc-green"><div class="stat-label">Activos</div><div class="stat-val">—</div></div>
         <div class="stat-card sc-red"><div class="stat-label">Caídos</div><div class="stat-val">—</div></div>
-        <div class="stat-card sc-navy"><div class="stat-label">Tier A+AA</div><div class="stat-val">—</div></div>
+        <div class="stat-card sc-navy"><div class="stat-label">Tier A+/A</div><div class="stat-val">—</div></div>
       </div>
 
       <div class="cuentas-layout">
@@ -381,8 +381,8 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             <div class="filter-option active" id="fo-tier-todos" onclick="setAccFilter('tier','todos')">
               Todos <span class="filter-count" id="fc-tier-todos">0</span>
             </div>
-            <div class="filter-option" id="fo-tier-AA" onclick="setAccFilter('tier','AA')">
-              AA <span class="filter-count" id="fc-tier-AA">0</span>
+            <div class="filter-option" id="fo-tier-Aplus" onclick="setAccFilter('tier','A+')">
+              A+ <span class="filter-count" id="fc-tier-Aplus">0</span>
             </div>
             <div class="filter-option" id="fo-tier-A" onclick="setAccFilter('tier','A')">
               A <span class="filter-count" id="fc-tier-A">0</span>
@@ -436,7 +436,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
               <div class="form-row four">
                 <div class="field"><label>Cliente</label><input type="text" id="na-nombre" placeholder="Nombre"/></div>
                 <div class="field"><label>N ID</label><input type="text" id="na-nid" placeholder="13xxx"/></div>
-                <div class="field"><label>Tier</label><select id="na-tier"><option value="AA">AA</option><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></div>
+                <div class="field"><label>Tier</label><select id="na-tier"><option value="A+">A+</option><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></div>
                 <div class="field"><label>Estado</label><select id="na-estado"><option value="Activo">Activo</option><option value="Caído">Caído</option></select></div>
               </div>
               <div class="form-row">
@@ -757,7 +757,7 @@ function updateCounts(){
   el('fc-estado-activo')&&(el('fc-estado-activo').textContent=accounts.filter(a=>isActivo(a)).length);
   el('fc-estado-caido')&&(el('fc-estado-caido').textContent=accounts.filter(a=>!isActivo(a)).length);
   // Tier
-  ['AA','A','B','C'].forEach(t=>{
+  ['A+','A','B','C'].forEach(t=>{
     const e=el(`fc-tier-${t}`);if(e)e.textContent=accounts.filter(a=>normTier(a.tier)===t).length;
   });
   el('fc-tier-todos')&&(el('fc-tier-todos').textContent=accounts.length);
@@ -781,13 +781,13 @@ function renderAccounts(){
   const total=accounts.length;
   const activos=accounts.filter(a=>isActivo(a)).length;
   const caidos=accounts.filter(a=>!isActivo(a)).length;
-  const tierAA_A=accounts.filter(a=>['AA','A'].includes(normTier(a.tier))).length;
+  const tierAA_A=accounts.filter(a=>['A+','A'].includes(normTier(a.tier))).length;
   el('badge-cuentas').textContent=total; el('mob-badge-cuentas').textContent=total;
   el('acc-stats').innerHTML=`
     <div class="stat-card sc-orange"><div class="stat-label">Total</div><div class="stat-val">${total}</div><div class="stat-sub">en cartera</div></div>
     <div class="stat-card sc-green"><div class="stat-label">Activos</div><div class="stat-val">${activos}</div><div class="stat-sub">con servicio</div></div>
     <div class="stat-card sc-red"><div class="stat-label">Caídos</div><div class="stat-val">${caidos}</div><div class="stat-sub">para recuperar</div></div>
-    <div class="stat-card sc-navy"><div class="stat-label">Tier A+AA</div><div class="stat-val">${tierAA_A}</div><div class="stat-sub">cuentas clave</div></div>`;
+    <div class="stat-card sc-navy"><div class="stat-label">Tier A+/A</div><div class="stat-val">${tierAA_A}</div><div class="stat-sub">cuentas clave</div></div>`;
 
   buildDynamicFilters();
   updateCounts();
@@ -865,7 +865,7 @@ window.openDrawer=function(id){
     <div class="field-item"><label>Tipo de servicio</label>
       <select id="df-servicio">${['Con Analytics','Sin Analytics','-'].map(v=>`<option value="${v}"${a.tipoServicio===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Tier</label>
-      <select id="df-tier">${['AA','A','B','C'].map(v=>`<option value="${v}"${tier===v?' selected':''}>${v}</option>`).join('')}</select></div>
+      <select id="df-tier">${['A+','A','B','C'].map(v=>`<option value="${v}"${tier===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Estado</label>
       <select id="df-estado">${['Activo','Caído'].map(v=>`<option value="${v}"${(a.estado||a.segmento)===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Provincia</label><input id="df-localidad" type="text" value="${a.localidad||''}" placeholder="—"/></div>
