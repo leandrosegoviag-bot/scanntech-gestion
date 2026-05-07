@@ -686,7 +686,8 @@ window.setAccFilter=function(group, val){
   accFilters[group]=valMap[val]||val;
   // Update active states for this group
   document.querySelectorAll(`[id^="fo-${group}-"]`).forEach(e=>e.classList.remove('active'));
-  const target=el(`fo-${group}-${val}`);if(target)target.classList.add('active');
+  const safeVal=val==='A+'?'Aplus':val;
+  const target=el('fo-'+group+'-'+safeVal);if(target)target.classList.add('active');
   renderAccounts();
 };
 window.setAccSearch=function(v){accSearch=v.toLowerCase();renderAccounts();};
@@ -760,7 +761,7 @@ function updateCounts(){
   el('fc-estado-caido')&&(el('fc-estado-caido').textContent=accounts.filter(a=>!isActivo(a)).length);
   // Tier
   [['A+','Aplus'],['A','A'],['B','B'],['C','C']].forEach(([t,key])=>{
-    const e=el(`fc-tier-${t}`);if(e)e.textContent=accounts.filter(a=>normTier(a.tier)===t).length;
+    const e=el('fc-tier-'+key);if(e)e.textContent=accounts.filter(a=>normTier(a.tier)===t).length;
   });
   el('fc-tier-todos')&&(el('fc-tier-todos').textContent=accounts.length);
   // Ejecutivos
