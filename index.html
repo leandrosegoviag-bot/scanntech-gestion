@@ -2206,7 +2206,7 @@ onSnapshot(collection(db,'tasks'),snap=>{
 
 onSnapshot(collection(db,'accounts'),snap=>{
   accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderAccounts();updateAccountSelect();
+  renderAccounts();updateAccountSelect();updateFichaSelect();
   if(currentTab==='dashboard')renderDashboard();
   if(currentTab==='historial')renderHistorial();
   if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item"><div class="history-dot" style="background:var(--navy)"></div><div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
