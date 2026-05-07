@@ -702,7 +702,8 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <!-- FICHA CLIENTE -->
     <div class="tab-content" id="tab-ficha">
       <div class="ficha-selector">
-        <select class="ficha-select" id="ficha-account-select" onchange="renderFicha()">
+        <input type="text" id="ficha-search" class="ficha-select" placeholder="🔍 Buscar por nombre o N ID..." oninput="filterFichaSelect(this.value)" style="min-width:280px"/>
+        <select class="ficha-select" id="ficha-account-select" onchange="renderFicha()" style="min-width:280px">
           <option value="">Seleccioná una cuenta...</option>
         </select>
       </div>
@@ -1946,16 +1947,71 @@ function getSemaforoState(a){
   return {state:'verde', label:'Relación activa', detail:`Último contacto hace ${daysSinceContact} días`};
 }
 
+function renderMapaSVG(provincia){
+  // Simple Argentina map - highlight the province
+  const highlighted = provincia ? provincia : '';
+  // Map province names to SVG region IDs
+  const PROV_MAP = {
+    'BUENOS AIRES':'bsas','CIUDAD AUTONOMA DE BUENOS AIRES':'caba','CABA':'caba',
+    'CORDOBA':'cordoba','SANTA FE':'santafe','MENDOZA':'mendoza','TUCUMAN':'tucuman',
+    'ENTRE RIOS':'entrerrios','SALTA':'salta','MISIONES':'misiones','CHACO':'chaco',
+    'CORRIENTES':'corrientes','SANTIAGO DEL ESTERO':'sde','SAN JUAN':'sanjuan',
+    'JUJUY':'jujuy','RIO NEGRO':'rionegro','NEUQUEN':'neuquen','FORMOSA':'formosa',
+    'CHUBUT':'chubut','SAN LUIS':'sanluis','CATAMARCA':'catamarca','LA RIOJA':'larioja',
+    'LA PAMPA':'lapampa','SANTA CRUZ':'santacruz','TIERRA DEL FUEGO':'tdf',
+  };
+  const activeId = PROV_MAP[highlighted]||'';
+  
+  // Simplified Argentina SVG paths (representative shapes)
+  const provinces = [
+    {id:'jujuy',    name:'Jujuy',    d:'M 155 30 L 175 30 L 180 55 L 155 55 Z'},
+    {id:'salta',    name:'Salta',    d:'M 130 30 L 155 30 L 155 55 L 180 55 L 185 80 L 130 80 Z'},
+    {id:'formosa',  name:'Formosa',  d:'M 185 30 L 240 30 L 240 65 L 185 80 Z'},
+    {id:'chaco',    name:'Chaco',    d:'M 185 80 L 240 65 L 250 100 L 185 110 Z'},
+    {id:'misiones', name:'Misiones', d:'M 250 60 L 290 50 L 295 100 L 250 100 Z'},
+    {id:'tucuman',  name:'Tucumán',  d:'M 155 80 L 185 80 L 185 110 L 155 110 Z'},
+    {id:'catamarca',name:'Catamarca',d:'M 120 80 L 155 80 L 155 120 L 120 120 Z'},
+    {id:'sde',      name:'S. del Estero',d:'M 155 110 L 215 110 L 215 150 L 155 150 Z'},
+    {id:'corrientes',name:'Corrientes',d:'M 215 100 L 270 90 L 275 150 L 215 150 Z'},
+    {id:'larioja',  name:'La Rioja', d:'M 100 120 L 135 120 L 140 165 L 100 165 Z'},
+    {id:'sanjuan',  name:'San Juan', d:'M 80 130 L 110 125 L 115 175 L 80 175 Z'},
+    {id:'cordoba',  name:'Córdoba',  d:'M 135 150 L 215 150 L 220 210 L 135 210 Z'},
+    {id:'entrerrios',name:'Entre Ríos',d:'M 220 150 L 270 150 L 265 210 L 220 210 Z'},
+    {id:'santafe',  name:'Santa Fe', d:'M 215 110 L 270 110 L 270 210 L 215 210 Z'},
+    {id:'mendoza',  name:'Mendoza',  d:'M 70 175 L 115 175 L 120 240 L 70 245 Z'},
+    {id:'sanluis',  name:'San Luis', d:'M 115 175 L 155 170 L 160 225 L 115 230 Z'},
+    {id:'bsas',     name:'Buenos Aires',d:'M 155 205 L 270 205 L 275 330 L 185 360 L 155 330 Z'},
+    {id:'caba',     name:'CABA',     d:'M 243 275 L 255 270 L 258 282 L 246 284 Z'},
+    {id:'lapampa',  name:'La Pampa', d:'M 100 240 L 160 235 L 165 300 L 100 305 Z'},
+    {id:'neuquen',  name:'Neuquén',  d:'M 60 255 L 105 248 L 110 310 L 60 315 Z'},
+    {id:'rionegro', name:'Río Negro',d:'M 55 310 L 175 305 L 180 360 L 55 365 Z'},
+    {id:'chubut',   name:'Chubut',   d:'M 55 365 L 195 358 L 190 430 L 55 435 Z'},
+    {id:'santacruz',name:'Santa Cruz',d:'M 55 435 L 200 428 L 195 500 L 55 505 Z'},
+    {id:'tdf',      name:'Tierra del Fuego',d:'M 100 510 L 185 505 L 180 545 L 100 545 Z'},
+  ];
+
+  const svgPaths = provinces.map(p=>`<path id="prov-${p.id}" class="provincia-path${activeId===p.id?' activa':''}" d="${p.d}" title="${p.name}">
+    <title>${p.name}</title>
+  </path>`).join('');
+
+  return `<div class="mapa-wrap">
+    <svg viewBox="0 0 340 560" xmlns="http://www.w3.org/2000/svg">
+      ${svgPaths}
+    </svg>
+    ${activeId?`<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--orange);font-weight:500">● ${highlighted.charAt(0)+highlighted.slice(1).toLowerCase()}</div>`:'<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--text3)">Provincia no especificada</div>'}
+  </div>`;
+}
+
 function renderFicha(){
   const sel = el('ficha-account-select');
   const id = sel.value;
-  const content = el('ficha-content');
-  if(!id){ content.classList.remove('show'); content.innerHTML=''; return; }
+  const fichaEl = el('ficha-content');
+  if(!id){ fichaEl.classList.remove('show'); fichaEl.innerHTML=''; return; }
 
   const a = accounts.find(a=>a.id===id);
-  if(!a){ content.classList.remove('show'); return; }
+  if(!a){ fichaEl.classList.remove('show'); return; }
 
-  content.classList.add('show');
+  fichaEl.classList.add('show');
 
   const tier = normTier(a.tier);
   const semaforo = getSemaforoState(a);
@@ -1974,7 +2030,7 @@ function renderFicha(){
   const semaColors = {verde:'#1a9e6a', amarillo:'#d97706', rojo:'#d93025'};
   const semaIcon = {verde:'🟢', amarillo:'🟡', rojo:'🔴'};
 
-  content.innerHTML = `
+  fichaEl.innerHTML = `
     <!-- HEADER -->
     <div class="ficha-header-card">
       <div>
@@ -2103,60 +2159,7 @@ function renderFicha(){
   `;
 }
 
-function renderMapaSVG(provincia){
-  // Simple Argentina map - highlight the province
-  const highlighted = provincia ? provincia : '';
-  // Map province names to SVG region IDs
-  const PROV_MAP = {
-    'BUENOS AIRES':'bsas','CIUDAD AUTONOMA DE BUENOS AIRES':'caba','CABA':'caba',
-    'CORDOBA':'cordoba','SANTA FE':'santafe','MENDOZA':'mendoza','TUCUMAN':'tucuman',
-    'ENTRE RIOS':'entrerrios','SALTA':'salta','MISIONES':'misiones','CHACO':'chaco',
-    'CORRIENTES':'corrientes','SANTIAGO DEL ESTERO':'sde','SAN JUAN':'sanjuan',
-    'JUJUY':'jujuy','RIO NEGRO':'rionegro','NEUQUEN':'neuquen','FORMOSA':'formosa',
-    'CHUBUT':'chubut','SAN LUIS':'sanluis','CATAMARCA':'catamarca','LA RIOJA':'larioja',
-    'LA PAMPA':'lapampa','SANTA CRUZ':'santacruz','TIERRA DEL FUEGO':'tdf',
-  };
-  const activeId = PROV_MAP[highlighted]||'';
-  
-  // Simplified Argentina SVG paths (representative shapes)
-  const provinces = [
-    {id:'jujuy',    name:'Jujuy',    d:'M 155 30 L 175 30 L 180 55 L 155 55 Z'},
-    {id:'salta',    name:'Salta',    d:'M 130 30 L 155 30 L 155 55 L 180 55 L 185 80 L 130 80 Z'},
-    {id:'formosa',  name:'Formosa',  d:'M 185 30 L 240 30 L 240 65 L 185 80 Z'},
-    {id:'chaco',    name:'Chaco',    d:'M 185 80 L 240 65 L 250 100 L 185 110 Z'},
-    {id:'misiones', name:'Misiones', d:'M 250 60 L 290 50 L 295 100 L 250 100 Z'},
-    {id:'tucuman',  name:'Tucumán',  d:'M 155 80 L 185 80 L 185 110 L 155 110 Z'},
-    {id:'catamarca',name:'Catamarca',d:'M 120 80 L 155 80 L 155 120 L 120 120 Z'},
-    {id:'sde',      name:'S. del Estero',d:'M 155 110 L 215 110 L 215 150 L 155 150 Z'},
-    {id:'corrientes',name:'Corrientes',d:'M 215 100 L 270 90 L 275 150 L 215 150 Z'},
-    {id:'larioja',  name:'La Rioja', d:'M 100 120 L 135 120 L 140 165 L 100 165 Z'},
-    {id:'sanjuan',  name:'San Juan', d:'M 80 130 L 110 125 L 115 175 L 80 175 Z'},
-    {id:'cordoba',  name:'Córdoba',  d:'M 135 150 L 215 150 L 220 210 L 135 210 Z'},
-    {id:'entrerrios',name:'Entre Ríos',d:'M 220 150 L 270 150 L 265 210 L 220 210 Z'},
-    {id:'santafe',  name:'Santa Fe', d:'M 215 110 L 270 110 L 270 210 L 215 210 Z'},
-    {id:'mendoza',  name:'Mendoza',  d:'M 70 175 L 115 175 L 120 240 L 70 245 Z'},
-    {id:'sanluis',  name:'San Luis', d:'M 115 175 L 155 170 L 160 225 L 115 230 Z'},
-    {id:'bsas',     name:'Buenos Aires',d:'M 155 205 L 270 205 L 275 330 L 185 360 L 155 330 Z'},
-    {id:'caba',     name:'CABA',     d:'M 243 275 L 255 270 L 258 282 L 246 284 Z'},
-    {id:'lapampa',  name:'La Pampa', d:'M 100 240 L 160 235 L 165 300 L 100 305 Z'},
-    {id:'neuquen',  name:'Neuquén',  d:'M 60 255 L 105 248 L 110 310 L 60 315 Z'},
-    {id:'rionegro', name:'Río Negro',d:'M 55 310 L 175 305 L 180 360 L 55 365 Z'},
-    {id:'chubut',   name:'Chubut',   d:'M 55 365 L 195 358 L 190 430 L 55 435 Z'},
-    {id:'santacruz',name:'Santa Cruz',d:'M 55 435 L 200 428 L 195 500 L 55 505 Z'},
-    {id:'tdf',      name:'Tierra del Fuego',d:'M 100 510 L 185 505 L 180 545 L 100 545 Z'},
-  ];
 
-  const svgPaths = provinces.map(p=>`<path id="prov-${p.id}" class="provincia-path${activeId===p.id?' activa':''}" d="${p.d}" title="${p.name}">
-    <title>${p.name}</title>
-  </path>`).join('');
-
-  return `<div class="mapa-wrap">
-    <svg viewBox="0 0 340 560" xmlns="http://www.w3.org/2000/svg">
-      ${svgPaths}
-    </svg>
-    ${activeId?`<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--orange);font-weight:500">● ${highlighted.charAt(0)+highlighted.slice(1).toLowerCase()}</div>`:'<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--text3)">Provincia no especificada</div>'}
-  </div>`;
-}
 
 // Dashboard management
 window.addDash = async function(accountId){
@@ -2185,6 +2188,20 @@ window.removeDash = async function(accountId, idx){
     await updateDoc(doc(db,'accounts',accountId), {dashboardsList: list});
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
+};
+
+window.filterFichaSelect = function(query){
+  const q = query.toLowerCase().trim();
+  const sel = el('ficha-account-select');
+  if(!sel) return;
+  const sorted = [...accounts].sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const filtered = q ? sorted.filter(a=>
+    a.nombre.toLowerCase().includes(q) ||
+    (a.nid||'').toLowerCase().includes(q) ||
+    (a.ejecutivo||'').toLowerCase().includes(q)
+  ) : sorted;
+  sel.innerHTML = '<option value="">Seleccioná una cuenta...</option>'
+    + filtered.map(a=>`<option value="${a.id}">${a.nombre} · ${normTier(a.tier)}${isActivo(a)?'':' · Caído'} ${a.nid?'#'+a.nid:''}</option>`).join('');
 };
 
 function updateFichaSelect(){
