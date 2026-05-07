@@ -613,9 +613,14 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           <button class="cal-nav-btn" onclick="calNext()">›</button>
           <button class="cal-nav-btn" onclick="calToday()" style="font-size:11px">Hoy</button>
         </div>
-        <div class="cal-view-toggle">
-          <button class="cal-view-btn active" id="btn-view-month" onclick="setCalView('month')">Mes</button>
-          <button class="cal-view-btn" id="btn-view-week" onclick="setCalView('week')">Semana</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <select id="cal-ejecutivo-filter" onchange="renderCalendario()" style="font-size:12px;padding:5px 11px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;outline:none">
+            <option value="todos">Todos los ejecutivos</option>
+          </select>
+          <div class="cal-view-toggle">
+            <button class="cal-view-btn active" id="btn-view-month" onclick="setCalView('month')">Mes</button>
+            <button class="cal-view-btn" id="btn-view-week" onclick="setCalView('week')">Semana</button>
+          </div>
         </div>
       </div>
       <div class="cal-legend">
@@ -1548,8 +1553,9 @@ const TIER_FREQ = {'A+':7, 'A':7, 'B':30};
 
 function getCalEvents(){
   const today = new Date(); today.setHours(0,0,0,0);
+  const selEjec = el('cal-ejecutivo-filter')?.value||'todos';
   const events = [];
-  accounts.filter(a=>isActivo(a) && ['A+','A','B'].includes(normTier(a.tier))).forEach(a=>{
+  accounts.filter(a=>isActivo(a) && ['A+','A','B'].includes(normTier(a.tier)) && (selEjec==='todos'||(a.ejecutivo||'').includes(selEjec))).forEach(a=>{
     const tier = normTier(a.tier);
     const freq = TIER_FREQ[tier];
     let nextDate = null;
@@ -1622,6 +1628,13 @@ function dateKey(d){ return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
 function renderCalendario(){
   if(!el('tab-calendario')) return;
+  // Populate ejecutivo select
+  const selEl = el('cal-ejecutivo-filter');
+  if(selEl){
+    const cur = selEl.value||'todos';
+    const ejecutivos=[...new Set(accounts.filter(a=>isActivo(a)&&['A+','A','B'].includes(normTier(a.tier))).map(a=>(a.ejecutivo||'').trim()).filter(Boolean))].sort();
+    selEl.innerHTML='<option value="todos">Todos los ejecutivos</option>'+ejecutivos.map(e=>`<option value="${e}"${cur===e?' selected':''}>${e}</option>`).join('');
+  }
   const events = getCalEvents();
   const today = new Date(); today.setHours(0,0,0,0);
 
