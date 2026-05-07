@@ -1194,15 +1194,18 @@ function renderDashboard(){
   const cuentasConInt=new Set(getAllInteracciones().map(i=>i.cuentaId)).size;
   const tareasAbiertas=tasks.filter(t=>t.status!=='completado').length;
   const pctCobertura=total?Math.round(cuentasConInt/activos.length*100):0;
+  const intsMes=allInts.filter(i=>{const d=new Date(i.ts);return d.getMonth()===selectedMonth&&d.getFullYear()===selectedYear;});
+  const sinRespuesta=accounts.filter(a=>isSinRespuesta(a));
+  const sinPresent=activos.filter(a=>!a.ultimaPresentacion||a.ultimaPresentacion==='');
   el('ops-grid').innerHTML=`
+    <div class="ops-card"><div class="ops-icon">📊</div><div class="ops-val">${conAnalytics.length}</div><div class="ops-label">Con Analytics</div><div class="ops-sub">de ${activos.length} activos</div></div>
     <div class="ops-card"><div class="ops-icon">🏪</div><div class="ops-val">${totalLocales.toLocaleString('es-AR')}</div><div class="ops-label">Locales totales</div><div class="ops-sub">en cartera activa</div></div>
-    <div class="ops-card"><div class="ops-icon">📊</div><div class="ops-val">${Math.round(activos.length?totalLocales/activos.length:0)}</div><div class="ops-label">Locales promedio</div><div class="ops-sub">por cuenta activa</div></div>
-    <div class="ops-card"><div class="ops-icon">📞</div><div class="ops-val">${allInts.length}</div><div class="ops-label">Interacciones totales</div><div class="ops-sub">${intEsteMes} este mes</div></div>
+    <div class="ops-card"><div class="ops-icon">📞</div><div class="ops-val">${intsMes.length}</div><div class="ops-label">Interacciones</div><div class="ops-sub">${months12[selectedMonth]}</div></div>
     <div class="ops-card"><div class="ops-icon">🎯</div><div class="ops-val">${pctCobertura}%</div><div class="ops-label">Cobertura</div><div class="ops-sub">cuentas con actividad</div></div>
-    <div class="ops-card"><div class="ops-icon">✅</div><div class="ops-val">${tareasAbiertas}</div><div class="ops-label">Tareas abiertas</div><div class="ops-sub">${tasks.filter(t=>t.status==='urgente').length} urgentes</div></div>
-    <div class="ops-card"><div class="ops-icon">📈</div><div class="ops-val">${conAnalytics.length}</div><div class="ops-label">Con Analytics</div><div class="ops-sub">de ${activos.length} activos</div></div>
-    <div class="ops-card"><div class="ops-icon">🔴</div><div class="ops-val">${caidos.length}</div><div class="ops-label">Caídos</div><div class="ops-sub">${caidos.filter(a=>['A+','A'].includes(normTier(a.tier))).length} son Tier A+/A</div></div>
-    <div class="ops-card"><div class="ops-icon">⚡</div><div class="ops-val">${tasks.filter(t=>t.status==='urgente').length}</div><div class="ops-label">Urgentes</div><div class="ops-sub">requieren atención</div></div>`;
+    <div class="ops-card"><div class="ops-icon">🔕</div><div class="ops-val" style="color:${sinRespuesta.length>0?'var(--red)':'var(--text)'}">${sinRespuesta.length}</div><div class="ops-label">Sin respuesta</div><div class="ops-sub">+2 meses inactivas</div></div>
+    <div class="ops-card"><div class="ops-icon">📉</div><div class="ops-val" style="color:${caidosSemestre.length>0?'var(--red)':'var(--text)'}">${caidosSemestre.length}</div><div class="ops-label">Caídos semestre</div><div class="ops-sub">Ene–Jun 2026</div></div>
+    <div class="ops-card"><div class="ops-icon">⚡</div><div class="ops-val" style="color:${tasks.filter(t=>t.status==='urgente').length>0?'var(--red)':'var(--text)'}">${tasks.filter(t=>t.status==='urgente').length}</div><div class="ops-label">Tareas urgentes</div><div class="ops-sub">requieren atención</div></div>
+    <div class="ops-card"><div class="ops-icon">📋</div><div class="ops-val" style="color:${sinPresent.length>10?'var(--amber)':'var(--text)'}">${sinPresent.length}</div><div class="ops-label">Sin presentación</div><div class="ops-sub">cuentas activas</div></div>`;
 
   // Charts
   renderCharts();
