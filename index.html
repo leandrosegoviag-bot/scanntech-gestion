@@ -24,6 +24,7 @@
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
 
+/* Sidebar nav */
 .sidebar{background:var(--navy);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:100}
 .logo-area{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
 .logo-row{display:flex;align-items:center;gap:10px}
@@ -43,6 +44,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sidebar-footer p{font-size:11px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace}
 .sidebar-footer span{color:rgba(255,255,255,.5)}
 
+/* Main */
 .main{display:flex;flex-direction:column;min-height:100vh}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow-sm)}
 .topbar-left h1{font-size:16px;font-weight:600;color:var(--text)}
@@ -62,6 +64,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .content{padding:22px 26px;flex:1}
 .tab-content{display:none}.tab-content.active{display:block}
 
+/* Stats */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
 .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
@@ -71,19 +74,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .stat-val{font-size:24px;font-weight:600;color:var(--text);line-height:1}
 .stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
 
+/* Cuentas layout: filter sidebar + table */
+.cuentas-layout{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start}
+
+/* Filter sidebar */
+.filter-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:16px;position:sticky;top:80px}
+.filter-group{margin-bottom:18px}
+.filter-group:last-child{margin-bottom:0}
+.filter-group-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;font-family:'DM Mono',monospace}
+.filter-search{width:100%;font-size:12px;padding:7px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;margin-bottom:14px}
+.filter-search::placeholder{color:var(--text3)}
+.filter-search:focus{border-color:var(--navy)}
+.filter-option{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .12s;user-select:none;font-size:12px;color:var(--text2)}
+.filter-option:hover{background:var(--surface2)}
+.filter-option.active{background:var(--navy-dim);color:var(--navy);font-weight:500}
+.filter-option.active .filter-count{background:var(--navy);color:#fff}
+.filter-count{font-size:10px;font-family:'DM Mono',monospace;background:var(--surface3);color:var(--text3);padding:1px 6px;border-radius:8px;flex-shrink:0}
+.filter-divider{height:1px;background:var(--border);margin:14px 0}
+.btn-clear-filters{width:100%;font-size:11px;padding:6px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-top:4px}
+.btn-clear-filters:hover{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+
+/* Table panel */
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
 .panel-head{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
 .panel-head h3{font-size:13px;font-weight:600;color:var(--text)}
-.chips{display:flex;gap:5px;flex-wrap:wrap}
-.chip{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;transition:all .15s}
-.chip:hover{border-color:var(--border2);color:var(--text2)}
-.chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
-.search-input{font-size:12px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:180px;transition:border .15s}
-.search-input::placeholder{color:var(--text3)}
-.search-input:focus{border-color:var(--navy)}
+.panel-head-right{display:flex;align-items:center;gap:8px}
+.results-count{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
 
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:900px}
+table{width:100%;border-collapse:collapse;min-width:700px}
 thead th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:9px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
 thead th.sortable{cursor:pointer;user-select:none}
 thead th.sortable:hover{color:var(--navy)}
@@ -92,23 +111,16 @@ tbody tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .client-name{font-weight:600;color:var(--text);font-size:13px}
 .client-sub{font-size:10px;color:var(--text3);margin-top:1px;font-family:'DM Mono',monospace}
-
 .tier-pill{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:5px;display:inline-block}
+.tier-AA{background:#fef3c7;color:#92400e;border:1.5px solid rgba(146,64,14,.25)}
 .tier-A{background:var(--orange-dim2);color:var(--orange);border:1.5px solid rgba(244,96,12,.25)}
 .tier-B{background:var(--navy-dim2);color:var(--navy);border:1.5px solid rgba(10,36,99,.2)}
 .tier-C{background:var(--surface2);color:var(--text3);border:1.5px solid var(--border)}
-
 .estado-pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
 .estado-activo{background:var(--green-dim);color:var(--green)}
 .estado-caido{background:var(--red-dim);color:var(--red)}
-
 .svc-pill{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--purple-dim);color:var(--purple);white-space:nowrap}
-
 .date-cell{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
-.date-warn{color:var(--amber);font-weight:500}
-.date-over{color:var(--red);font-weight:500}
-
-.col-hidden{display:none}
 .del-btn{background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:11px;width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .del-btn:hover{background:var(--red-dim);color:var(--red)}
 
@@ -153,6 +165,15 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .comment-input:focus{border-color:var(--navy)}
 .comment-input::placeholder{color:var(--text3)}
 
+/* Task panel */
+.task-panel-head{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.task-panel-head h3{font-size:13px;font-weight:600;color:var(--text)}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;transition:all .15s}
+.chip:hover{border-color:var(--border2);color:var(--text2)}
+.chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* Add panel */
 .add-panel{background:var(--surface2);border:1.5px dashed var(--border2);border-radius:var(--radius);padding:18px;margin-top:12px}
 .add-panel h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px}
 .form-grid{display:flex;flex-direction:column;gap:9px}
@@ -207,6 +228,12 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .mob-badge{font-size:9px;font-family:'DM Mono',monospace;background:rgba(255,255,255,.15);color:rgba(255,255,255,.6);padding:1px 5px;border-radius:8px}
 .mobile-nav-item.active .mob-badge{background:var(--orange-dim2);color:var(--orange)}
 
+@media(max-width:900px){
+  .cuentas-layout{grid-template-columns:1fr}
+  .filter-sidebar{position:static;display:flex;flex-wrap:wrap;gap:16px;padding:12px}
+  .filter-group{margin-bottom:0;min-width:140px}
+  .filter-divider{display:none}
+}
 @media(max-width:768px){
   .app{grid-template-columns:1fr}
   .sidebar{display:none}
@@ -217,7 +244,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
   .content{padding:14px 12px}
   .stats{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
   .stat-val{font-size:20px}
-  .panel-head{flex-direction:column;align-items:flex-start}
   .form-row,.form-row.three,.form-row.four{grid-template-columns:1fr}
   .drawer{width:100%;right:-100%}
   .field-grid{grid-template-columns:1fr}
@@ -287,7 +313,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div class="stat-card sc-green"><div class="stat-label">Completado</div><div class="stat-val">—</div></div>
       </div>
       <div class="panel">
-        <div class="panel-head">
+        <div class="task-panel-head">
           <h3>Todas las tareas</h3>
           <div class="chips" id="task-filters">
             <span class="chip active" onclick="setTaskFilter('todos')">Todos</span>
@@ -315,7 +341,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             <div class="field"><label>Cuenta vinculada</label><select id="nt-account"><option value="">Sin vincular</option></select></div>
           </div>
           <div class="field"><label>Descripción</label><textarea id="nt-desc" placeholder="Descripción (opcional)"></textarea></div>
-          <div class="field"><label>Próximos pasos (separados por coma)</label><input type="text" id="nt-steps" placeholder="Paso 1, Paso 2, Paso 3"/></div>
+          <div class="field"><label>Próximos pasos (separados por coma)</label><input type="text" id="nt-steps" placeholder="Paso 1, Paso 2"/></div>
           <button class="btn btn-primary" onclick="addTask()" style="width:fit-content">Agregar tarea</button>
         </div>
       </div>
@@ -327,53 +353,108 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div class="stat-card sc-orange"><div class="stat-label">Total</div><div class="stat-val">—</div></div>
         <div class="stat-card sc-green"><div class="stat-label">Activos</div><div class="stat-val">—</div></div>
         <div class="stat-card sc-red"><div class="stat-label">Caídos</div><div class="stat-val">—</div></div>
-        <div class="stat-card sc-navy"><div class="stat-label">Tier A</div><div class="stat-val">—</div></div>
+        <div class="stat-card sc-navy"><div class="stat-label">Tier A+AA</div><div class="stat-val">—</div></div>
       </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h3>Cartera de cuentas</h3>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <div class="chips" id="acc-filters">
-              <span class="chip active" onclick="setAccFilter('todos')">Todos</span>
-              <span class="chip" onclick="setAccFilter('activo')">Activos</span>
-              <span class="chip" onclick="setAccFilter('caido')">Caídos</span>
-              <span class="chip" onclick="setAccFilter('A')">Tier A</span>
-              <span class="chip" onclick="setAccFilter('B')">Tier B</span>
-              <span class="chip" onclick="setAccFilter('C')">Tier C</span>
+
+      <div class="cuentas-layout">
+        <!-- FILTER SIDEBAR -->
+        <div class="filter-sidebar">
+          <input class="filter-search" type="text" placeholder="Buscar cliente..." oninput="setAccSearch(this.value)"/>
+
+          <div class="filter-group">
+            <div class="filter-group-title">Estado</div>
+            <div class="filter-option active" id="fo-estado-todos" onclick="setAccFilter('estado','todos')">
+              Todos <span class="filter-count" id="fc-estado-todos">0</span>
             </div>
-            <input class="search-input" type="text" placeholder="Buscar cliente..." oninput="setAccSearch(this.value)"/>
+            <div class="filter-option" id="fo-estado-activo" onclick="setAccFilter('estado','activo')">
+              Activos <span class="filter-count" id="fc-estado-activo">0</span>
+            </div>
+            <div class="filter-option" id="fo-estado-caido" onclick="setAccFilter('estado','caido')">
+              Caídos <span class="filter-count" id="fc-estado-caido">0</span>
+            </div>
           </div>
+
+          <div class="filter-divider"></div>
+
+          <div class="filter-group">
+            <div class="filter-group-title">Tier</div>
+            <div class="filter-option active" id="fo-tier-todos" onclick="setAccFilter('tier','todos')">
+              Todos <span class="filter-count" id="fc-tier-todos">0</span>
+            </div>
+            <div class="filter-option" id="fo-tier-AA" onclick="setAccFilter('tier','AA')">
+              AA <span class="filter-count" id="fc-tier-AA">0</span>
+            </div>
+            <div class="filter-option" id="fo-tier-A" onclick="setAccFilter('tier','A')">
+              A <span class="filter-count" id="fc-tier-A">0</span>
+            </div>
+            <div class="filter-option" id="fo-tier-B" onclick="setAccFilter('tier','B')">
+              B <span class="filter-count" id="fc-tier-B">0</span>
+            </div>
+            <div class="filter-option" id="fo-tier-C" onclick="setAccFilter('tier','C')">
+              C <span class="filter-count" id="fc-tier-C">0</span>
+            </div>
+          </div>
+
+          <div class="filter-divider"></div>
+
+          <div class="filter-group">
+            <div class="filter-group-title">Ejecutivo</div>
+            <div id="filter-ejecutivos"></div>
+          </div>
+
+          <div class="filter-divider"></div>
+
+          <div class="filter-group">
+            <div class="filter-group-title">Tipo de servicio</div>
+            <div id="filter-servicios"></div>
+          </div>
+
+          <div class="filter-divider"></div>
+          <button class="btn-clear-filters" onclick="clearFilters()">✕ Limpiar filtros</button>
         </div>
-        <div class="table-wrap">
-          <table id="acc-table">
-            <thead id="acc-thead"></thead>
-            <tbody id="acc-tbody"><tr><td colspan="10" class="loading-state">Cargando cuentas...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="add-panel" id="acc-add-panel" style="display:none">
-        <h3>Nueva cuenta</h3>
-        <div class="form-grid">
-          <div class="form-row four">
-            <div class="field"><label>Cliente</label><input type="text" id="na-nombre" placeholder="Nombre"/></div>
-            <div class="field"><label>N ID</label><input type="text" id="na-nid" placeholder="13xxx"/></div>
-            <div class="field"><label>Tier</label><select id="na-tier"><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></div>
-            <div class="field"><label>Estado</label><select id="na-estado"><option value="Activo">Activo</option><option value="Caído">Caído</option></select></div>
+
+        <!-- TABLE -->
+        <div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Cartera de cuentas</h3>
+              <div class="panel-head-right">
+                <span class="results-count" id="results-count"></span>
+                <button class="btn btn-primary btn-sm" onclick="toggleAddPanel()">+ Nueva cuenta</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead id="acc-thead"></thead>
+                <tbody id="acc-tbody"><tr><td colspan="12" class="loading-state">Cargando cuentas...</td></tr></tbody>
+              </table>
+            </div>
           </div>
-          <div class="form-row">
-            <div class="field"><label>Ejecutivo</label><select id="na-ejecutivo"><option value="">Sin asignar</option><option value="LS">LS (Leandro)</option><option value="AJG">AJG (Ezequiel)</option><option value="EE">EE (Aime)</option></select></div>
-            <div class="field"><label>Tipo de servicio</label><select id="na-servicio"><option value="Con Analytics">Con Analytics</option><option value="Sin Analytics">Sin Analytics</option></select></div>
+          <div class="add-panel" id="acc-add-panel" style="display:none">
+            <h3>Nueva cuenta</h3>
+            <div class="form-grid">
+              <div class="form-row four">
+                <div class="field"><label>Cliente</label><input type="text" id="na-nombre" placeholder="Nombre"/></div>
+                <div class="field"><label>N ID</label><input type="text" id="na-nid" placeholder="13xxx"/></div>
+                <div class="field"><label>Tier</label><select id="na-tier"><option value="AA">AA</option><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></div>
+                <div class="field"><label>Estado</label><select id="na-estado"><option value="Activo">Activo</option><option value="Caído">Caído</option></select></div>
+              </div>
+              <div class="form-row">
+                <div class="field"><label>Ejecutivo</label><select id="na-ejecutivo"><option value="">Sin asignar</option><option value="LS">LS (Leandro)</option><option value="AJG">AJG (Ezequiel)</option><option value="EE">EE (Aime)</option></select></div>
+                <div class="field"><label>Tipo de servicio</label><select id="na-servicio"><option value="Con Analytics">Con Analytics</option><option value="Sin Analytics">Sin Analytics</option></select></div>
+              </div>
+              <div class="form-row">
+                <div class="field"><label>Provincia</label><input type="text" id="na-localidad" placeholder="ej: BUENOS AIRES"/></div>
+                <div class="field"><label>Región</label><input type="text" id="na-region" placeholder="ej: AMBA"/></div>
+              </div>
+              <div class="form-row">
+                <div class="field"><label>Cantidad de locales</label><input type="number" id="na-locales" placeholder="0"/></div>
+                <div class="field"><label>Contacto</label><input type="text" id="na-contacto" placeholder="nombre o email"/></div>
+              </div>
+              <div class="field"><label>Notas</label><textarea id="na-notas" placeholder="Detalle del estado..."></textarea></div>
+              <button class="btn btn-primary" onclick="addAccount()" style="width:fit-content">Agregar cuenta</button>
+            </div>
           </div>
-          <div class="form-row">
-            <div class="field"><label>Provincia</label><input type="text" id="na-localidad" placeholder="ej: BUENOS AIRES"/></div>
-            <div class="field"><label>Región</label><input type="text" id="na-region" placeholder="ej: AMBA"/></div>
-          </div>
-          <div class="form-row">
-            <div class="field"><label>Cantidad de locales</label><input type="number" id="na-locales" placeholder="0"/></div>
-            <div class="field"><label>Contacto / Email</label><input type="text" id="na-contacto" placeholder="nombre o email"/></div>
-          </div>
-          <div class="field"><label>Notas</label><textarea id="na-notas" placeholder="Detalle del estado..."></textarea></div>
-          <button class="btn btn-primary" onclick="addAccount()" style="width:fit-content">Agregar cuenta</button>
         </div>
       </div>
     </div>
@@ -444,13 +525,13 @@ const firebaseConfig = {
   messagingSenderId: "688638102763",
   appId: "1:688638102763:web:c41b550549a6410cd082ae"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let tasks=[], accounts=[];
-let taskFilter="todos", accFilter="todos", accSearch="", accSortCol="nombre", accSortDir=1;
-let currentTab="tareas", currentDrawerAccId=null;
+let accFilters={estado:'todos', tier:'todos', ejecutivo:'todos', servicio:'todos'};
+let accSearch='', accSortCol='nombre', accSortDir=1;
+let currentTab='tareas', currentDrawerAccId=null;
 
 const todayDate=new Date(); todayDate.setHours(0,0,0,0);
 const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -463,13 +544,10 @@ function setSyncStatus(s){
   ['sync-dot','sync-dot-mob'].forEach(id=>{const e=el(id);if(e)e.className='sync-dot '+s;});
   const lb=el('sync-label');if(lb)lb.textContent={syncing:'Sincronizando...',ok:'En línea · Tiempo real',error:'Error de conexión'}[s]||'';
 }
-
 function fmtDate(f){
-  if(!f||f==='NaT'||f==='nan') return '—';
-  if(f.includes('T')) f=f.split('T')[0];
-  const parts=f.split('-');
-  if(parts.length===3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return f;
+  if(!f||f==='NaT'||f==='nan'||f==='-')return'—';
+  if(f.includes('T'))f=f.split('T')[0];
+  const p=f.split('-');if(p.length===3)return`${p[2]}/${p[1]}/${p[0]}`;return f;
 }
 function duePill(f){
   if(!f)return'';
@@ -478,6 +556,8 @@ function duePill(f){
   const txt=diff<0?`Venció ${fmtDate(f)}`:diff===0?'Hoy':diff===1?'Mañana':`${fmtDate(f)}`;
   return`<span class="due-pill ${cls}">${txt}</span>`;
 }
+function isActivo(a){return(a.estado||a.segmento||'').toLowerCase().includes('activo');}
+function normTier(t){return(t||'').toString().trim().toUpperCase();}
 
 // ── NAV
 window.goTab=function(tab,e){
@@ -485,7 +565,7 @@ window.goTab=function(tab,e){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el('tab-'+tab).classList.add('active'); e.classList.add('active');
-  const titles={tareas:["Tareas pendientes","Gestioná y seguí tus tareas activas"],cuentas:["Cartera de cuentas","Activos · Caídos · Tier A / B / C"]};
+  const titles={tareas:["Tareas pendientes","Gestioná y seguí tus tareas activas"],cuentas:["Cartera de cuentas","Activos · Caídos · Tier AA / A / B / C"]};
   el('tab-title')&&(el('tab-title').textContent=titles[tab][0]);
   el('tab-sub')&&(el('tab-sub').textContent=titles[tab][1]);
   el('task-add-panel').style.display='none'; el('acc-add-panel').style.display='none';
@@ -505,11 +585,14 @@ window.toggleAddPanel=function(){
 
 // ── TASKS
 window.setTaskFilter=function(f){
-  taskFilter=f;
-  const lbls={todos:"Todos",urgente:"Urgente","en-curso":"En curso",pendiente:"Pendiente",completado:"Completado"};
-  document.querySelectorAll('#task-filters .chip').forEach(c=>c.classList.toggle('active',c.textContent===lbls[f]));
-  renderTasks();
+  document.querySelectorAll('#task-filters .chip').forEach(c=>{
+    const lbls={todos:"Todos",urgente:"Urgente","en-curso":"En curso",pendiente:"Pendiente",completado:"Completado"};
+    c.classList.toggle('active',c.textContent===lbls[f]);
+  });
+  window._taskFilter=f; renderTasks();
 };
+window._taskFilter='todos';
+
 window.toggleStep=async function(id,idx,val){
   const t=tasks.find(t=>t.id===id);if(!t)return;
   t.steps[idx].done=val; setSyncStatus('syncing');
@@ -526,9 +609,8 @@ window.deleteTask=async function(id){
 window.addComment=async function(id){
   const inp=el('comment-input-'+id);if(!inp)return;
   const text=inp.value.trim();if(!text)return;
-  const comment={text,author:'Leandro',ts:new Date().toISOString()};
   setSyncStatus('syncing');
-  try{await updateDoc(doc(db,'tasks',id),{comments:arrayUnion(comment)});inp.value='';setSyncStatus('ok');}catch{setSyncStatus('error');}
+  try{await updateDoc(doc(db,'tasks',id),{comments:arrayUnion({text,author:'Leandro',ts:new Date().toISOString()})});inp.value='';setSyncStatus('ok');}catch{setSyncStatus('error');}
 };
 window.addTask=async function(){
   const title=el('nt-title').value.trim();if(!title)return;
@@ -536,18 +618,10 @@ window.addTask=async function(){
   const steps=raw?raw.split(',').map(s=>({text:s.trim(),done:false})):[];
   setSyncStatus('syncing');
   try{
-    await addDoc(collection(db,'tasks'),{
-      title, status:el('nt-status').value,
-      assignee:el('nt-assignee').value,
-      due:el('nt-due').value,
-      tag:el('nt-tag').value.trim()||'General',
-      accountId:el('nt-account').value,
-      desc:el('nt-desc').value.trim()||'',
-      steps, comments:[], createdAt:serverTimestamp()
-    });
+    await addDoc(collection(db,'tasks'),{title,status:el('nt-status').value,assignee:el('nt-assignee').value,due:el('nt-due').value,tag:el('nt-tag').value.trim()||'General',accountId:el('nt-account').value,desc:el('nt-desc').value.trim()||'',steps,comments:[],createdAt:serverTimestamp()});
     ['nt-title','nt-desc','nt-tag','nt-steps','nt-due'].forEach(id=>el(id).value='');
-    el('nt-assignee').value=''; el('nt-account').value='';
-    el('task-add-panel').style.display='none'; setSyncStatus('ok');
+    el('nt-assignee').value='';el('nt-account').value='';
+    el('task-add-panel').style.display='none';setSyncStatus('ok');
   }catch{setSyncStatus('error');}
 };
 
@@ -559,6 +633,7 @@ function updateAccountSelect(){
 }
 
 function renderTasks(){
+  const f=window._taskFilter||'todos';
   const counts={urgente:0,"en-curso":0,pendiente:0,completado:0};
   tasks.forEach(t=>counts[t.status]=(counts[t.status]||0)+1);
   el('badge-tareas').textContent=tasks.length; el('mob-badge-tareas').textContent=tasks.length;
@@ -568,12 +643,12 @@ function renderTasks(){
     <div class="stat-card sc-navy"><div class="stat-label">En curso</div><div class="stat-val">${counts["en-curso"]}</div><div class="stat-sub">en progreso</div></div>
     <div class="stat-card sc-green"><div class="stat-label">Completado</div><div class="stat-val">${counts.completado}</div><div class="stat-sub">finalizadas</div></div>`;
   const order=["urgente","en-curso","pendiente","completado"];
-  let data=taskFilter==="todos"?[...tasks]:tasks.filter(t=>t.status===taskFilter);
+  let data=f==='todos'?[...tasks]:tasks.filter(t=>t.status===f);
   data.sort((a,b)=>order.indexOf(a.status)-order.indexOf(b.status));
   const list=el('task-list');
   if(!data.length){list.innerHTML='<div class="empty-state">Sin tareas en esta categoría</div>';return;}
   list.innerHTML=data.map(t=>{
-    const done=t.steps?t.steps.filter(s=>s.done).length:0;
+    const done=(t.steps||[]).filter(s=>s.done).length;
     const pct=t.steps&&t.steps.length?Math.round(done/t.steps.length*100):0;
     const acct=t.accountId?accounts.find(a=>a.id===t.accountId):null;
     const comments=t.comments||[];
@@ -594,13 +669,7 @@ function renderTasks(){
         </select>
       </div>
       <div class="comments-section">
-        ${comments.map(c=>`<div class="comment-item">
-          <div class="comment-avatar">${(c.author||'?').slice(0,2).toUpperCase()}</div>
-          <div class="comment-body">
-            <div class="comment-header"><span class="comment-author">${c.author||'—'}</span><span class="comment-time">${c.ts?new Date(c.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'—'}</span></div>
-            <div class="comment-text">${c.text}</div>
-          </div>
-        </div>`).join('')}
+        ${comments.map(c=>`<div class="comment-item"><div class="comment-avatar">${(c.author||'?').slice(0,2).toUpperCase()}</div><div class="comment-body"><div class="comment-header"><span class="comment-author">${c.author||'—'}</span><span class="comment-time">${c.ts?new Date(c.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'—'}</span></div><div class="comment-text">${c.text}</div></div></div>`).join('')}
         <div class="comment-form">
           <input class="comment-input" id="comment-input-${t.id}" type="text" placeholder="Agregar comentario..." onkeydown="if(event.key==='Enter')addComment('${t.id}')"/>
           <button class="btn btn-sm" onclick="addComment('${t.id}')">Enviar</button>
@@ -610,73 +679,125 @@ function renderTasks(){
   }).join('');
 }
 
-// ── ACCOUNTS
-window.setAccFilter=function(f){
-  accFilter=f;
-  const lbls={todos:"Todos",activo:"Activos",caido:"Caídos",A:"Tier A",B:"Tier B",C:"Tier C"};
-  document.querySelectorAll('#acc-filters .chip').forEach(c=>c.classList.toggle('active',c.textContent===lbls[f]));
+// ── ACCOUNTS FILTERS
+window.setAccFilter=function(group, val){
+  accFilters[group]=val;
+  // Update active states for this group
+  document.querySelectorAll(`[id^="fo-${group}-"]`).forEach(e=>e.classList.remove('active'));
+  const target=el(`fo-${group}-${val}`);if(target)target.classList.add('active');
   renderAccounts();
 };
 window.setAccSearch=function(v){accSearch=v.toLowerCase();renderAccounts();};
 window.sortAcc=function(col){if(accSortCol===col)accSortDir*=-1;else{accSortCol=col;accSortDir=1;}renderAccounts();};
+window.clearFilters=function(){
+  accFilters={estado:'todos',tier:'todos',ejecutivo:'todos',servicio:'todos'};
+  accSearch='';
+  document.querySelector('.filter-search').value='';
+  document.querySelectorAll('.filter-option').forEach(e=>e.classList.remove('active'));
+  ['fo-estado-todos','fo-tier-todos','fo-ejec-todos','fo-svc-todos'].forEach(id=>{const e=el(id);if(e)e.classList.add('active');});
+  renderAccounts();
+};
 window.deleteAcc=async function(id,e){
-  e&&e.stopPropagation(); setSyncStatus('syncing');
+  e&&e.stopPropagation();setSyncStatus('syncing');
   try{await deleteDoc(doc(db,'accounts',id));setSyncStatus('ok');}catch{setSyncStatus('error');}
 };
 window.addAccount=async function(){
   const nombre=el('na-nombre').value.trim();if(!nombre)return;
   setSyncStatus('syncing');
   try{
-    await addDoc(collection(db,'accounts'),{
-      nombre, nid:el('na-nid').value.trim(),
-      ejecutivo:el('na-ejecutivo').value,
-      tipoServicio:el('na-servicio').value,
-      tier:el('na-tier').value,
-      estado:el('na-estado').value,
-      segmento:el('na-estado').value==='Activo'?'Activo':'Caído',
-      localidad:el('na-localidad').value.trim(),
-      region:el('na-region').value.trim(),
-      locales:el('na-locales').value.trim(),
-      contacto:el('na-contacto').value.trim(),
-      notas:el('na-notas').value.trim(),
-      history:[{action:'Cuenta creada manualmente',ts:new Date().toISOString()}],
-      comments:[], createdAt:serverTimestamp()
-    });
+    await addDoc(collection(db,'accounts'),{nombre,nid:el('na-nid').value.trim(),ejecutivo:el('na-ejecutivo').value,tipoServicio:el('na-servicio').value,tier:el('na-tier').value,estado:el('na-estado').value,segmento:el('na-estado').value,localidad:el('na-localidad').value.trim(),region:el('na-region').value.trim(),locales:el('na-locales').value.trim(),contacto:el('na-contacto').value.trim(),notas:el('na-notas').value.trim(),history:[{action:'Cuenta creada manualmente',ts:new Date().toISOString()}],comments:[],createdAt:serverTimestamp()});
     ['na-nombre','na-nid','na-localidad','na-region','na-locales','na-contacto','na-notas'].forEach(id=>el(id).value='');
-    el('acc-add-panel').style.display='none'; setSyncStatus('ok');
+    el('acc-add-panel').style.display='none';setSyncStatus('ok');
   }catch{setSyncStatus('error');}
 };
 
 function getFilteredAccounts(){
   let data=[...accounts];
-  if(accFilter==='activo') data=data.filter(a=>(a.estado||a.segmento||'').toLowerCase().includes('activo'));
-  else if(accFilter==='caido') data=data.filter(a=>(a.estado||a.segmento||'').toLowerCase().includes('ca'));
-  else if(['A','B','C'].includes(accFilter)) data=data.filter(a=>a.tier===accFilter);
+  if(accFilters.estado==='activo') data=data.filter(a=>isActivo(a));
+  else if(accFilters.estado==='caido') data=data.filter(a=>!isActivo(a));
+  if(accFilters.tier!=='todos') data=data.filter(a=>normTier(a.tier)===accFilters.tier);
+  if(accFilters.ejecutivo!=='todos') data=data.filter(a=>(a.ejecutivo||'').trim()===accFilters.ejecutivo);
+  if(accFilters.servicio!=='todos') data=data.filter(a=>(a.tipoServicio||'').trim()===accFilters.servicio);
   if(accSearch) data=data.filter(a=>[a.nombre,a.localidad,a.region,a.ejecutivo,a.nid,a.contacto].join(' ').toLowerCase().includes(accSearch));
-  data.sort((a,b)=>{let va=String(a[accSortCol]||''),vb=String(b[accSortCol]||'');return va.localeCompare(vb)*accSortDir;});
+  data.sort((a,b)=>String(a[accSortCol]||'').localeCompare(String(b[accSortCol]||''))*accSortDir);
   return data;
 }
 
-function isActivo(a){ return (a.estado||a.segmento||'').toLowerCase().includes('activo'); }
+function buildDynamicFilters(){
+  // Ejecutivos
+  const ejecutivos=[...new Set(accounts.map(a=>(a.ejecutivo||'').trim()).filter(Boolean))].sort();
+  const ejDiv=el('filter-ejecutivos');
+  ejDiv.innerHTML=`<div class="filter-option active" id="fo-ejecutivo-todos" onclick="setAccFilter('ejecutivo','todos')">Todos <span class="filter-count" id="fc-ejec-todos">0</span></div>`
+    +ejecutivos.map(e=>`<div class="filter-option" id="fo-ejecutivo-${e.replace(/[^a-z0-9]/gi,'_')}" onclick="setAccFilter('ejecutivo','${e}')">
+      ${e} <span class="filter-count" id="fc-ejec-${e.replace(/[^a-z0-9]/gi,'_')}">0</span>
+    </div>`).join('');
+
+  // Servicios
+  const servicios=[...new Set(accounts.map(a=>(a.tipoServicio||'').trim()).filter(v=>v&&v!=='-'))].sort();
+  const svcDiv=el('filter-servicios');
+  svcDiv.innerHTML=`<div class="filter-option active" id="fo-servicio-todos" onclick="setAccFilter('servicio','todos')">Todos <span class="filter-count" id="fc-svc-todos">0</span></div>`
+    +servicios.map(s=>`<div class="filter-option" id="fo-servicio-${s.replace(/[^a-z0-9]/gi,'_')}" onclick="setAccFilter('servicio','${s}')">
+      ${s} <span class="filter-count" id="fc-svc-${s.replace(/[^a-z0-9]/gi,'_')}">0</span>
+    </div>`).join('');
+
+  // Restore active states
+  if(accFilters.ejecutivo!=='todos'){
+    document.querySelectorAll('[id^="fo-ejecutivo-"]').forEach(e=>e.classList.remove('active'));
+    const t=el(`fo-ejecutivo-${accFilters.ejecutivo.replace(/[^a-z0-9]/gi,'_')}`);if(t)t.classList.add('active');
+  } else { const t=el('fo-ejecutivo-todos');if(t)t.classList.add('active'); }
+  if(accFilters.servicio!=='todos'){
+    document.querySelectorAll('[id^="fo-servicio-"]').forEach(e=>e.classList.remove('active'));
+    const t=el(`fo-servicio-${accFilters.servicio.replace(/[^a-z0-9]/gi,'_')}`);if(t)t.classList.add('active');
+  } else { const t=el('fo-servicio-todos');if(t)t.classList.add('active'); }
+}
+
+function updateCounts(){
+  // Estado
+  el('fc-estado-todos')&&(el('fc-estado-todos').textContent=accounts.length);
+  el('fc-estado-activo')&&(el('fc-estado-activo').textContent=accounts.filter(a=>isActivo(a)).length);
+  el('fc-estado-caido')&&(el('fc-estado-caido').textContent=accounts.filter(a=>!isActivo(a)).length);
+  // Tier
+  ['AA','A','B','C'].forEach(t=>{
+    const e=el(`fc-tier-${t}`);if(e)e.textContent=accounts.filter(a=>normTier(a.tier)===t).length;
+  });
+  el('fc-tier-todos')&&(el('fc-tier-todos').textContent=accounts.length);
+  // Ejecutivos
+  const ejecutivos=[...new Set(accounts.map(a=>(a.ejecutivo||'').trim()).filter(Boolean))];
+  ejecutivos.forEach(e=>{
+    const cnt=el(`fc-ejec-${e.replace(/[^a-z0-9]/gi,'_')}`);
+    if(cnt)cnt.textContent=accounts.filter(a=>(a.ejecutivo||'').trim()===e).length;
+  });
+  el('fc-ejec-todos')&&(el('fc-ejec-todos').textContent=accounts.length);
+  // Servicios
+  const servicios=[...new Set(accounts.map(a=>(a.tipoServicio||'').trim()).filter(v=>v&&v!=='-'))];
+  servicios.forEach(s=>{
+    const cnt=el(`fc-svc-${s.replace(/[^a-z0-9]/gi,'_')}`);
+    if(cnt)cnt.textContent=accounts.filter(a=>(a.tipoServicio||'').trim()===s).length;
+  });
+  el('fc-svc-todos')&&(el('fc-svc-todos').textContent=accounts.length);
+}
 
 function renderAccounts(){
   const total=accounts.length;
   const activos=accounts.filter(a=>isActivo(a)).length;
   const caidos=accounts.filter(a=>!isActivo(a)).length;
-  const tierA=accounts.filter(a=>a.tier==='A').length;
+  const tierAA_A=accounts.filter(a=>['AA','A'].includes(normTier(a.tier))).length;
   el('badge-cuentas').textContent=total; el('mob-badge-cuentas').textContent=total;
   el('acc-stats').innerHTML=`
     <div class="stat-card sc-orange"><div class="stat-label">Total</div><div class="stat-val">${total}</div><div class="stat-sub">en cartera</div></div>
     <div class="stat-card sc-green"><div class="stat-label">Activos</div><div class="stat-val">${activos}</div><div class="stat-sub">con servicio</div></div>
     <div class="stat-card sc-red"><div class="stat-label">Caídos</div><div class="stat-val">${caidos}</div><div class="stat-sub">para recuperar</div></div>
-    <div class="stat-card sc-navy"><div class="stat-label">Tier A</div><div class="stat-val">${tierA}</div><div class="stat-sub">cuentas clave</div></div>`;
+    <div class="stat-card sc-navy"><div class="stat-label">Tier A+AA</div><div class="stat-val">${tierAA_A}</div><div class="stat-sub">cuentas clave</div></div>`;
+
+  buildDynamicFilters();
+  updateCounts();
 
   const data=getFilteredAccounts();
-  const showActivo=accFilter==='activo'||accFilter==='todos';
-  const showCaido=accFilter==='caido'||accFilter==='todos';
-  const mixedView=accFilter==='todos'||['A','B','C'].includes(accFilter);
+  el('results-count').textContent=`${data.length} resultado${data.length!==1?'s':''}`;
 
-  // Build header
+  const showActivo=accFilters.estado==='activo'||accFilters.estado==='todos';
+  const showCaido=accFilters.estado==='caido'||accFilters.estado==='todos';
+
   let headCols=`
     <th class="sortable" onclick="sortAcc('nombre')">Cliente</th>
     <th class="sortable" onclick="sortAcc('nid')">N ID</th>
@@ -686,11 +807,11 @@ function renderAccounts(){
     <th>Estado</th>
     <th class="sortable" onclick="sortAcc('localidad')">Provincia</th>
     <th>Locales</th>`;
-  if(showActivo&&mixedView||accFilter==='activo'){
+  if(showActivo){
     headCols+=`<th class="sortable" onclick="sortAcc('ultimoContacto')">Último contacto</th>
     <th class="sortable" onclick="sortAcc('ultimaPresentacion')">Última presentación</th>`;
   }
-  if(showCaido&&mixedView||accFilter==='caido'){
+  if(showCaido){
     headCols+=`<th class="sortable" onclick="sortAcc('ultimoMovimiento')">Últ. movimiento</th>
     <th>Motivo baja</th>`;
   }
@@ -698,28 +819,29 @@ function renderAccounts(){
   el('acc-thead').innerHTML=`<tr>${headCols}</tr>`;
 
   const tbody=el('acc-tbody');
-  if(!data.length){tbody.innerHTML=`<tr><td colspan="14" class="empty-state">Sin cuentas en esta categoría</td></tr>`;return;}
+  if(!data.length){tbody.innerHTML=`<tr><td colspan="14" class="empty-state">Sin cuentas con estos filtros</td></tr>`;return;}
 
   tbody.innerHTML=data.map(a=>{
     const activo=isActivo(a);
+    const tier=normTier(a.tier);
     let cols=`
       <td onclick="openDrawer('${a.id}')"><div class="client-name">${a.nombre}</div>${a.nid?`<div class="client-sub">#${a.nid}</div>`:''}</td>
       <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">${a.nid||'—'}</td>
       <td style="font-size:12px">${a.ejecutivo||'—'}</td>
-      <td>${a.tipoServicio?`<span class="svc-pill">${a.tipoServicio}</span>`:'—'}</td>
-      <td><span class="tier-pill tier-${a.tier||'C'}">${a.tier||'C'}</span></td>
+      <td>${a.tipoServicio&&a.tipoServicio!=='-'?`<span class="svc-pill">${a.tipoServicio}</span>`:'—'}</td>
+      <td><span class="tier-pill tier-${tier}">${tier}</span></td>
       <td><span class="estado-pill ${activo?'estado-activo':'estado-caido'}">${activo?'Activo':'Caído'}</span></td>
       <td style="font-size:12px">${a.localidad||'—'}</td>
       <td style="font-size:12px;text-align:center">${a.locales||'—'}</td>`;
-    if(showActivo&&mixedView||accFilter==='activo'){
+    if(showActivo){
       cols+=`<td class="date-cell">${fmtDate(a.ultimoContacto)||'—'}</td>
       <td class="date-cell">${fmtDate(a.ultimaPresentacion)||'—'}</td>`;
     }
-    if(showCaido&&mixedView||accFilter==='caido'){
+    if(showCaido){
       cols+=`<td class="date-cell">${fmtDate(a.ultimoMovimiento)||'—'}</td>
-      <td style="font-size:11px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${a.motivoBaja||''}">${a.motivoBaja||'—'}</td>`;
+      <td style="font-size:11px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${a.motivoBaja||''}">${a.motivoBaja||'—'}</td>`;
     }
-    cols+=`<td style="font-size:11px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)" title="${a.notas||''}">${a.notas||'—'}</td>
+    cols+=`<td style="font-size:11px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)" title="${a.notas||''}">${a.notas||'—'}</td>
       <td><button class="del-btn" onclick="deleteAcc('${a.id}',event)">✕</button></td>`;
     return`<tr>${cols}</tr>`;
   }).join('');
@@ -730,30 +852,22 @@ window.openDrawer=function(id){
   const a=accounts.find(a=>a.id===id);if(!a)return;
   currentDrawerAccId=id;
   const activo=isActivo(a);
+  const tier=normTier(a.tier);
   el('drawer-name').textContent=a.nombre;
   el('drawer-sub').innerHTML=`
-    <span class="tier-pill tier-${a.tier||'C'}" style="font-size:10px">${a.tier||'C'}</span>
+    <span class="tier-pill tier-${tier}" style="font-size:10px">${tier}</span>
     <span class="estado-pill ${activo?'estado-activo':'estado-caido'}" style="font-size:10px">${activo?'Activo':'Caído'}</span>
-    ${a.tipoServicio?`<span class="svc-pill" style="font-size:10px">${a.tipoServicio}</span>`:''}
+    ${a.tipoServicio&&a.tipoServicio!=='-'?`<span class="svc-pill" style="font-size:10px">${a.tipoServicio}</span>`:''}
     ${a.nid?`<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">#${a.nid}</span>`:''}`;
-
   el('drawer-fields-general').innerHTML=`
     <div class="field-item"><label>Ejecutivo</label>
-      <select id="df-ejecutivo">
-        ${['','LS','AJG','EE','EE/LS','AJG/LS'].map(v=>`<option value="${v}"${a.ejecutivo===v?' selected':''}>${v||'Sin asignar'}</option>`).join('')}
-      </select></div>
+      <select id="df-ejecutivo">${['','LS','AJG','EE','EE/LS','AJG/LS','Sin Asignar'].map(v=>`<option value="${v}"${a.ejecutivo===v?' selected':''}>${v||'Sin asignar'}</option>`).join('')}</select></div>
     <div class="field-item"><label>Tipo de servicio</label>
-      <select id="df-servicio">
-        ${['Con Analytics','Sin Analytics','-'].map(v=>`<option value="${v}"${a.tipoServicio===v?' selected':''}>${v}</option>`).join('')}
-      </select></div>
+      <select id="df-servicio">${['Con Analytics','Sin Analytics','-'].map(v=>`<option value="${v}"${a.tipoServicio===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Tier</label>
-      <select id="df-tier">
-        ${['A','B','C'].map(v=>`<option value="${v}"${a.tier===v?' selected':''}>${v}</option>`).join('')}
-      </select></div>
+      <select id="df-tier">${['AA','A','B','C'].map(v=>`<option value="${v}"${tier===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Estado</label>
-      <select id="df-estado">
-        ${['Activo','Caído'].map(v=>`<option value="${v}"${(a.estado||a.segmento)===v?' selected':''}>${v}</option>`).join('')}
-      </select></div>
+      <select id="df-estado">${['Activo','Caído'].map(v=>`<option value="${v}"${(a.estado||a.segmento)===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Provincia</label><input id="df-localidad" type="text" value="${a.localidad||''}" placeholder="—"/></div>
     <div class="field-item"><label>Región</label><input id="df-region" type="text" value="${a.region||''}" placeholder="—"/></div>
     <div class="field-item"><label>Cant. locales</label><input id="df-locales" type="text" value="${a.locales||''}" placeholder="—"/></div>
@@ -761,7 +875,6 @@ window.openDrawer=function(id){
     <div class="field-item"><label>Email</label><input id="df-email" type="text" value="${a.email||''}" placeholder="—"/></div>
     <div class="field-item"><label>Celular</label><input id="df-celular" type="text" value="${a.celular||''}" placeholder="—"/></div>
     <div class="field-item full"><label>Notas</label><textarea id="df-notas" rows="2">${a.notas||''}</textarea></div>`;
-
   if(activo){
     el('drawer-section-activo').style.display='block';
     el('drawer-section-caido').style.display='none';
@@ -777,68 +890,39 @@ window.openDrawer=function(id){
       <div class="field-item"><label>Motivo de baja</label><input id="df-motivoBaja" type="text" value="${a.motivoBaja||''}" placeholder="—"/></div>
       <div class="field-item full"><label>Estado / detalle</label><textarea id="df-estadoDetalle" rows="2">${a.notas||''}</textarea></div>`;
   }
-
   const linked=tasks.filter(t=>t.accountId===id);
   el('drawer-tasks').innerHTML=linked.length?linked.map(t=>`<div class="linked-task">
     <div class="linked-task-dot" style="background:${t.status==='urgente'?'var(--red)':t.status==='en-curso'?'var(--orange)':t.status==='completado'?'var(--green)':'var(--navy)'}"></div>
-    <span>${t.title}</span>
-    <span style="margin-left:auto;font-size:10px;color:var(--text3)">${taskStatusLabel[t.status]||''}</span>
+    <span>${t.title}</span><span style="margin-left:auto;font-size:10px;color:var(--text3)">${taskStatusLabel[t.status]||''}</span>
   </div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin tareas vinculadas</div>';
-
   const hist=(a.history||[]).slice().reverse();
   el('drawer-history').innerHTML=hist.length?hist.map(h=>`<div class="history-item">
     <div class="history-dot"></div>
-    <div><div class="history-text">${h.action}</div>
-    <div class="history-time">${h.ts?new Date(h.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div>
+    <div><div class="history-text">${h.action}</div><div class="history-time">${h.ts?new Date(h.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div>
   </div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin historial</div>';
-
-  el('acc-drawer').classList.add('open'); el('drawer-overlay').classList.add('open');
+  el('acc-drawer').classList.add('open');el('drawer-overlay').classList.add('open');
 };
-
 window.closeDrawer=function(){el('acc-drawer').classList.remove('open');el('drawer-overlay').classList.remove('open');currentDrawerAccId=null;};
-
 window.saveDrawer=async function(){
   if(!currentDrawerAccId)return;
   const a=accounts.find(a=>a.id===currentDrawerAccId);if(!a)return;
   const activo=isActivo(a);
-  const newTier=el('df-tier').value, newEstado=el('df-estado').value;
+  const newTier=el('df-tier').value,newEstado=el('df-estado').value;
   const changes=[];
-  if(newTier!==a.tier) changes.push(`Tier: ${a.tier}→${newTier}`);
-  if(newEstado!==(a.estado||a.segmento)) changes.push(`Estado: ${a.estado||a.segmento}→${newEstado}`);
+  if(newTier!==normTier(a.tier))changes.push(`Tier: ${normTier(a.tier)}→${newTier}`);
+  if(newEstado!==(a.estado||a.segmento))changes.push(`Estado: ${a.estado||a.segmento}→${newEstado}`);
   const histEntries=changes.map(c=>({action:c,ts:new Date().toISOString()}));
-  const upd={
-    ejecutivo:el('df-ejecutivo').value,
-    tipoServicio:el('df-servicio').value,
-    tier:newTier, estado:newEstado, segmento:newEstado,
-    localidad:el('df-localidad').value.trim(),
-    region:el('df-region').value.trim(),
-    locales:el('df-locales').value.trim(),
-    contacto:el('df-contacto').value.trim(),
-    email:el('df-email').value.trim(),
-    celular:el('df-celular').value.trim(),
-    notas:el('df-notas').value.trim(),
-  };
-  if(activo){
-    upd.ultimoContacto=el('df-ultimoContacto')?.value||a.ultimoContacto||'';
-    upd.ultimaPresentacion=el('df-ultimaPresentacion')?.value||a.ultimaPresentacion||'';
-  } else {
-    upd.ultimoMovimiento=el('df-ultimoMovimiento')?.value||a.ultimoMovimiento||'';
-    upd.motivoBaja=el('df-motivoBaja')?.value||a.motivoBaja||'';
-  }
-  if(histEntries.length) upd.history=arrayUnion(...histEntries);
+  const upd={ejecutivo:el('df-ejecutivo').value,tipoServicio:el('df-servicio').value,tier:newTier,estado:newEstado,segmento:newEstado,localidad:el('df-localidad').value.trim(),region:el('df-region').value.trim(),locales:el('df-locales').value.trim(),contacto:el('df-contacto').value.trim(),email:el('df-email').value.trim(),celular:el('df-celular').value.trim(),notas:el('df-notas').value.trim()};
+  if(activo){upd.ultimoContacto=el('df-ultimoContacto')?.value||'';upd.ultimaPresentacion=el('df-ultimaPresentacion')?.value||'';}
+  else{upd.ultimoMovimiento=el('df-ultimoMovimiento')?.value||'';upd.motivoBaja=el('df-motivoBaja')?.value||'';}
+  if(histEntries.length)upd.history=arrayUnion(...histEntries);
   setSyncStatus('syncing');
   try{await updateDoc(doc(db,'accounts',currentDrawerAccId),upd);setSyncStatus('ok');closeDrawer();}catch{setSyncStatus('error');}
 };
 
 setSyncStatus('syncing');
-onSnapshot(collection(db,'tasks'),snap=>{
-  tasks=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderTasks(); updateAccountSelect(); setSyncStatus('ok');
-},()=>setSyncStatus('error'));
-onSnapshot(collection(db,'accounts'),snap=>{
-  accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderAccounts(); updateAccountSelect(); setSyncStatus('ok');
-},()=>setSyncStatus('error'));
+onSnapshot(collection(db,'tasks'),snap=>{tasks=snap.docs.map(d=>({id:d.id,...d.data()}));renderTasks();updateAccountSelect();setSyncStatus('ok');},()=>setSyncStatus('error'));
+onSnapshot(collection(db,'accounts'),snap=>{accounts=snap.docs.map(d=>({id:d.id,...d.data()}));renderAccounts();updateAccountSelect();setSyncStatus('ok');},()=>setSyncStatus('error'));
 </script>
 </body>
 </html>
