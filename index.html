@@ -638,7 +638,8 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     </div>
     <div class="drawer-section">
       <div class="drawer-section-title">Nueva interacción</div>
-      <div class="interaccion-form">
+      <div id="interaccion-no-permiso" style="display:none;font-size:12px;color:var(--text3);padding:10px 0">Solo podés registrar interacciones en tus propias cuentas.</div>
+      <div id="interaccion-form-wrap"><div class="interaccion-form">
         <div class="interaccion-tipo-row" id="tipo-btns">
           <button class="tipo-btn active" onclick="selectTipo(this,'Llamada')">📞 Llamada</button>
           <button class="tipo-btn" onclick="selectTipo(this,'Reunión')">🤝 Reunión</button>
@@ -656,7 +657,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           </select>
           <button class="btn btn-navy btn-sm" onclick="addInteraccion()">Registrar interacción</button>
         </div>
-      </div>
+      </div></div>
     </div>
     <div class="drawer-section">
       <div class="drawer-section-title">Historial de interacciones</div>
@@ -1109,6 +1110,13 @@ window.openDrawer=function(id){
       <div class="field-item"><label>Motivo de baja</label><input id="df-motivoBaja" type="text" value="${a.motivoBaja||''}" placeholder="—"/></div>
       <div class="field-item full"><label>Últ. movimiento</label><input id="df-ultimoMovimiento" type="text" value="${a.ultimoMovimiento||''}" placeholder="—"/></div>`;
   }
+  // Restrict interaccion form for members - only their accounts
+  const canInteract = currentRole==='admin' || (currentRole==='member' && (a.ejecutivo||'').trim()===window.currentEjecutivo);
+  const interaccionWrap = el('interaccion-form-wrap');
+  if(interaccionWrap) interaccionWrap.style.display = canInteract ? 'block' : 'none';
+  const noPermiso = el('interaccion-no-permiso');
+  if(noPermiso) noPermiso.style.display = canInteract ? 'none' : 'block';
+
   // Interacciones
   const ints=(a.interacciones||[]).slice().reverse();
   el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item">
@@ -1331,8 +1339,8 @@ const auth = getAuth(app);
 
 // Roles: add emails here
 const ROLES = {
-  'leandro.segovia@scanntech.com': {name:'Leandro', role:'admin'},
-  'leandrosegovia.g@gmail.com':    {name:'Leandro (test)', role:'member'},
+  'leandro.segovia@scanntech.com': {name:'Leandro', role:'admin',   ejecutivo:'LS'},
+  'leandrosegovia.g@gmail.com':    {name:'Leandro', role:'member',  ejecutivo:'LS'},
 };
 
 let currentUser = null;
@@ -1359,9 +1367,10 @@ window.doLogout = async function(){
 
 onAuthStateChanged(auth, user=>{
   if(user){
-    const info = ROLES[user.email] || {name: user.email.split('@')[0], role:'member'};
+    const info = ROLES[user.email] || {name: user.email.split('@')[0], role:'member', ejecutivo:''};
     currentUser = user;
     currentRole = info.role;
+    window.currentEjecutivo = info.ejecutivo||'';
     // Show app, hide login
     el('login-overlay').classList.remove('show');
     el('main-app').style.display='grid';
