@@ -926,32 +926,68 @@ function getFilteredAccounts(){
 }
 
 function buildDynamicFilters(){
+  // Helper: count respecting all filters except the given group
+  function countForGroup(group, val){
+    return accounts.filter(a=>{
+      const f = {...accFilters, [group]: val};
+      if(f.estado==='activo' && !isActivo(a)) return false;
+      if(f.estado==='caido' && isActivo(a)) return false;
+      if(f.tier!=='todos' && normTier(a.tier)!==f.tier) return false;
+      if(f.ejecutivo!=='todos' && !(a.ejecutivo||'').includes(f.ejecutivo)) return false;
+      if(f.servicio!=='todos' && (a.tipoServicio||'').trim()!==f.servicio) return false;
+      if(accSearch && ![a.nombre,a.localidad,a.region,a.ejecutivo,a.nid].join(' ').toLowerCase().includes(accSearch)) return false;
+      return true;
+    }).length;
+  }
+
   const ejecutivos=[...new Set(accounts.map(a=>(a.ejecutivo||'').trim()).filter(Boolean))].sort();
   const ejDiv=el('filter-ejecutivos');
   if(!ejDiv)return;
   const curEjec=accFilters.ejecutivo;
-  ejDiv.innerHTML=`<div class="filter-option${curEjec==='todos'?' active':''}" id="fo-ejecutivo-todos" onclick="setAccFilter('ejecutivo','todos')">Todos <span class="filter-count" id="fc-ejec-todos">${accounts.length}</span></div>`
+  ejDiv.innerHTML=`<div class="filter-option${curEjec==='todos'?' active':''}" id="fo-ejecutivo-todos" onclick="setAccFilter('ejecutivo','todos')">Todos <span class="filter-count">${countForGroup('ejecutivo','todos')}</span></div>`
     +ejecutivos.map(e=>`<div class="filter-option${curEjec===e?' active':''}" id="fo-ejecutivo-${e.replace(/\W/g,'_')}" onclick="setAccFilter('ejecutivo','${e}')">
-      ${e} <span class="filter-count" id="fc-ejec-${e.replace(/\W/g,'_')}">${accounts.filter(a=>(a.ejecutivo||'').trim()===e).length}</span>
+      ${e} <span class="filter-count">${countForGroup('ejecutivo',e)}</span>
     </div>`).join('');
+
   const servicios=[...new Set(accounts.map(a=>(a.tipoServicio||'').trim()).filter(v=>v&&v!=='-'))].sort();
   const svcDiv=el('filter-servicios');
   if(!svcDiv)return;
   const curSvc=accFilters.servicio;
-  svcDiv.innerHTML=`<div class="filter-option${curSvc==='todos'?' active':''}" id="fo-servicio-todos" onclick="setAccFilter('servicio','todos')">Todos <span class="filter-count" id="fc-svc-todos">${accounts.length}</span></div>`
+  svcDiv.innerHTML=`<div class="filter-option${curSvc==='todos'?' active':''}" id="fo-servicio-todos" onclick="setAccFilter('servicio','todos')">Todos <span class="filter-count">${countForGroup('servicio','todos')}</span></div>`
     +servicios.map(s=>`<div class="filter-option${curSvc===s?' active':''}" id="fo-servicio-${s.replace(/\W/g,'_')}" onclick="setAccFilter('servicio','${s}')">
-      ${s} <span class="filter-count" id="fc-svc-${s.replace(/\W/g,'_')}">${accounts.filter(a=>(a.tipoServicio||'').trim()===s).length}</span>
+      ${s} <span class="filter-count">${countForGroup('servicio',s)}</span>
     </div>`).join('');
 }
 
 function updateCounts(){
-  el('fc-estado-todos')&&(el('fc-estado-todos').textContent=accounts.length);
-  el('fc-estado-activo')&&(el('fc-estado-activo').textContent=accounts.filter(a=>isActivo(a)).length);
-  el('fc-estado-caido')&&(el('fc-estado-caido').textContent=accounts.filter(a=>!isActivo(a)).length);
+  // For each filter group, count using all OTHER active filters (not the group itself)
+  // Estado counts: apply tier + ejecutivo + servicio filters
+  function countWith(overrides){
+    return accounts.filter(a=>{
+      const f = {...accFilters, ...overrides};
+      if(f.estado==='activo' && !isActivo(a)) return false;
+      if(f.estado==='caido' && isActivo(a)) return false;
+      if(f.tier!=='todos' && normTier(a.tier)!==f.tier) return false;
+      if(f.ejecutivo!=='todos' && !(a.ejecutivo||'').includes(f.ejecutivo)) return false;
+      if(f.servicio!=='todos' && (a.tipoServicio||'').trim()!==f.servicio) return false;
+      if(accSearch && ![a.nombre,a.localidad,a.region,a.ejecutivo,a.nid].join(' ').toLowerCase().includes(accSearch)) return false;
+      return true;
+    }).length;
+  }
+
+  // Estado group (ignore estado filter itself)
+  el('fc-estado-todos')&&(el('fc-estado-todos').textContent=countWith({estado:'todos'}));
+  el('fc-estado-activo')&&(el('fc-estado-activo').textContent=countWith({estado:'activo'}));
+  el('fc-estado-caido')&&(el('fc-estado-caido').textContent=countWith({estado:'caido'}));
+
+  // Tier group (ignore tier filter itself)
+  el('fc-tier-todos')&&(el('fc-tier-todos').textContent=countWith({tier:'todos'}));
   [['A+','Aplus'],['A','A'],['B','B'],['C','C']].forEach(([t,key])=>{
-    const e=el('fc-tier-'+key);if(e)e.textContent=accounts.filter(a=>normTier(a.tier)===t).length;
+    const e=el('fc-tier-'+key);if(e)e.textContent=countWith({tier:t});
   });
-  el('fc-tier-todos')&&(el('fc-tier-todos').textContent=accounts.length);
+
+  // Ejecutivo and servicio counts are rebuilt in buildDynamicFilters with correct filtering
+  // Active filter badge
   const activeCount=Object.values(accFilters).filter(v=>v!=='todos').length+(accSearch?1:0);
   const badge=el('filter-active-badge');
   if(badge){badge.style.display=activeCount>0?'inline':'none';badge.textContent=activeCount;}
@@ -1111,7 +1147,7 @@ window.openDrawer=function(id){
       <div class="field-item full"><label>Últ. movimiento</label><input id="df-ultimoMovimiento" type="text" value="${a.ultimoMovimiento||''}" placeholder="—"/></div>`;
   }
   // Restrict interaccion form for members - only their accounts
-  const canInteract = currentRole==='admin' || (currentRole==='member' && (a.ejecutivo||'').trim()===window.currentEjecutivo);
+  const canInteract = currentRole==='admin' || (currentRole==='member' && (a.ejecutivo||'').includes(window.currentEjecutivo||'__'));
   const interaccionWrap = el('interaccion-form-wrap');
   if(interaccionWrap) interaccionWrap.style.display = canInteract ? 'block' : 'none';
   const noPermiso = el('interaccion-no-permiso');
