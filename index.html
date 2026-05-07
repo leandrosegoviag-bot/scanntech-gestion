@@ -409,6 +409,64 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .pending-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px}
 .pending-item-name{font-size:13px;font-weight:500;color:var(--text);flex:1}
 .pending-item-sub{font-size:11px;color:var(--text3)}
+
+/* ── FICHA CLIENTE ── */
+.ficha-selector{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.ficha-select{font-size:14px;padding:9px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;min-width:280px;transition:border .15s}
+.ficha-select:focus{border-color:var(--navy)}
+.ficha-content{display:none}
+.ficha-content.show{display:block}
+.ficha-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.ficha-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.ficha-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm)}
+.ficha-card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;font-family:'DM Mono',monospace}
+.ficha-header-card{background:var(--navy);border-radius:var(--radius);padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.ficha-nombre{font-size:20px;font-weight:600;color:#fff}
+.ficha-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.ficha-semaforo-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.semaforo{display:flex;gap:6px;align-items:center}
+.semaforo-dot{width:16px;height:16px;border-radius:50%;opacity:.3;transition:all .2s}
+.semaforo-dot.active{opacity:1;box-shadow:0 0 8px currentColor}
+.semaforo-verde .semaforo-dot:nth-child(1){background:#1a9e6a;color:#1a9e6a}
+.semaforo-verde .semaforo-dot:nth-child(1).active{opacity:1}
+.semaforo-amarillo .semaforo-dot:nth-child(2){background:#d97706;color:#d97706}
+.semaforo-amarillo .semaforo-dot:nth-child(2).active{opacity:1}
+.semaforo-rojo .semaforo-dot:nth-child(3){background:#d93025;color:#d93025}
+.semaforo-rojo .semaforo-dot:nth-child(3).active{opacity:1}
+.semaforo-label{font-size:12px;font-weight:500;color:rgba(255,255,255,.8)}
+.ficha-stat{text-align:center;padding:12px}
+.ficha-stat-val{font-size:28px;font-weight:600;color:var(--text)}
+.ficha-stat-label{font-size:11px;color:var(--text3);margin-top:4px}
+.ficha-stat-sub{font-size:10px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+.ficha-stats-row{display:grid;gap:1px;background:var(--border)}
+.ficha-stats-row > *{background:var(--surface)}
+
+/* Dashboards list */
+.dash-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.dash-item:last-child{border-bottom:none}
+.dash-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
+.dash-name{font-size:13px;color:var(--text2);flex:1}
+.dash-input{font-size:12px;border:none;background:transparent;color:var(--text2);width:100%;outline:none;font-family:'DM Sans',sans-serif}
+.dash-input::placeholder{color:var(--text3)}
+.add-dash-row{display:flex;gap:8px;margin-top:10px}
+.add-dash-input{flex:1;font-size:13px;padding:7px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none}
+.add-dash-input:focus{border-color:var(--navy)}
+
+/* Argentina map */
+.mapa-wrap{position:relative;width:100%}
+.mapa-wrap svg{width:100%;height:auto}
+.mapa-tooltip{position:absolute;background:var(--navy);color:#fff;font-size:11px;padding:5px 10px;border-radius:6px;pointer-events:none;display:none;white-space:nowrap;z-index:10}
+.provincia-path{fill:var(--surface2);stroke:#fff;stroke-width:1;transition:fill .2s;cursor:pointer}
+.provincia-path.activa{fill:var(--orange)}
+.provincia-path.activa:hover{fill:var(--orange2)}
+.provincia-path:hover{fill:var(--surface3)}
+
+/* Interacciones recientes en ficha */
+.ficha-int-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.ficha-int-item:last-child{border-bottom:none}
+.ficha-int-tipo{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--navy-dim);color:var(--navy);font-weight:500;flex-shrink:0}
+.ficha-int-text{font-size:12px;color:var(--text2);flex:1}
+.ficha-int-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -458,6 +516,10 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <button class="nav-item" onclick="goTab('calendario',this)">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
       Calendario<span class="nav-badge" id="badge-calendario">—</span>
+    </button>
+    <button class="nav-item" onclick="goTab('ficha',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/></svg>
+      Ficha cliente<span class="nav-badge" id="badge-ficha"></span>
     </button>
   </nav>
   <div class="user-info" id="user-info" style="display:none">
@@ -637,7 +699,17 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       </div>
     </div>
 
-    <!-- TAREAS -->
+    <!-- FICHA CLIENTE -->
+    <div class="tab-content" id="tab-ficha">
+      <div class="ficha-selector">
+        <select class="ficha-select" id="ficha-account-select" onchange="renderFicha()">
+          <option value="">Seleccioná una cuenta...</option>
+        </select>
+      </div>
+      <div class="ficha-content" id="ficha-content"></div>
+    </div>
+
+        <!-- TAREAS -->
     <div class="tab-content" id="tab-tareas">
       <div class="stats" id="task-stats"></div>
       <div class="panel">
@@ -855,6 +927,7 @@ window.goTab=function(tab,e){
   el('tab-title').textContent=titles[tab][0];el('tab-sub').textContent=titles[tab][1];
   el('task-add-panel').style.display='none';
   if(tab==='calendario') renderCalendario();
+  if(tab==='ficha'){updateFichaSelect();renderFicha();}
   const btnAgregar=el('btn-agregar');
   if(btnAgregar)btnAgregar.style.display=tab==='tareas'?'inline-flex':'none';
   if(tab==='dashboard')renderDashboard();
@@ -1743,6 +1816,384 @@ function renderWeekView(events, today){
     <div class="cal-week-header">${headHtml}</div>
     <div class="cal-week-body">${bodyHtml}</div>
   </div>`;
+}
+
+
+// ── TABLERO DATA (from export)
+const TABLERO_DATA = {
+  "Super Blu": {
+    "mes": "abril de 2026",
+    "usuarios": 1,
+    "accesoUnico": 1,
+    "cantAccesos": 26,
+    "cantidad": 2,
+    "acesso": 1,
+    "mediaVisitas": 2,
+    "usuariosActivos": 1,
+    "dashboards": 2
+  },
+  "SUPERMERCADO LA AMISTAD (API)": {
+    "mes": "nan",
+    "usuarios": 5,
+    "accesoUnico": 4,
+    "cantAccesos": 1477,
+    "cantidad": 129,
+    "acesso": 120,
+    "mediaVisitas": 32,
+    "usuariosActivos": 4,
+    "dashboards": 33
+  },
+  "LA ILUSION (10552)": {
+    "mes": "nan",
+    "usuarios": 1,
+    "accesoUnico": 1,
+    "cantAccesos": 7,
+    "cantidad": 1,
+    "acesso": 1,
+    "mediaVisitas": 1,
+    "usuariosActivos": 1,
+    "dashboards": 1
+  },
+  "NUEVO PREMIUM (13878)": {
+    "mes": "nan",
+    "usuarios": 2,
+    "accesoUnico": 2,
+    "cantAccesos": 81,
+    "cantidad": 5,
+    "acesso": 4,
+    "mediaVisitas": 2,
+    "usuariosActivos": 2,
+    "dashboards": 5
+  },
+  "PARODI (API)": {
+    "mes": "nan",
+    "usuarios": 1,
+    "accesoUnico": 1,
+    "cantAccesos": 14,
+    "cantidad": 2,
+    "acesso": 1,
+    "mediaVisitas": 2,
+    "usuariosActivos": 1,
+    "dashboards": 2
+  },
+  "G2000": {
+    "mes": "nan",
+    "usuarios": 6,
+    "accesoUnico": 4,
+    "cantAccesos": 192,
+    "cantidad": 15,
+    "acesso": 9,
+    "mediaVisitas": 3,
+    "usuariosActivos": 4,
+    "dashboards": 7
+  },
+  "DIA (13396)": {
+    "mes": "nan",
+    "usuarios": 11,
+    "accesoUnico": 6,
+    "cantAccesos": 555,
+    "cantidad": 47,
+    "acesso": 32,
+    "mediaVisitas": 7,
+    "usuariosActivos": 6,
+    "dashboards": 33
+  },
+  "SUPER TODO (13384)": {
+    "mes": "nan",
+    "usuarios": 1,
+    "accesoUnico": 1,
+    "cantAccesos": 37,
+    "cantidad": 9,
+    "acesso": 4,
+    "mediaVisitas": 9,
+    "usuariosActivos": 1,
+    "dashboards": 7
+  }
+};
+
+// ── FICHA CLIENTE
+const ARGENTINA_PROVINCIAS = {
+  'BUENOS AIRES':['BA'],'CIUDAD AUTONOMA DE BUENOS AIRES':['CABA'],'CABA':['CABA'],
+  'CORDOBA':['CBA'],'SANTA FE':['SF'],'MENDOZA':['MZA'],'TUCUMAN':['TUC'],
+  'ENTRE RIOS':['ER'],'SALTA':['SAL'],'MISIONES':['MIS'],'CHACO':['CHA'],
+  'CORRIENTES':['COR'],'SANTIAGO DEL ESTERO':['SDE'],'SAN JUAN':['SJN'],
+  'JUJUY':['JUJ'],'RIO NEGRO':['RN'],'NEUQUEN':['NQN'],'FORMOSA':['FOR'],
+  'CHUBUT':['CHU'],'SAN LUIS':['SL'],'CATAMARCA':['CAT'],'LA RIOJA':['LR'],
+  'LA PAMPA':['LP'],'SANTA CRUZ':['SC'],'TIERRA DEL FUEGO':['TDF'],
+};
+
+function getSemaforoState(a){
+  const ints = (a.interacciones||[]);
+  const sorted = [...ints].sort((x,y)=>new Date(y.ts)-new Date(x.ts));
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Check last interaction date
+  let daysSinceContact = 999;
+  if(sorted.length>0){
+    const last = new Date(sorted[0].ts);
+    daysSinceContact = Math.floor((today-last)/86400000);
+  }
+
+  // Check if last 2 are "Sin respuesta"
+  const sinRespuesta = sorted.length>=2 && sorted[0].tipo==='Sin respuesta' && sorted[1].tipo==='Sin respuesta';
+
+  const tier = normTier(a.tier);
+  const maxDays = tier==='A+'||tier==='A' ? 14 : 45;
+
+  if(sinRespuesta) return {state:'rojo', label:'Sin respuesta', detail:'2+ intentos sin éxito'};
+  if(daysSinceContact > maxDays) return {state:'rojo', label:'Relación en riesgo', detail:`Sin contacto hace ${daysSinceContact} días`};
+  if(daysSinceContact > maxDays/2) return {state:'amarillo', label:'Requiere atención', detail:`${daysSinceContact} días sin contacto`};
+  return {state:'verde', label:'Relación activa', detail:`Último contacto hace ${daysSinceContact} días`};
+}
+
+function renderFicha(){
+  const sel = el('ficha-account-select');
+  const id = sel.value;
+  const content = el('ficha-content');
+  if(!id){ content.classList.remove('show'); content.innerHTML=''; return; }
+
+  const a = accounts.find(a=>a.id===id);
+  if(!a){ content.classList.remove('show'); return; }
+
+  content.classList.add('show');
+
+  const tier = normTier(a.tier);
+  const semaforo = getSemaforoState(a);
+  const tablero = TABLERO_DATA[a.nombre] || null;
+
+  // Province for map
+  const provNorm = (a.localidad||'').toUpperCase().trim();
+
+  // Recent interactions
+  const ints = [...(a.interacciones||[])].sort((x,y)=>new Date(y.ts)-new Date(x.ts)).slice(0,5);
+
+  // Tasks linked
+  const linkedTasks = tasks.filter(t=>t.accountId===id);
+
+  // Semaforo colors
+  const semaColors = {verde:'#1a9e6a', amarillo:'#d97706', rojo:'#d93025'};
+  const semaIcon = {verde:'🟢', amarillo:'🟡', rojo:'🔴'};
+
+  content.innerHTML = `
+    <!-- HEADER -->
+    <div class="ficha-header-card">
+      <div>
+        <div class="ficha-nombre">${a.nombre}</div>
+        <div class="ficha-meta">
+          <span class="tier-pill tier-${tier.replace('+','plus')}" style="font-size:11px">${tier}</span>
+          <span class="estado-pill ${isActivo(a)?'estado-activo':'estado-caido'}" style="font-size:11px">${isActivo(a)?'Activo':'Caído'}</span>
+          ${a.tipoServicio&&a.tipoServicio!=='-'?`<span class="svc-pill" style="font-size:11px">${a.tipoServicio}</span>`:''}
+          ${a.nid?`<span style="font-size:11px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace">#${a.nid}</span>`:''}
+          <span style="font-size:11px;color:rgba(255,255,255,.5)">${a.ejecutivo||''}</span>
+        </div>
+      </div>
+      <div class="ficha-semaforo-wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:22px">${semaIcon[semaforo.state]}</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#fff">${semaforo.label}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.6)">${semaforo.detail}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 1: Stats tablero + Info general -->
+    <div class="ficha-grid" style="grid-template-columns:2fr 1fr">
+
+      <!-- Datos del tablero -->
+      <div class="ficha-card">
+        <div class="ficha-card-title">Métricas del tablero · ${tablero?tablero.mes:'Sin datos del export'}</div>
+        ${tablero ? `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
+          <div class="ficha-stat" style="background:var(--surface)">
+            <div class="ficha-stat-val">${tablero.usuarios??'—'}</div>
+            <div class="ficha-stat-label">Usuarios</div>
+          </div>
+          <div class="ficha-stat" style="background:var(--surface)">
+            <div class="ficha-stat-val">${tablero.usuariosActivos??'—'}</div>
+            <div class="ficha-stat-label">Usuarios activos</div>
+          </div>
+          <div class="ficha-stat" style="background:var(--surface)">
+            <div class="ficha-stat-val">${tablero.cantAccesos??'—'}</div>
+            <div class="ficha-stat-label">Accesos</div>
+          </div>
+          <div class="ficha-stat" style="background:var(--surface)">
+            <div class="ficha-stat-val">${tablero.mediaVisitas??'—'}</div>
+            <div class="ficha-stat-label">Media visitas/usuario</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-top:8px">
+          <div class="ficha-stat" style="background:var(--surface)">
+            <div class="ficha-stat-val" style="color:var(--orange)">${tablero.dashboards??'—'}</div>
+            <div class="ficha-stat-label">Dashboards activos</div>
+            <div class="ficha-stat-sub">contribuye al OKR 1.3</div>
+          </div>
+          <div class="ficha-stat" style="background:var(--surface)">
+            <div class="ficha-stat-val">${tablero.accesoUnico??'—'}</div>
+            <div class="ficha-stat-label">Acceso único</div>
+          </div>
+        </div>` 
+        : `<div style="font-size:13px;color:var(--text3);padding:16px 0">Esta cuenta no tiene datos en el export del tablero.<br>Podés subir un export actualizado para ver estas métricas.</div>`}
+      </div>
+
+      <!-- Info general -->
+      <div class="ficha-card">
+        <div class="ficha-card-title">Información</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Provincia</span><span style="font-weight:500">${a.localidad||'—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Locales</span><span style="font-weight:500">${a.locales?Math.round(parseFloat(a.locales)).toLocaleString('es-AR'):'—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Región</span><span style="font-weight:500">${a.region||'—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Contacto</span><span style="font-weight:500">${a.contacto||'—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Email</span><span style="font-weight:500;font-size:11px">${a.email||'—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Último contacto</span><span style="font-weight:500;color:var(--navy);font-family:'DM Mono',monospace;font-size:12px">${a.ultimoContacto||'—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Última presentación</span><span style="font-weight:500;color:var(--orange);font-family:'DM Mono',monospace;font-size:12px">${a.ultimaPresentacion||'—'}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Mapa + Dashboards + Interacciones -->
+    <div class="ficha-grid-3">
+
+      <!-- Mapa Argentina -->
+      <div class="ficha-card">
+        <div class="ficha-card-title">Presencia geográfica · ${a.locales?Math.round(parseFloat(a.locales)).toLocaleString('es-AR'):0} locales</div>
+        <div style="text-align:center;font-size:13px;color:var(--text3);padding:8px 0">
+          ${provNorm ? `<div style="display:inline-flex;align-items:center;gap:8px;background:var(--orange-dim2);color:var(--orange);padding:6px 14px;border-radius:20px;font-weight:600;font-size:13px;margin-bottom:10px">
+            📍 ${a.localidad} · ${a.locales?Math.round(parseFloat(a.locales)).toLocaleString('es-AR'):0} locales
+          </div>` : ''}
+        </div>
+        ${renderMapaSVG(provNorm)}
+      </div>
+
+      <!-- Dashboards -->
+      <div class="ficha-card">
+        <div class="ficha-card-title">Dashboards / productos activos</div>
+        <div id="ficha-dashboards-${id}">
+          ${(a.dashboardsList||[]).length>0
+            ? (a.dashboardsList||[]).map((d,i)=>`<div class="dash-item"><div class="dash-dot"></div><div class="dash-name">${d}</div><button onclick="removeDash('${id}',${i})" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:11px">✕</button></div>`).join('')
+            : `<div style="font-size:12px;color:var(--text3)">Sin dashboards cargados aún</div>`}
+        </div>
+        <div class="add-dash-row">
+          <input class="add-dash-input" id="new-dash-${id}" type="text" placeholder="Nombre del dashboard..." onkeydown="if(event.key==='Enter')addDash('${id}')"/>
+          <button class="btn btn-primary btn-sm" onclick="addDash('${id}')">+ Agregar</button>
+        </div>
+        ${tablero?`<div style="margin-top:10px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);padding-top:8px">📊 Export tablero: <strong style="color:var(--orange)">${tablero.dashboards}</strong> dashboards registrados</div>`:''}
+      </div>
+
+      <!-- Interacciones recientes -->
+      <div class="ficha-card">
+        <div class="ficha-card-title">Últimas interacciones</div>
+        ${ints.length>0
+          ? ints.map(i=>`<div class="ficha-int-item">
+              <span class="ficha-int-tipo">${i.tipo||'Nota'}</span>
+              <span class="ficha-int-text">${i.texto}</span>
+              <span class="ficha-int-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short'}):'—'}</span>
+            </div>`).join('')
+          : `<div style="font-size:12px;color:var(--text3)">Sin interacciones registradas</div>`}
+        ${linkedTasks.length>0?`<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px;font-size:11px;color:var(--text3)">${linkedTasks.length} tarea(s) vinculada(s)</div>`:''}
+      </div>
+    </div>
+
+    <!-- Notas -->
+    ${a.notas?`<div class="ficha-card" style="margin-bottom:16px">
+      <div class="ficha-card-title">Notas</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6">${a.notas}</div>
+    </div>`:''}
+  `;
+}
+
+function renderMapaSVG(provincia){
+  // Simple Argentina map - highlight the province
+  const highlighted = provincia ? provincia : '';
+  // Map province names to SVG region IDs
+  const PROV_MAP = {
+    'BUENOS AIRES':'bsas','CIUDAD AUTONOMA DE BUENOS AIRES':'caba','CABA':'caba',
+    'CORDOBA':'cordoba','SANTA FE':'santafe','MENDOZA':'mendoza','TUCUMAN':'tucuman',
+    'ENTRE RIOS':'entrerrios','SALTA':'salta','MISIONES':'misiones','CHACO':'chaco',
+    'CORRIENTES':'corrientes','SANTIAGO DEL ESTERO':'sde','SAN JUAN':'sanjuan',
+    'JUJUY':'jujuy','RIO NEGRO':'rionegro','NEUQUEN':'neuquen','FORMOSA':'formosa',
+    'CHUBUT':'chubut','SAN LUIS':'sanluis','CATAMARCA':'catamarca','LA RIOJA':'larioja',
+    'LA PAMPA':'lapampa','SANTA CRUZ':'santacruz','TIERRA DEL FUEGO':'tdf',
+  };
+  const activeId = PROV_MAP[highlighted]||'';
+  
+  // Simplified Argentina SVG paths (representative shapes)
+  const provinces = [
+    {id:'jujuy',    name:'Jujuy',    d:'M 155 30 L 175 30 L 180 55 L 155 55 Z'},
+    {id:'salta',    name:'Salta',    d:'M 130 30 L 155 30 L 155 55 L 180 55 L 185 80 L 130 80 Z'},
+    {id:'formosa',  name:'Formosa',  d:'M 185 30 L 240 30 L 240 65 L 185 80 Z'},
+    {id:'chaco',    name:'Chaco',    d:'M 185 80 L 240 65 L 250 100 L 185 110 Z'},
+    {id:'misiones', name:'Misiones', d:'M 250 60 L 290 50 L 295 100 L 250 100 Z'},
+    {id:'tucuman',  name:'Tucumán',  d:'M 155 80 L 185 80 L 185 110 L 155 110 Z'},
+    {id:'catamarca',name:'Catamarca',d:'M 120 80 L 155 80 L 155 120 L 120 120 Z'},
+    {id:'sde',      name:'S. del Estero',d:'M 155 110 L 215 110 L 215 150 L 155 150 Z'},
+    {id:'corrientes',name:'Corrientes',d:'M 215 100 L 270 90 L 275 150 L 215 150 Z'},
+    {id:'larioja',  name:'La Rioja', d:'M 100 120 L 135 120 L 140 165 L 100 165 Z'},
+    {id:'sanjuan',  name:'San Juan', d:'M 80 130 L 110 125 L 115 175 L 80 175 Z'},
+    {id:'cordoba',  name:'Córdoba',  d:'M 135 150 L 215 150 L 220 210 L 135 210 Z'},
+    {id:'entrerrios',name:'Entre Ríos',d:'M 220 150 L 270 150 L 265 210 L 220 210 Z'},
+    {id:'santafe',  name:'Santa Fe', d:'M 215 110 L 270 110 L 270 210 L 215 210 Z'},
+    {id:'mendoza',  name:'Mendoza',  d:'M 70 175 L 115 175 L 120 240 L 70 245 Z'},
+    {id:'sanluis',  name:'San Luis', d:'M 115 175 L 155 170 L 160 225 L 115 230 Z'},
+    {id:'bsas',     name:'Buenos Aires',d:'M 155 205 L 270 205 L 275 330 L 185 360 L 155 330 Z'},
+    {id:'caba',     name:'CABA',     d:'M 243 275 L 255 270 L 258 282 L 246 284 Z'},
+    {id:'lapampa',  name:'La Pampa', d:'M 100 240 L 160 235 L 165 300 L 100 305 Z'},
+    {id:'neuquen',  name:'Neuquén',  d:'M 60 255 L 105 248 L 110 310 L 60 315 Z'},
+    {id:'rionegro', name:'Río Negro',d:'M 55 310 L 175 305 L 180 360 L 55 365 Z'},
+    {id:'chubut',   name:'Chubut',   d:'M 55 365 L 195 358 L 190 430 L 55 435 Z'},
+    {id:'santacruz',name:'Santa Cruz',d:'M 55 435 L 200 428 L 195 500 L 55 505 Z'},
+    {id:'tdf',      name:'Tierra del Fuego',d:'M 100 510 L 185 505 L 180 545 L 100 545 Z'},
+  ];
+
+  const svgPaths = provinces.map(p=>`<path id="prov-${p.id}" class="provincia-path${activeId===p.id?' activa':''}" d="${p.d}" title="${p.name}">
+    <title>${p.name}</title>
+  </path>`).join('');
+
+  return `<div class="mapa-wrap">
+    <svg viewBox="0 0 340 560" xmlns="http://www.w3.org/2000/svg">
+      ${svgPaths}
+    </svg>
+    ${activeId?`<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--orange);font-weight:500">● ${highlighted.charAt(0)+highlighted.slice(1).toLowerCase()}</div>`:'<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--text3)">Provincia no especificada</div>'}
+  </div>`;
+}
+
+// Dashboard management
+window.addDash = async function(accountId){
+  const inp = el(`new-dash-${accountId}`);
+  if(!inp) return;
+  const nombre = inp.value.trim();
+  if(!nombre) return;
+  const a = accounts.find(a=>a.id===accountId);
+  if(!a) return;
+  const list = [...(a.dashboardsList||[]), nombre];
+  setSyncStatus('syncing');
+  try{
+    await updateDoc(doc(db,'accounts',accountId), {dashboardsList: list});
+    inp.value='';
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+};
+
+window.removeDash = async function(accountId, idx){
+  const a = accounts.find(a=>a.id===accountId);
+  if(!a) return;
+  const list = [...(a.dashboardsList||[])];
+  list.splice(idx,1);
+  setSyncStatus('syncing');
+  try{
+    await updateDoc(doc(db,'accounts',accountId), {dashboardsList: list});
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+};
+
+function updateFichaSelect(){
+  const sel = el('ficha-account-select');
+  if(!sel) return;
+  const cur = sel.value;
+  const sorted = [...accounts].sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  sel.innerHTML = '<option value="">Seleccioná una cuenta...</option>'
+    + sorted.map(a=>`<option value="${a.id}"${a.id===cur?' selected':''}>${a.nombre} (${normTier(a.tier)}${isActivo(a)?'':' · Caído'})</option>`).join('');
 }
 
 setSyncStatus('syncing');
