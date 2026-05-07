@@ -381,7 +381,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             <div class="filter-option active" id="fo-tier-todos" onclick="setAccFilter('tier','todos')">
               Todos <span class="filter-count" id="fc-tier-todos">0</span>
             </div>
-            <div class="filter-option" id="fo-tier-Aplus" onclick="setAccFilter('tier','A+')">
+            <div class="filter-option" id="fo-tier-Aplus" onclick="setAccFilter('tier','Aplus')">
               A+ <span class="filter-count" id="fc-tier-Aplus">0</span>
             </div>
             <div class="filter-option" id="fo-tier-A" onclick="setAccFilter('tier','A')">
@@ -681,7 +681,9 @@ function renderTasks(){
 
 // ── ACCOUNTS FILTERS
 window.setAccFilter=function(group, val){
-  accFilters[group]=val;
+  // Map safe key to actual value
+  const valMap={'Aplus':'A+'};
+  accFilters[group]=valMap[val]||val;
   // Update active states for this group
   document.querySelectorAll(`[id^="fo-${group}-"]`).forEach(e=>e.classList.remove('active'));
   const target=el(`fo-${group}-${val}`);if(target)target.classList.add('active');
@@ -757,7 +759,7 @@ function updateCounts(){
   el('fc-estado-activo')&&(el('fc-estado-activo').textContent=accounts.filter(a=>isActivo(a)).length);
   el('fc-estado-caido')&&(el('fc-estado-caido').textContent=accounts.filter(a=>!isActivo(a)).length);
   // Tier
-  ['A+','A','B','C'].forEach(t=>{
+  [['A+','Aplus'],['A','A'],['B','B'],['C','C']].forEach(([t,key])=>{
     const e=el(`fc-tier-${t}`);if(e)e.textContent=accounts.filter(a=>normTier(a.tier)===t).length;
   });
   el('fc-tier-todos')&&(el('fc-tier-todos').textContent=accounts.length);
