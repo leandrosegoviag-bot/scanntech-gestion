@@ -702,9 +702,12 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <!-- FICHA CLIENTE -->
     <div class="tab-content" id="tab-ficha">
       <div class="ficha-selector">
-        <input type="text" id="ficha-search" class="ficha-select" placeholder="🔍 Buscar por nombre o N ID..." oninput="filterFichaSelect(this.value)" style="min-width:280px"/>
-        <select class="ficha-select" id="ficha-account-select" onchange="renderFicha()" style="min-width:280px">
-          <option value="">Seleccioná una cuenta...</option>
+        <div style="position:relative;min-width:360px">
+          <input type="text" id="ficha-search" class="ficha-select" placeholder="🔍 Buscar por nombre o N ID..." oninput="filterFichaSearch(this.value)" autocomplete="off" style="width:100%"/>
+          <div id="ficha-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--navy);border-radius:var(--radius-sm);max-height:280px;overflow-y:auto;z-index:50;box-shadow:var(--shadow)"></div>
+        </div>
+        <select class="ficha-select" id="ficha-account-select" onchange="selectFichaFromDropdown(this.value)" style="min-width:280px">
+          <option value="">— o elegí de la lista —</option>
         </select>
       </div>
       <div class="ficha-content" id="ficha-content"></div>
@@ -2004,8 +2007,9 @@ function renderMapaSVG(provincia){
 
 function renderFicha(){
   const sel = el('ficha-account-select');
-  const id = sel.value;
+  const id = sel ? sel.value : '';
   const fichaEl = el('ficha-content');
+  if(!fichaEl) return;
   if(!id){ fichaEl.classList.remove('show'); fichaEl.innerHTML=''; return; }
 
   const a = accounts.find(a=>a.id===id);
@@ -2190,19 +2194,50 @@ window.removeDash = async function(accountId, idx){
   }catch{setSyncStatus('error');}
 };
 
-window.filterFichaSelect = function(query){
+window.filterFichaSearch = function(query){
   const q = query.toLowerCase().trim();
-  const sel = el('ficha-account-select');
-  if(!sel) return;
+  const dropdown = el('ficha-dropdown');
+  if(!dropdown) return;
+  if(!q){ dropdown.style.display='none'; return; }
   const sorted = [...accounts].sort((a,b)=>a.nombre.localeCompare(b.nombre));
-  const filtered = q ? sorted.filter(a=>
+  const filtered = sorted.filter(a=>
     a.nombre.toLowerCase().includes(q) ||
     (a.nid||'').toLowerCase().includes(q) ||
     (a.ejecutivo||'').toLowerCase().includes(q)
-  ) : sorted;
-  sel.innerHTML = '<option value="">Seleccioná una cuenta...</option>'
-    + filtered.map(a=>`<option value="${a.id}">${a.nombre} · ${normTier(a.tier)}${isActivo(a)?'':' · Caído'} ${a.nid?'#'+a.nid:''}</option>`).join('');
+  ).slice(0,15);
+  if(!filtered.length){ dropdown.style.display='none'; return; }
+  dropdown.style.display='block';
+  dropdown.innerHTML = filtered.map(a=>`
+    <div onclick="selectFichaAccount('${a.id}','${a.nombre.replace(/'/g,"\'")}')"
+      style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"
+      onmouseover="this.style.background='var(--navy-dim)'" onmouseout="this.style.background=''"
+    >
+      <span class="tier-pill tier-${normTier(a.tier).replace('+','plus')}" style="font-size:10px">${normTier(a.tier)}</span>
+      <span style="flex:1;font-weight:500">${a.nombre}</span>
+      ${a.nid?`<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">#${a.nid}</span>`:''}
+      <span style="font-size:11px;color:var(--text3)">${isActivo(a)?'Activo':'Caído'}</span>
+    </div>`).join('');
 };
+
+window.selectFichaAccount = function(id, nombre){
+  el('ficha-search').value = nombre;
+  el('ficha-dropdown').style.display = 'none';
+  el('ficha-account-select').value = id;
+  renderFicha();
+};
+
+window.selectFichaFromDropdown = function(id){
+  if(!id) return;
+  const a = accounts.find(a=>a.id===id);
+  if(a) el('ficha-search').value = a.nombre;
+  renderFicha();
+};
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e){
+  const dd = el('ficha-dropdown');
+  if(dd && !dd.contains(e.target) && e.target.id!=='ficha-search') dd.style.display='none';
+});
 
 function updateFichaSelect(){
   const sel = el('ficha-account-select');
