@@ -1214,6 +1214,20 @@ function renderDashboard(){
 
   // Charts
   renderCharts();
+
+  // Evolutivo semanal
+  const allI=getAllInteracciones();
+  const weeks=[];const now=new Date();
+  for(let i=11;i>=0;i--){
+    const s=new Date(now);s.setDate(s.getDate()-i*7-s.getDay());s.setHours(0,0,0,0);
+    const e=new Date(s);e.setDate(e.getDate()+6);e.setHours(23,59,59,999);
+    weeks.push({label:`${s.getDate()}/${s.getMonth()+1}`,count:allI.filter(x=>{const d=new Date(x.ts);return d>=s&&d<=e;}).length});
+  }
+  if(chartEvoInst)chartEvoInst.destroy();
+  const ctxEvo=el('chart-evolutivo');
+  if(ctxEvo){
+    chartEvoInst=new Chart(ctxEvo,{type:'line',data:{labels:weeks.map(w=>w.label),datasets:[{label:'Interacciones',data:weeks.map(w=>w.count),borderColor:'#0a2463',backgroundColor:'rgba(10,36,99,.08)',fill:true,tension:.35,pointBackgroundColor:'#f4600c',pointRadius:4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+  }
 }
 
 function renderCharts(){
@@ -1245,17 +1259,6 @@ function renderCharts(){
   const ctxJ=el('chart-ejec');if(!ctxJ)return;
   chartEjec=new Chart(ctxJ,{type:'bar',data:{labels:ejecutivos,datasets:[{label:'Con Analytics',data:ejCounts,backgroundColor:COLORS.slice(0,ejecutivos.length),borderRadius:6,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
 
-  // 4. Evolutivo semanal
-  const allI=getAllInteracciones();
-  const weeks=[];const now=new Date();
-  for(let i=11;i>=0;i--){
-    const s=new Date(now);s.setDate(s.getDate()-i*7-s.getDay());s.setHours(0,0,0,0);
-    const e=new Date(s);e.setDate(e.getDate()+6);e.setHours(23,59,59,999);
-    weeks.push({label:`${s.getDate()}/${s.getMonth()+1}`,count:allI.filter(x=>{const d=new Date(x.ts);return d>=s&&d<=e;}).length});
-  }
-  if(chartEvoInst)chartEvoInst.destroy();
-  const ctxEvo=el('chart-evolutivo');if(!ctxEvo)return;
-  chartEvoInst=new Chart(ctxEvo,{type:'line',data:{labels:weeks.map(w=>w.label),datasets:[{label:'Interacciones',data:weeks.map(w=>w.count),borderColor:'#0a2463',backgroundColor:'rgba(10,36,99,.08)',fill:true,tension:.35,pointBackgroundColor:'#f4600c',pointRadius:4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
 }
 
 setSyncStatus('syncing');
