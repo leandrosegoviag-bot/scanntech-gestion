@@ -595,6 +595,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           <button class="tipo-btn" onclick="selectTipo(this,'Email')">📧 Email</button>
           <button class="tipo-btn" onclick="selectTipo(this,'WhatsApp')">💬 WhatsApp</button>
           <button class="tipo-btn" onclick="selectTipo(this,'Visita')">🚗 Visita</button>
+          <button class="tipo-btn" onclick="selectTipo(this,'Sin respuesta')">🔕 Sin respuesta</button>
         </div>
         <textarea id="interaccion-texto" placeholder="Describí la interacción, acuerdos, próximos pasos..."></textarea>
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
@@ -1039,6 +1040,7 @@ window.openDrawer=function(id){
       <select id="df-tier">${['A+','A','B','C'].map(v=>`<option value="${v}"${tier===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Estado</label>
       <select id="df-estado">${['Activo','Caído'].map(v=>`<option value="${v}"${(a.estado||a.segmento)===v?' selected':''}>${v}</option>`).join('')}</select></div>
+
     <div class="field-item"><label>Provincia</label><input id="df-localidad" type="text" value="${a.localidad||''}" placeholder="—"/></div>
     <div class="field-item"><label>Cant. locales</label><input id="df-locales" type="number" value="${a.locales?Math.round(parseFloat(a.locales)):''}" placeholder="—"/></div>
     <div class="field-item"><label>Contacto</label><input id="df-contacto" type="text" value="${a.contacto||''}" placeholder="—"/></div>
@@ -1052,8 +1054,9 @@ window.openDrawer=function(id){
   }else{
     el('drawer-section-activo').style.display='none';el('drawer-section-caido').style.display='block';
     el('drawer-fields-caido').innerHTML=`
-      <div class="field-item"><label>Últ. movimiento</label><input id="df-ultimoMovimiento" type="text" value="${a.ultimoMovimiento||''}" placeholder="—"/></div>
-      <div class="field-item"><label>Motivo de baja</label><input id="df-motivoBaja" type="text" value="${a.motivoBaja||''}" placeholder="—"/></div>`;
+      <div class="field-item"><label>Fecha de baja</label><input id="df-fechaBaja" type="date" value="${a.fechaBaja||''}"/></div>
+      <div class="field-item"><label>Motivo de baja</label><input id="df-motivoBaja" type="text" value="${a.motivoBaja||''}" placeholder="—"/></div>
+      <div class="field-item full"><label>Últ. movimiento</label><input id="df-ultimoMovimiento" type="text" value="${a.ultimoMovimiento||''}" placeholder="—"/></div>`;
   }
   // Interacciones
   const ints=(a.interacciones||[]).slice().reverse();
@@ -1088,7 +1091,11 @@ window.saveDrawer=async function(){
   const histEntries=changes.map(c=>({action:c,ts:new Date().toISOString()}));
   const upd={ejecutivo:el('df-ejecutivo').value,tipoServicio:el('df-servicio').value,tier:newTier,estado:newEstado,segmento:newEstado,localidad:el('df-localidad').value.trim(),locales:el('df-locales').value.trim(),contacto:el('df-contacto').value.trim(),email:el('df-email').value.trim(),notas:el('df-notas').value.trim()};
   if(activo){upd.ultimoContacto=el('df-ultimoContacto')?.value||'';upd.ultimaPresentacion=el('df-ultimaPresentacion')?.value||'';}
-  else{upd.ultimoMovimiento=el('df-ultimoMovimiento')?.value||'';upd.motivoBaja=el('df-motivoBaja')?.value||'';}
+  else{
+    upd.fechaBaja=el('df-fechaBaja')?.value||'';
+    upd.motivoBaja=el('df-motivoBaja')?.value||'';
+    upd.ultimoMovimiento=el('df-ultimoMovimiento')?.value||'';
+  }
   if(histEntries.length)upd.history=arrayUnion(...histEntries);
   setSyncStatus('syncing');
   try{await updateDoc(doc(db,'accounts',currentDrawerAccId),upd);setSyncStatus('ok');closeDrawer();}catch{setSyncStatus('error');}
@@ -1103,7 +1110,13 @@ function isCaidoEsteSemestre(a){
   const d=new Date(a.fechaBaja);
   return d>=SEMESTRE_START && d<=SEMESTRE_END;
 }
-function isSinRespuesta(a){ return (a.statusAlerta||'')==='sin-respuesta'; }
+function isSinRespuesta(a){
+  const ints=(a.interacciones||[]);
+  if(ints.length<2) return false;
+  // Sort by date desc and check if last 2+ are "Sin respuesta"
+  const sorted=[...ints].sort((x,y)=>new Date(y.ts)-new Date(x.ts));
+  return sorted[0].tipo==='Sin respuesta' && sorted[1].tipo==='Sin respuesta';
+}
 
 let selectedMonth = new Date().getMonth();
 let selectedYear  = new Date().getFullYear();
