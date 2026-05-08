@@ -6,6 +6,8 @@
 <title>SAR · Servicios al Retail</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{
   --bg:#f4f5f7;--surface:#fff;--surface2:#f0f1f4;--surface3:#e4e6eb;
@@ -454,6 +456,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 
 /* Argentina map */
 .mapa-wrap{position:relative;width:100%}
+#ficha-map{height:260px;border-radius:var(--radius-sm);overflow:hidden;z-index:0}
 .mapa-wrap svg{width:100%;height:auto}
 .mapa-tooltip{position:absolute;background:var(--navy);color:#fff;font-size:11px;padding:5px 10px;border-radius:6px;pointer-events:none;display:none;white-space:nowrap;z-index:10}
 .provincia-path{fill:var(--surface2);stroke:#fff;stroke-width:1;transition:fill .2s;cursor:pointer}
@@ -1991,63 +1994,44 @@ function buildTableroHTML(a, tablero){
 
 function renderMapaSVG(provincia){
   const prov = (provincia||'').toUpperCase().trim();
-  // Map to SVG province IDs
-  const PROV_TO_ID = {
-    'BUENOS AIRES':'bsas','AMBA':'bsas','CIUDAD AUTONOMA DE BUENOS AIRES':'caba','CABA':'caba',
-    'CORDOBA':'cordoba','SANTA FE':'santafe','MENDOZA':'mendoza','TUCUMAN':'tucuman',
-    'ENTRE RIOS':'entrerrios','SALTA':'salta','MISIONES':'misiones','CHACO':'chaco',
-    'CORRIENTES':'corrientes','SANTIAGO DEL ESTERO':'santiago','SAN JUAN':'sanjuan',
-    'JUJUY':'jujuy','RIO NEGRO':'rionegro','NEUQUEN':'neuquen','FORMOSA':'formosa',
-    'CHUBUT':'chubut','SAN LUIS':'sanluis','CATAMARCA':'catamarca','LA RIOJA':'larioja',
-    'LA PAMPA':'lapampa','SANTA CRUZ':'santacruz','TIERRA DEL FUEGO':'tdf',
+
+  // Province centroids [lat, lng, zoom]
+  const PROV_COORDS = {
+    'BUENOS AIRES':[-36.6,-60.0,6],'AMBA':[-34.6,-58.4,9],'CABA':[-34.60,-58.44,12],
+    'CIUDAD AUTONOMA DE BUENOS AIRES':[-34.60,-58.44,12],
+    'CORDOBA':[-31.4,-64.2,7],'SANTA FE':[-30.7,-60.7,7],
+    'MENDOZA':[-34.8,-68.5,7],'TUCUMAN':[-26.8,-65.2,8],
+    'ENTRE RIOS':[-32.0,-59.2,7],'SALTA':[-24.8,-65.4,7],
+    'MISIONES':[-27.0,-55.0,7],'CHACO':[-26.5,-60.7,7],
+    'CORRIENTES':[-29.4,-58.8,7],'SANTIAGO DEL ESTERO':[-27.8,-64.3,7],
+    'SAN JUAN':[-30.9,-68.8,7],'JUJUY':[-23.2,-65.3,8],
+    'RIO NEGRO':[-40.8,-63.0,6],'NEUQUEN':[-38.9,-68.1,7],
+    'FORMOSA':[-24.9,-59.4,7],'CHUBUT':[-43.8,-68.5,6],
+    'SAN LUIS':[-33.3,-66.3,7],'CATAMARCA':[-28.5,-65.8,7],
+    'LA RIOJA':[-29.4,-66.9,7],'LA PAMPA':[-36.6,-64.3,6],
+    'SANTA CRUZ':[-49.3,-68.6,6],'TIERRA DEL FUEGO':[-54.4,-67.6,7],
   };
-  const activeId = PROV_TO_ID[prov] || '';
-  
-  // Proper Argentina SVG paths (simplified but correct shapes)
-  const provs = [
-    {id:'jujuy',d:'M192,18 L210,18 L215,42 L195,48 L185,38 Z'},
-    {id:'salta',d:'M155,18 L192,18 L185,38 L195,48 L188,70 L155,65 L148,42 Z'},
-    {id:'formosa',d:'M215,18 L265,20 L262,55 L215,58 L210,42 Z'},
-    {id:'chaco',d:'M215,58 L262,55 L258,90 L215,92 Z'},
-    {id:'misiones',d:'M262,55 L290,48 L292,95 L258,90 Z'},
-    {id:'tucuman',d:'M155,65 L188,70 L185,95 L155,95 Z'},
-    {id:'catamarca',d:'M125,60 L155,65 L155,95 L148,120 L118,115 L115,88 Z'},
-    {id:'santiago',d:'M188,70 L215,92 L218,125 L185,128 L185,95 Z'},
-    {id:'corrientes',d:'M218,90 L265,88 L268,135 L218,135 Z'},
-    {id:'entrerrios',d:'M218,135 L262,132 L258,178 L218,175 Z'},
-    {id:'larioja',d:'M105,115 L148,120 L148,158 L105,158 Z'},
-    {id:'sanjuan',d:'M85,118 L112,115 L115,165 L82,165 Z'},
-    {id:'cordoba',d:'M148,125 L218,125 L218,195 L148,195 Z'},
-    {id:'santafe',d:'M218,92 L262,88 L262,178 L218,178 Z'},
-    {id:'mendoza',d:'M68,162 L112,158 L118,225 L65,228 Z'},
-    {id:'sanluis',d:'M112,158 L148,155 L152,205 L115,208 Z'},
-    {id:'bsas',d:'M148,195 L262,192 L268,295 L210,328 L148,295 Z'},
-    {id:'caba',d:'M242,248 L252,245 L254,256 L244,257 Z'},
-    {id:'lapampa',d:'M95,225 L152,222 L155,285 L92,288 Z'},
-    {id:'neuquen',d:'M58,228 L100,222 L105,280 L55,282 Z'},
-    {id:'rionegro',d:'M52,282 L165,278 L168,328 L52,332 Z'},
-    {id:'chubut',d:'M50,332 L175,328 L175,395 L50,398 Z'},
-    {id:'santacruz',d:'M48,398 L178,392 L175,455 L48,458 Z'},
-    {id:'tdf',d:'M95,462 L168,458 L165,498 L92,498 Z'},
-  ];
 
-  const paths = provs.map(p=>`<path id="prov-${p.id}" class="provincia-path${activeId===p.id?' activa':''}" d="${p.d}"><title>${p.id}</title></path>`).join('');
+  const coords = PROV_COORDS[prov] || [-38.0,-63.0,4];
 
-  return `<div class="mapa-wrap">
-    <svg viewBox="0 0 340 520" xmlns="http://www.w3.org/2000/svg" style="max-height:320px">
-      ${paths}
-    </svg>
-    <div style="text-align:center;margin-top:6px;font-size:12px;${activeId?'color:var(--orange);font-weight:500':'color:var(--text3)'}">
-      ${prov ? `● ${prov.charAt(0)+prov.slice(1).toLowerCase()}` : 'Provincia no especificada'}
-    </div>
-  </div>`;
-return `<div class="mapa-wrap">
-    <svg viewBox="0 0 340 560" xmlns="http://www.w3.org/2000/svg">
-      ${svgPaths}
-    </svg>
-    ${activeId?`<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--orange);font-weight:500">● ${highlighted.charAt(0)+highlighted.slice(1).toLowerCase()}</div>`:'<div style="text-align:center;margin-top:6px;font-size:12px;color:var(--text3)">Provincia no especificada</div>'}
-  </div>`;
+  return '<div id="ficha-map" style="height:260px;border-radius:8px;overflow:hidden"></div>'
+    + '<div style="text-align:center;margin-top:6px;font-size:12px;'
+    + (prov ? 'color:var(--orange);font-weight:500' : 'color:var(--text3)') + '">'
+    + (prov ? '● ' + prov.charAt(0) + prov.slice(1).toLowerCase() : 'Provincia no especificada')
+    + '</div>'
+    + '<script>setTimeout(function(){'
+    + 'var existing=window._fichaMap;'
+    + 'if(existing){existing.remove();window._fichaMap=null;}'
+    + 'var mapEl=document.getElementById("ficha-map");'
+    + 'if(!mapEl)return;'
+    + 'var m=L.map("ficha-map",{zoomControl:true,attributionControl:false}).setView(['+ coords[0] +','+ coords[1] +'],'+ coords[2] +');'
+    + 'L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(m);'
+    + (prov ? 'L.marker(['+ coords[0] +','+ coords[1] +']).addTo(m).bindPopup("<b>' + prov.charAt(0)+prov.slice(1).toLowerCase() + '</b>").openPopup();' : '')
+    + 'window._fichaMap=m;'
+    + '},100);</scr'+'ipt>';
 }
+
+
 
 function renderFicha(){
   const sel = el('ficha-account-select');
