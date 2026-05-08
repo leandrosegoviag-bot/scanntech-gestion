@@ -1177,7 +1177,7 @@ window.goTab=function(tab,e){
   el('task-add-panel').style.display='none';
   if(tab==='calendario') renderCalendario();
   if(tab==='ficha'){updateFichaSelect();renderFicha();}
-  if(tab==='jiras') renderJiras();
+  if(tab==='jiras'){renderJiras();renderBacklog();}
   const btnAgregar=el('btn-agregar');
   if(btnAgregar)btnAgregar.style.display=tab==='tareas'?'inline-flex':'none';
   if(tab==='dashboard')renderDashboard();
@@ -3106,10 +3106,10 @@ onSnapshot(collection(db,'jiras'), snap=>{
     jiraSeeded=true;
     INIT_TICKETS.forEach(t=>addDoc(collection(db,'jiras'),{...t,createdAt:serverTimestamp()}).catch(()=>{}));
   }
-  if(currentTab==='jiras') window.renderJiras();
+  if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();}
 },()=>{
   if(jiraTickets.length===0) jiraTickets=INIT_TICKETS.map((t,i)=>({...t,id:'local-'+i}));
-  if(currentTab==='jiras') window.renderJiras();
+  if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();}
 });
 
 onSnapshot(collection(db,'jiraUsuarios'), snap=>{
