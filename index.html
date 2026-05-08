@@ -579,7 +579,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     </button>
     <button class="nav-item" onclick="goTab('jiras',this)">
       <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Tickets / Jiras<span class="nav-badge" id="badge-jiras">—</span>
+      Tickets<span class="nav-badge" id="badge-jiras">—</span>
     </button>
   </nav>
   <div class="user-info" id="user-info" style="display:none">
@@ -2790,6 +2790,33 @@ onSnapshot(collection(db,'accounts'),snap=>{
   if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item"><div class="history-dot" style="background:var(--navy)"></div><div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
   setSyncStatus('ok');
 },()=>setSyncStatus('error'));
+
+// ── JIRAS FIREBASE LISTENERS
+let jiraSeeded=false, usuarioSeeded=false;
+
+onSnapshot(collection(db,'jiras'), snap=>{
+  jiraTickets = snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(jiraTickets.length===0 && INIT_TICKETS.length>0 && !jiraSeeded){
+    jiraSeeded=true;
+    INIT_TICKETS.forEach(t=>addDoc(collection(db,'jiras'),{...t,createdAt:serverTimestamp()}).catch(()=>{}));
+  }
+  if(currentTab==='jiras') window.renderJiras();
+},()=>{
+  if(jiraTickets.length===0) jiraTickets=INIT_TICKETS.map((t,i)=>({...t,id:'local-'+i}));
+  if(currentTab==='jiras') window.renderJiras();
+});
+
+onSnapshot(collection(db,'jiraUsuarios'), snap=>{
+  jiraUsuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(jiraUsuarios.length===0 && INIT_USUARIOS.length>0 && !usuarioSeeded){
+    usuarioSeeded=true;
+    INIT_USUARIOS.forEach(u=>addDoc(collection(db,'jiraUsuarios'),{...u,createdAt:serverTimestamp()}).catch(()=>{}));
+  }
+  if(currentTab==='jiras') window.renderUsuariosJira();
+},()=>{
+  if(jiraUsuarios.length===0) jiraUsuarios=INIT_USUARIOS.map((u,i)=>({...u,id:'local-u-'+i}));
+  if(currentTab==='jiras') window.renderUsuariosJira();
+});
 </script>
 </body>
 </html>
