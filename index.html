@@ -2705,8 +2705,8 @@ window.toggleAllBacklog = function(checked){
 function updateSelectedCount(){
   const count = window._selectedJiras.size;
   const el_count = el('selected-count');
-  const el_btn = el('btn-add-pri');
-  if(el_count) el_count.textContent = count + ' seleccionado' + (count!==1?'s':'');
+  const el_btn = el('btn-enviar-dev');
+  if(el_count) el_count.textContent = count>0 ? count + ' seleccionado' + (count!==1?'s':'') : '';
   if(el_btn) el_btn.style.display = count>0?'inline-flex':'none';
 }
 
