@@ -824,38 +824,15 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 
         <!-- JIRAS -->
     <div class="tab-content" id="tab-jiras">
-
-      <!-- STATS -->
       <div class="stats" id="jiras-stats" style="margin-bottom:16px"></div>
-
-      <!-- TABS -->
       <div class="jiras-tabs">
-        <button class="jira-tab-btn active" onclick="switchJiraTab('prioridades',this)">🎯 Prioridades semana</button>
-        <button class="jira-tab-btn" onclick="switchJiraTab('backlog',this)">📋 Backlog</button>
+        <button class="jira-tab-btn active" onclick="switchJiraTab('backlog',this)">📋 Backlog</button>
+        <button class="jira-tab-btn" onclick="switchJiraTab('prioridades',this)">🎯 Prioridades enviadas</button>
         <button class="jira-tab-btn" onclick="switchJiraTab('usuarios',this)">👤 Solicitudes usuarios</button>
       </div>
 
-      <!-- ── PRIORIDADES (Kanban) ── -->
-      <div class="jira-tab-content active" id="jira-tab-prioridades">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-          <div style="display:flex;gap:8px;align-items:center">
-            <select id="jira-filter-area" onchange="window.renderJiras()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
-              <option value="todos">Todas las áreas</option>
-              <option value="BI">BI</option>
-              <option value="BD">BD</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn export-btn btn-sm" onclick="exportJirasExcel()">⬇ Exportar Excel</button>
-            <button class="btn btn-primary btn-sm" onclick="switchJiraTab('backlog',document.querySelectorAll('.jira-tab-btn')[1])">+ Agregar del backlog</button>
-          </div>
-        </div>
-        <!-- Kanban board -->
-        <div id="jira-kanban" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start"></div>
-      </div>
-
-      <!-- ── BACKLOG ── -->
-      <div class="jira-tab-content" id="jira-tab-backlog">
+      <!-- BACKLOG -->
+      <div class="jira-tab-content active" id="jira-tab-backlog">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <input type="text" id="jira-search" placeholder="🔍 Buscar..." oninput="renderBacklog()" style="font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;min-width:200px;font-family:'DM Sans',sans-serif"/>
@@ -880,8 +857,8 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             </select>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <span id="selected-count" style="font-size:12px;color:var(--text3)">0 seleccionados</span>
-            <button class="btn btn-primary btn-sm" onclick="addSelectedToPrioridades()" id="btn-add-pri" style="display:none">➕ Agregar a prioridades</button>
+            <span id="selected-count" style="font-size:12px;color:var(--text3)"></span>
+            <button id="btn-enviar-dev" class="btn btn-navy btn-sm" onclick="marcarEnviados()" style="display:none">📤 Marcar como enviado a Dev</button>
             <button class="btn btn-primary btn-sm" onclick="toggleJiraForm()">+ Nuevo ticket</button>
           </div>
         </div>
@@ -890,7 +867,24 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         </div>
       </div>
 
-      <!-- ── USUARIOS ── -->
+      <!-- PRIORIDADES ENVIADAS -->
+      <div class="jira-tab-content" id="jira-tab-prioridades">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:8px">
+            <select id="jira-filter-area" onchange="window.renderJiras()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+              <option value="todos">Todas las áreas</option>
+              <option value="BI">BI</option>
+              <option value="BD">BD</option>
+            </select>
+          </div>
+          <button class="btn export-btn btn-sm" onclick="exportJirasExcel()">⬇ Exportar Excel</button>
+        </div>
+        <div class="panel">
+          <div id="jira-priority-list"></div>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
       <div class="jira-tab-content" id="jira-tab-usuarios">
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
           <button class="btn btn-primary btn-sm" onclick="toggleUsuarioForm()">+ Nueva solicitud</button>
@@ -918,18 +912,17 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
           <div class="form-row">
             <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
-            <div class="field"><label>¿Agregar a prioridades?</label><select id="nj-enprioridades"><option value="si">Sí</option><option value="no">No (solo backlog)</option></select></div>
           </div>
           <button class="btn btn-primary" onclick="addJira()" style="width:fit-content">Agregar ticket</button>
         </div>
       </div>
 
-      <!-- FORM nuevo usuario -->
+      <!-- FORM usuario -->
       <div class="add-panel" id="usuario-form" style="display:none;margin-top:14px">
         <h3>Nueva solicitud de acceso</h3>
         <div class="form-grid">
           <div class="form-row">
-            <div class="field"><label>Empresa / Cliente</label><input type="text" id="nu-empresa" placeholder="Nombre empresa"/></div>
+            <div class="field"><label>Empresa / Cliente</label><input type="text" id="nu-empresa"/></div>
             <div class="field"><label>Ejecutivo</label><select id="nu-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option></select></div>
           </div>
           <div class="form-row">
@@ -947,7 +940,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           <button class="btn btn-primary" onclick="addUsuarioJira()" style="width:fit-content">Agregar solicitud</button>
         </div>
       </div>
-
     </div>
 
 
@@ -2570,10 +2562,11 @@ window.switchJiraTab = function(tab, btn){
   document.querySelectorAll('.jira-tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.jira-tab-content').forEach(c=>c.classList.remove('active'));
   btn.classList.add('active');
-  const el_tab = document.getElementById('jira-tab-'+tab);
-  if(el_tab) el_tab.classList.add('active');
+  const t=document.getElementById('jira-tab-'+tab);
+  if(t) t.classList.add('active');
   if(tab==='backlog') renderBacklog();
-  if(tab==='usuarios') renderUsuariosJira();
+  if(tab==='prioridades') window.renderJiras();
+  if(tab==='usuarios') window.renderUsuariosJira();
 };
 
 window.toggleJiraForm = function(){
@@ -2588,13 +2581,10 @@ window.toggleUsuarioForm = function(){
 window.renderJiras = function(){
   if(!el('tab-jiras')) return;
   const area = el('jira-filter-area')?.value||'todos';
-
-  // Stats
   const total = jiraTickets.length;
-  const pendientes = jiraTickets.filter(t=>t.status==='Pendiente').length;
-  const verificar  = jiraTickets.filter(t=>t.status==='Verificar').length;
-  const corregir   = jiraTickets.filter(t=>t.status==='Corregir').length;
-  const cerrados   = jiraTickets.filter(t=>t.status==='Cerrado').length;
+  const corregir = jiraTickets.filter(t=>t.status==='Corregir').length;
+  const verificar = jiraTickets.filter(t=>t.status==='Verificar').length;
+  const cerrados = jiraTickets.filter(t=>t.status==='Cerrado').length;
   el('badge-jiras').textContent = total-cerrados;
   el('jiras-stats').innerHTML=`
     <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${total}</div><div class="stat-sub">tickets</div></div>
@@ -2602,48 +2592,42 @@ window.renderJiras = function(){
     <div class="stat-card sc-amber"><div class="stat-label">Verificar</div><div class="stat-val">${verificar}</div><div class="stat-sub">para revisar</div></div>
     <div class="stat-card sc-green"><div class="stat-label">Cerrados</div><div class="stat-val">${cerrados}</div><div class="stat-sub">resueltos</div></div>`;
 
-  // Kanban: only tickets marked as priority
-  const COLS = [
-    {key:'Corregir', label:'Corregir', cls:'corregir'},
-    {key:'Verificar', label:'Verificar', cls:'verificar'},
-    {key:'Pendiente', label:'Pendiente', cls:'pendiente'},
-    {key:'Cerrado',   label:'Cerrado',   cls:'cerrado'},
-  ];
+  // Prioridades enviadas - simple table
+  let data = jiraTickets.filter(t=>t.enPrioridades);
+  if(area!=='todos') data=data.filter(t=>t.area===area);
+  data.sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
 
-  const prioTickets = jiraTickets.filter(t=>t.enPrioridades);
-  const filtered = area!=='todos' ? prioTickets.filter(t=>t.area===area) : prioTickets;
-
-  const kanban = el('jira-kanban');
-  if(!kanban) return;
-
-  kanban.innerHTML = COLS.map(col=>{
-    const cards = filtered.filter(t=>t.status===col.key)
-      .sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
-    return `<div class="kanban-col">
-      <div class="kanban-col-header">
-        <span class="kanban-col-title">${col.label}</span>
-        <span class="kanban-col-count">${cards.length}</span>
-      </div>
-      ${cards.length===0?'<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px 0">Sin tickets</div>':
-        cards.map(t=>`<div class="kanban-card ${col.cls}">
-          <div class="kanban-card-title">${t.detalle||'Sin descripción'}</div>
-          <div class="kanban-card-meta">
-            ${t.jira?`<a class="jira-num" href="https://scanntechuy.atlassian.net/browse/${t.jira}" target="_blank">${t.jira}</a>`:''}
-            ${t.area?`<span class="jira-area ${(t.area||'').toLowerCase()}">${t.area}</span>`:''}
-            ${t.producto?`<span style="font-size:10px;padding:2px 6px;border-radius:5px;background:var(--surface2);color:var(--text3)">${t.producto}</span>`:''}
-          </div>
-          <div class="kanban-card-footer">
-            <span style="font-size:11px;color:var(--text3)">📍 ${t.cliente||'—'} · ${t.ejecutivo||'—'}</span>
-            <div class="kanban-card-actions">
-              <select onchange="updateJiraStatus('${t.id||t.jira}',this.value)" style="font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif;outline:none">
-                ${['Pendiente','Verificar','Corregir','Cerrado'].map(s=>`<option value="${s}"${t.status===s?' selected':''}>${s}</option>`).join('')}
-              </select>
-              <button class="k-btn danger" onclick="removeFromPrioridades('${t.id||t.jira}')">✕</button>
-            </div>
-          </div>
-        </div>`).join('')}
-    </div>`;
-  }).join('');
+  const list=el('jira-priority-list');
+  if(!list) return;
+  if(!data.length){
+    list.innerHTML='<div class="empty-state" style="padding:24px">Sin tickets enviados a desarrollo.<br><span style="font-size:11px;color:var(--text3)">Seleccioná tickets del Backlog y marcalos como enviados.</span></div>';
+    return;
+  }
+  list.innerHTML=`<table class="backlog-table">
+    <thead><tr>
+      <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
+      <th>Área</th><th>Ejecutivo</th><th>Status</th><th>Fecha</th><th></th>
+    </tr></thead>
+    <tbody>${data.map((t,i)=>`<tr>
+      <td><div class="pri-order-badge">${i+1}</div></td>
+      <td style="max-width:260px">
+        <div style="font-size:12px;color:var(--text);font-weight:500;line-height:1.4">${t.detalle||'—'}</div>
+        ${t.jira?`<a class="jira-num" href="https://scanntechuy.atlassian.net/browse/${t.jira}" target="_blank">${t.jira}</a>`:''}
+      </td>
+      <td style="font-size:12px">${t.cliente||'—'}</td>
+      <td><span style="font-size:11px;padding:2px 7px;border-radius:5px;background:var(--surface2);color:var(--text3)">${t.producto||'—'}</span></td>
+      <td>${t.area?`<span class="jira-area ${(t.area||'').toLowerCase()}">${t.area}</span>`:''}</td>
+      <td style="font-size:12px">${t.ejecutivo||'—'}</td>
+      <td><span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span></td>
+      <td style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${t.fechaInicio||'—'}</td>
+      <td>
+        <select onchange="updateJiraStatus('${t.id||t.jira}',this.value)" style="font-size:11px;padding:3px 7px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif;outline:none">
+          ${['Pendiente','Verificar','Corregir','Cerrado'].map(s=>`<option value="${s}"${t.status===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="del-btn" onclick="removeFromPrioridades('${t.id||t.jira}')" title="Quitar de prioridades">↩</button>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
 };
 
 // ── BACKLOG SELECTION HELPERS
@@ -2678,7 +2662,7 @@ function updateSelectedCount(){
   if(el_btn) el_btn.style.display = count>0?'inline-flex':'none';
 }
 
-window.addSelectedToPrioridades = async function(){
+window.marcarEnviados = async function(){
   const ids = [...window._selectedJiras];
   if(!ids.length) return;
   setSyncStatus('syncing');
@@ -2690,9 +2674,7 @@ window.addSelectedToPrioridades = async function(){
     window._selectedJiras.clear();
     updateSelectedCount();
     setSyncStatus('ok');
-    // Switch to prioridades tab
-    const btn = document.querySelectorAll('.jira-tab-btn')[0];
-    switchJiraTab('prioridades', btn);
+    renderBacklog();
   }catch{setSyncStatus('error');}
 };
 
@@ -2798,7 +2780,6 @@ window.renderBacklog = function(){
   const area = el('jira-backlog-area')?.value||'todos';
   const status = el('jira-backlog-status')?.value||'todos';
   const ejec = el('jira-backlog-ejec')?.value||'todos';
-  
   let data = [...jiraTickets].sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
   if(q) data=data.filter(t=>[t.detalle,t.jira,t.cliente,t.producto,t.ejecutivo].join(' ').toLowerCase().includes(q));
   if(area!=='todos') data=data.filter(t=>t.area===area);
@@ -2807,37 +2788,30 @@ window.renderBacklog = function(){
 
   const list=el('jira-backlog-list');
   if(!list) return;
-  if(!data.length){list.innerHTML='<div class="empty-state">Sin tickets con estos filtros</div>';return;}
+  if(!data.length){list.innerHTML='<div class="empty-state">Sin tickets</div>';return;}
 
   list.innerHTML=`<table class="backlog-table">
     <thead><tr>
       <th><input type="checkbox" id="cb-all" onchange="toggleAllBacklog(this.checked)" class="backlog-cb"/></th>
-      <th>Ticket</th>
-      <th>Cliente</th>
-      <th>Producto</th>
-      <th>Área</th>
-      <th>Ejecutivo</th>
-      <th>Status</th>
-      <th>Fecha</th>
-      <th>Prioridad</th>
-      <th></th>
+      <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
+      <th>Área</th><th>Ejec.</th><th>Status</th><th>Enviado</th><th></th>
     </tr></thead>
-    <tbody>${data.map(t=>{
-      const isSelected = window._selectedJiras && window._selectedJiras.has(t.id||t.jira);
-      const isPrio = t.enPrioridades;
-      return `<tr class="${isSelected?'selected':''}">
-        <td><input type="checkbox" class="backlog-cb jira-cb" data-id="${t.id||t.jira}" ${isSelected?'checked':''} onchange="toggleJiraSelect(this)"/></td>
+    <tbody>${data.map((t,i)=>{
+      const sel = window._selectedJiras && window._selectedJiras.has(t.id||t.jira);
+      const enviado = t.enPrioridades;
+      return `<tr class="${sel?'selected':''}" style="${enviado?'background:rgba(26,158,106,.04)':''}">
+        <td><input type="checkbox" class="backlog-cb jira-cb" data-id="${t.id||t.jira}" ${sel?'checked':''} onchange="toggleJiraSelect(this)"/></td>
+        <td style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${t.prioridad||i+1}</td>
         <td style="max-width:280px">
           <div style="font-size:12px;color:var(--text);font-weight:500;line-height:1.4">${t.detalle||'—'}</div>
-          ${t.jira?`<a class="jira-num" href="https://scanntechuy.atlassian.net/browse/${t.jira}" target="_blank" style="margin-top:2px;display:block">${t.jira}</a>`:''}
+          ${t.jira?`<a class="jira-num" href="https://scanntechuy.atlassian.net/browse/${t.jira}" target="_blank">${t.jira}</a>`:''}
         </td>
         <td style="font-size:12px">${t.cliente||'—'}</td>
         <td><span style="font-size:11px;padding:2px 7px;border-radius:5px;background:var(--surface2);color:var(--text3)">${t.producto||'—'}</span></td>
         <td>${t.area?`<span class="jira-area ${(t.area||'').toLowerCase()}">${t.area}</span>`:''}</td>
         <td style="font-size:12px">${t.ejecutivo||'—'}</td>
         <td><span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span></td>
-        <td style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${t.fechaInicio||'—'}</td>
-        <td style="text-align:center">${isPrio?'<span style="font-size:11px;color:var(--orange);font-weight:600">✓ En prioridades</span>':''}</td>
+        <td style="text-align:center">${enviado?'<span style="color:var(--green);font-size:13px;font-weight:600">✓</span>':''}</td>
         <td><button class="del-btn" onclick="deleteJira('${t.id||t.jira}')">✕</button></td>
       </tr>`;
     }).join('')}</tbody>
