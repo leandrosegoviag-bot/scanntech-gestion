@@ -2736,11 +2736,12 @@ window.marcarEnviados = async function(){
       await updateDoc(doc(db,'jiras',t.id),{enPrioridades:true});
 
       // Auto-create task for "Verificar" tickets
-      if(t.status==='Verificar'){
+      if(t.status==='Verificar' && !t.taskCreated){
         const ejecutivoMap = {'AJG':'Aime','LS':'Leandro','EE':'Ezequiel','SAR':'Leandro'};
         const asignado = ejecutivoMap[t.ejecutivo] || t.ejecutivo || '';
         const dueDate = new Date(); dueDate.setDate(dueDate.getDate()+7);
         const taskTitle = 'Verificar: '+( t.cliente ? t.cliente+' · ' : '')+( t.producto||'')+( t.jira ? ' ('+t.jira+')' : '');
+        await updateDoc(doc(db,'jiras',t.id),{taskCreated:true});
         await addDoc(collection(db,'tasks'),{
           title: taskTitle,
           desc: t.detalle||'',
