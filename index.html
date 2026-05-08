@@ -894,6 +894,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             </select>
           </div>
           <button class="btn export-btn btn-sm" onclick="exportJirasExcel()">⬇ Exportar Excel</button>
+          <button class="btn btn-navy btn-sm" onclick="enviarEmailPrioridades()" style="display:inline-flex;align-items:center;gap:5px">✉ Enviar por email</button>
         </div>
         <div class="panel">
           <div id="jira-priority-list"></div>
@@ -2993,25 +2994,63 @@ window.exportJirasExcel = function(){
   if(area!=='todos') data=data.filter(t=>t.area===area);
   data.sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
 
-  const rows = data.map((t,i)=>({
-    'Prioridad': i+1,
-    'Ejecutivo': t.ejecutivo||'',
-    'Cliente': t.cliente||'',
-    'Producto': t.producto||'',
-    'Área': t.area||'',
-    'Detalle': t.detalle||'',
-    '# Jira': t.jira||'',
-    'Fecha inicio': t.fechaInicio||'',
-    'Status': t.status||'',
-  }));
-
   const today = new Date().toISOString().split('T')[0];
-  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+
+  // Build worksheet manually to support hyperlinks
+  const wsData = [
+    ['Prioridad','Ejecutivo','Cliente','Producto','Área','Detalle','# Jira','Fecha inicio','Status']
+  ];
+  data.forEach((t,i)=>{
+    wsData.push([
+      i+1,
+      t.ejecutivo||'',
+      t.cliente||'',
+      t.producto||'',
+      t.area||'',
+      t.detalle||'',
+      t.jira||'',
+      t.fechaInicio||'',
+      t.status||'',
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Add hyperlinks to # Jira column (col G = index 6)
+  data.forEach((t,i)=>{
+    if(!t.jira) return;
+    const cellRef = XLSX.utils.encode_cell({r:i+1, c:6});
+    if(!ws[cellRef]) return;
+    ws[cellRef].l = {
+      Target: 'https://scanntechuy.atlassian.net/browse/'+t.jira,
+      Tooltip: t.jira
+    };
+    ws[cellRef].s = {font:{color:{rgb:'0563C1'},underline:true}};
+  });
+
   // Column widths
   ws['!cols'] = [{wch:8},{wch:10},{wch:25},{wch:15},{wch:6},{wch:60},{wch:14},{wch:12},{wch:12}];
-  const wb = XLSX.utils.book_new();
+
   XLSX.utils.book_append_sheet(wb, ws, 'Prioridades SAR');
-  XLSX.writeFile(wb, `Prioridades_SAR_${today}.xlsx`);
+  XLSX.writeFile(wb, 'Prioridades_SAR_'+today+'.xlsx');
+};
+
+window.enviarEmailPrioridades = function(){
+  const area = el('jira-filter-area')?.value||'todos';
+  let data = jiraTickets.filter(t=>t.enPrioridades);
+  if(area!=='todos') data=data.filter(t=>t.area===area);
+  data.sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
+
+  const today = new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
+  const subject = encodeURIComponent('Prioridades SAR · Reunión ' + today);
+  const body = encodeURIComponent(
+    'Hola equipo,\n\nAdjunto las prioridades de esta semana para la reunión del lunes:\n\n' +
+    data.map((t,i)=>`${i+1}. [${t.area||''}] ${t.cliente||''} · ${t.producto||''} · ${t.jira||''}\n   ${t.detalle||''}`).join('\n\n') +
+    '\n\nSaludos,\nEquipo SAR · Scanntech Argentina'
+  );
+  // Open mail client
+  window.location.href = 'mailto:?subject='+subject+'&body='+body;
 };
 
 setSyncStatus('syncing');
