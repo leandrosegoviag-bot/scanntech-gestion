@@ -604,31 +604,31 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <div class="nav-lbl">Gestión</div>
     <button class="nav-item active" onclick="goTab('dashboard',this)">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="5" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="3" y="12" width="7" height="9" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/></svg>
-      Dashboard<span class="nav-badge" id="badge-dashboard">OKR</span>
+      Dashboard
     </button>
     <button class="nav-item" onclick="goTab('cuentas',this)">
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-      Cuentas<span class="nav-badge" id="badge-cuentas">—</span>
+      Cuentas
     </button>
     <button class="nav-item" onclick="goTab('tareas',this)">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      Tareas<span class="nav-badge" id="badge-tareas">—</span>
+      Tareas
     </button>
     <button class="nav-item" onclick="goTab('historial',this)">
       <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
-      Historial<span class="nav-badge" id="badge-historial">—</span>
+      Historial
     </button>
     <button class="nav-item" onclick="goTab('calendario',this)">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
-      Calendario<span class="nav-badge" id="badge-calendario">—</span>
+      Calendario
     </button>
     <button class="nav-item" onclick="goTab('ficha',this)">
       <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/></svg>
-      Ficha cliente<span class="nav-badge" id="badge-ficha"></span>
+      Ficha cliente
     </button>
     <button class="nav-item" onclick="goTab('jiras',this)">
       <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Tickets<span class="nav-badge" id="badge-jiras">—</span>
+      Tickets
     </button>
   </nav>
   <div class="user-info" id="user-info" style="display:none">
@@ -1024,11 +1024,11 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     </button>
     <button class="mobile-nav-item" id="mob-nav-cuentas" onclick="goTabMobile('cuentas')">
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      Cuentas<span class="mob-badge" id="mob-badge-cuentas">—</span>
+      Cuentas
     </button>
     <button class="mobile-nav-item" id="mob-nav-tareas" onclick="goTabMobile('tareas')">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      Tareas<span class="mob-badge" id="mob-badge-tareas">—</span>
+      Tareas
     </button>
     <button class="mobile-nav-item" id="mob-nav-historial" onclick="goTabMobile('historial')">
       <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
@@ -1260,8 +1260,6 @@ function updateAccountSelect(){
 function renderTasks(){
   const counts={urgente:0,"en-curso":0,pendiente:0,completado:0};
   tasks.forEach(t=>counts[t.status]=(counts[t.status]||0)+1);
-  el('badge-tareas').textContent=tasks.length;
-  if(el('mob-badge-tareas'))el('mob-badge-tareas').textContent=tasks.length;
   el('task-stats').innerHTML=`
     <div class="stat-card sc-orange"><div class="stat-label">Total</div><div class="stat-val">${tasks.length}</div><div class="stat-sub">tareas</div></div>
     <div class="stat-card sc-red"><div class="stat-label">Urgente</div><div class="stat-val">${counts.urgente}</div><div class="stat-sub">requieren atención</div></div>
@@ -1428,8 +1426,6 @@ function renderAccounts(){
   const activos=accounts.filter(a=>isActivo(a)).length;
   const caidos=accounts.filter(a=>!isActivo(a)).length;
   const tierAA=accounts.filter(a=>['A+','A'].includes(normTier(a.tier))).length;
-  el('badge-cuentas').textContent=total;
-  if(el('mob-badge-cuentas'))el('mob-badge-cuentas').textContent=total;
   el('acc-stats').innerHTML=`
     <div class="stat-card sc-orange"><div class="stat-label">Total</div><div class="stat-val">${total}</div><div class="stat-sub">en cartera</div></div>
     <div class="stat-card sc-green"><div class="stat-label">Activos</div><div class="stat-val">${activos}</div><div class="stat-sub">con servicio</div></div>
@@ -1493,7 +1489,6 @@ function getAllInteracciones(){
 function renderHistorial(){
   const all=getAllInteracciones();
   const filtered=histSearch?all.filter(i=>[i.cuentaNombre,i.texto,i.autor,i.tipo].join(' ').toLowerCase().includes(histSearch)):all;
-  el('badge-historial').textContent=all.length;
   el('hist-stats').innerHTML=`
     <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${all.length}</div><div class="stat-sub">interacciones</div></div>
     <div class="stat-card sc-orange"><div class="stat-label">Este mes</div><div class="stat-val">${all.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length}</div><div class="stat-sub">registradas</div></div>
