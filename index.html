@@ -1969,7 +1969,7 @@ function renderCalendario(){
 
   // Badge
   const upcoming = events.filter(e=>e.nextDate).length;
-  el('badge-calendario').textContent = upcoming;
+  const badgeCal=el('badge-calendario');if(badgeCal)badgeCal.textContent=upcoming;
 
   if(calView==='month') renderMonthView(events, today);
   else renderWeekView(events, today);
@@ -2596,7 +2596,7 @@ window.renderJiras = function(){
   const corregir = jiraTickets.filter(t=>t.status==='Corregir').length;
   const verificar = jiraTickets.filter(t=>t.status==='Verificar').length;
   const cerrados = jiraTickets.filter(t=>t.status==='Cerrado').length;
-  el('badge-jiras').textContent = total-cerrados;
+  const badgeJiras=el('badge-jiras');if(badgeJiras)badgeJiras.textContent=total-cerrados;
   el('jiras-stats').innerHTML=`
     <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${total}</div><div class="stat-sub">tickets</div></div>
     <div class="stat-card sc-red"><div class="stat-label">Corregir</div><div class="stat-val">${corregir}</div><div class="stat-sub">errores</div></div>
