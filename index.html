@@ -841,13 +841,29 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
               <option value="BI">BI</option>
               <option value="BD">BD</option>
             </select>
-            <select id="jira-backlog-status" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
-              <option value="todos">Todos los estados</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="Verificar">Verificar</option>
-              <option value="Corregir">Corregir</option>
-              <option value="Cerrado">Cerrado</option>
-            </select>
+            <div style="position:relative">
+              <button id="status-filter-btn" onclick="toggleStatusDropdown()" style="font-size:12px;padding:5px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px">
+                <span id="status-filter-label">Todos los estados</span> ▾
+              </button>
+              <div id="status-dropdown" style="display:none;position:absolute;top:110%;left:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);z-index:50;min-width:180px;padding:8px">
+                <label style="display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:12px;cursor:pointer;border-radius:5px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+                  <input type="checkbox" id="sf-todos" onchange="toggleStatusAll(this)" style="accent-color:var(--navy)"> Todos
+                </label>
+                <div style="height:1px;background:var(--border);margin:4px 0"></div>
+                <label style="display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:12px;cursor:pointer;border-radius:5px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+                  <input type="checkbox" class="status-cb" value="Pendiente" onchange="updateStatusFilter()" style="accent-color:var(--navy)"> <span class="jira-status pendiente">Pendiente</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:12px;cursor:pointer;border-radius:5px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+                  <input type="checkbox" class="status-cb" value="Verificar" onchange="updateStatusFilter()" style="accent-color:var(--amber)"> <span class="jira-status verificar">Verificar</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:12px;cursor:pointer;border-radius:5px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+                  <input type="checkbox" class="status-cb" value="Corregir" onchange="updateStatusFilter()" style="accent-color:var(--red)"> <span class="jira-status corregir">Corregir</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:12px;cursor:pointer;border-radius:5px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+                  <input type="checkbox" class="status-cb" value="Cerrado" onchange="updateStatusFilter()" style="accent-color:var(--green)"> <span class="jira-status cerrado">Cerrado</span>
+                </label>
+              </div>
+            </div>
             <select id="jira-backlog-ejec" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
               <option value="todos">Todos</option>
               <option value="AJG">AJG</option>
@@ -858,7 +874,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <span id="selected-count" style="font-size:12px;color:var(--text3)"></span>
-            <button id="btn-enviar-dev" class="btn btn-navy btn-sm" onclick="marcarEnviados()" style="display:none">📤 Marcar como enviado a Dev</button>
+            <button id="btn-enviar-dev" class="btn btn-navy btn-sm" onclick="marcarEnviados()" style="display:none">📤 Agregar a prioridades</button>
             <button class="btn btn-primary btn-sm" onclick="toggleJiraForm()">+ Nuevo ticket</button>
           </div>
         </div>
@@ -2642,6 +2658,38 @@ window.toggleJiraSelect = function(cb){
   updateSelectedCount();
 };
 
+window.toggleStatusDropdown = function(){
+  const dd=el('status-dropdown');
+  if(dd) dd.style.display=dd.style.display==='none'?'block':'none';
+};
+window.toggleStatusAll = function(cb){
+  document.querySelectorAll('.status-cb').forEach(c=>c.checked=cb.checked);
+  updateStatusFilter();
+};
+window.updateStatusFilter = function(){
+  const selected=[...document.querySelectorAll('.status-cb:checked')].map(c=>c.value);
+  const allCb=el('sf-todos');
+  const allChecked=selected.length===4;
+  if(allCb) allCb.checked=allChecked;
+  const label=el('status-filter-label');
+  if(label){
+    if(selected.length===0||allChecked) label.textContent='Todos los estados';
+    else if(selected.length===1) label.textContent=selected[0];
+    else label.textContent=selected.length+' estados';
+  }
+  renderBacklog();
+};
+// Close dropdown when clicking outside
+document.addEventListener('click',function(e){
+  const dd=el('status-dropdown');
+  const btn=el('status-filter-btn');
+  if(dd&&!dd.contains(e.target)&&btn&&!btn.contains(e.target)) dd.style.display='none';
+});
+window.getSelectedStatuses = function(){
+  const cbs=[...document.querySelectorAll('.status-cb:checked')];
+  return cbs.length===0||cbs.length===4 ? [] : cbs.map(c=>c.value);
+};
+
 window.toggleAllBacklog = function(checked){
   document.querySelectorAll('.jira-cb').forEach(cb=>{
     cb.checked=checked;
@@ -2778,12 +2826,12 @@ window.addJira = async function(){
 window.renderBacklog = function(){
   const q = (el('jira-search')?.value||'').toLowerCase();
   const area = el('jira-backlog-area')?.value||'todos';
-  const status = el('jira-backlog-status')?.value||'todos';
   const ejec = el('jira-backlog-ejec')?.value||'todos';
   let data = [...jiraTickets].sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
   if(q) data=data.filter(t=>[t.detalle,t.jira,t.cliente,t.producto,t.ejecutivo].join(' ').toLowerCase().includes(q));
   if(area!=='todos') data=data.filter(t=>t.area===area);
-  if(status!=='todos') data=data.filter(t=>t.status===status);
+  const statuses = window.getSelectedStatuses ? window.getSelectedStatuses() : [];
+  if(statuses.length>0) data=data.filter(t=>statuses.includes(t.status));
   if(ejec!=='todos') data=data.filter(t=>t.ejecutivo===ejec);
 
   const list=el('jira-backlog-list');
