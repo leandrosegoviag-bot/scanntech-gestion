@@ -879,6 +879,27 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div class="panel">
           <div id="jira-backlog-list"></div>
         </div>
+        <!-- FORM nuevo ticket -->
+        <div class="add-panel" id="jira-form" style="display:none;margin-top:14px">
+          <h3>Nuevo ticket</h3>
+          <div class="form-grid">
+            <div class="form-row four">
+              <div class="field"><label>Ejecutivo</label><select id="nj-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option><option value="SAR">SAR</option></select></div>
+              <div class="field"><label>Área</label><select id="nj-area"><option value="BI">BI</option><option value="BD">BD</option></select></div>
+              <div class="field"><label>Producto</label><input type="text" id="nj-producto" placeholder="ej: 8.2, MINI 2.0"/></div>
+              <div class="field"><label>Status</label><select id="nj-status"><option value="Pendiente">Pendiente</option><option value="Verificar">Verificar</option><option value="Corregir">Corregir</option></select></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" placeholder="Nombre del cliente"/></div>
+              <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX"/></div>
+            </div>
+            <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
+            <div class="form-row">
+              <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
+            </div>
+            <button class="btn btn-primary" onclick="addJira()" style="width:fit-content">Agregar ticket</button>
+          </div>
+        </div>
       </div>
 
       <!-- PRIORIDADES ENVIADAS -->
@@ -907,28 +928,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div class="panel">
           <div class="panel-head"><h3>Solicitudes de acceso a dashboards</h3></div>
           <div id="jira-usuarios-list"></div>
-        </div>
-      </div>
-
-      <!-- FORM nuevo ticket -->
-      <div class="add-panel" id="jira-form" style="display:none;margin-top:14px">
-        <h3>Nuevo ticket</h3>
-        <div class="form-grid">
-          <div class="form-row four">
-            <div class="field"><label>Ejecutivo</label><select id="nj-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option><option value="SAR">SAR</option></select></div>
-            <div class="field"><label>Área</label><select id="nj-area"><option value="BI">BI</option><option value="BD">BD</option></select></div>
-            <div class="field"><label>Producto</label><input type="text" id="nj-producto" placeholder="ej: 8.2, MINI 2.0"/></div>
-            <div class="field"><label>Status</label><select id="nj-status"><option value="Pendiente">Pendiente</option><option value="Verificar">Verificar</option><option value="Corregir">Corregir</option></select></div>
-          </div>
-          <div class="form-row">
-            <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" placeholder="Nombre del cliente"/></div>
-            <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX"/></div>
-          </div>
-          <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
-          <div class="form-row">
-            <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
-          </div>
-          <button class="btn btn-primary" onclick="addJira()" style="width:fit-content">Agregar ticket</button>
         </div>
       </div>
 
@@ -2575,6 +2574,7 @@ window.switchJiraTab = function(tab, btn){
   btn.classList.add('active');
   const t=document.getElementById('jira-tab-'+tab);
   if(t) t.classList.add('active');
+  const f=el('jira-form');if(f)f.style.display='none';
   if(tab==='backlog') renderBacklog();
   if(tab==='prioridades') window.renderJiras();
   if(tab==='usuarios') window.renderUsuariosJira();
