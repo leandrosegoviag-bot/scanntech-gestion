@@ -827,7 +827,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="stats" id="jiras-stats" style="margin-bottom:16px"></div>
       <div class="jiras-tabs">
         <button class="jira-tab-btn active" onclick="switchJiraTab('backlog',this)">📋 Backlog</button>
-        <button class="jira-tab-btn" onclick="switchJiraTab('prioridades',this)">🎯 Prioridades enviadas</button>
+        <button class="jira-tab-btn" onclick="switchJiraTab('prioridades',this)">🎯 Prioridades</button>
         <button class="jira-tab-btn" onclick="switchJiraTab('usuarios',this)">👤 Solicitudes usuarios</button>
       </div>
 
@@ -2989,10 +2989,9 @@ window.addUsuarioJira = async function(){
 // Export to Excel using SheetJS
 window.exportJirasExcel = function(){
   const area = el('jira-filter-area')?.value||'todos';
-  const showClosed = (el('jira-filter-status-pri')?.value||'activos')==='todos';
-  let data = [...jiraTickets].sort((a,b)=>a.prioridad-b.prioridad);
+  let data = jiraTickets.filter(t=>t.enPrioridades);
   if(area!=='todos') data=data.filter(t=>t.area===area);
-  if(!showClosed) data=data.filter(t=>t.status!=='Cerrado');
+  data.sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
 
   const rows = data.map((t,i)=>({
     'Prioridad': i+1,
