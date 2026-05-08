@@ -91,18 +91,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* Cuentas layout */
 .cuentas-layout{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;transition:grid-template-columns .25s ease}
-.cuentas-layout.collapsed{grid-template-columns:44px 1fr}
+.cuentas-layout.collapsed{grid-template-columns:0 1fr;gap:0}
 
 /* Filter sidebar */
 .filter-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:12px;position:sticky;top:80px;transition:all .25s ease;overflow:hidden;max-height:calc(100vh - 100px);overflow-y:auto}
-.filter-sidebar.collapsed{padding:8px 4px;border-color:transparent;box-shadow:none;background:transparent}
-.filter-sidebar.collapsed .filter-group,.filter-sidebar.collapsed .filter-search,.filter-sidebar.collapsed .filter-divider,.filter-sidebar.collapsed .btn-clear-filters{display:none}
-.filter-toggle-btn{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:7px;padding:7px 9px;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s;margin-bottom:2px}
+.filter-sidebar.collapsed{padding:0;border-color:transparent;box-shadow:none;background:transparent;overflow:hidden;width:0;min-width:0}
+.filter-toggle-btn{display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s}
 .filter-toggle-btn:hover{background:var(--navy-dim);color:var(--navy);border-color:var(--navy)}
 .filter-toggle-btn.has-filters{background:var(--navy-dim2);color:var(--navy);border-color:var(--navy)}
-.filter-sidebar.collapsed .filter-toggle-btn{justify-content:center;border-color:var(--border);margin-bottom:0}
-.filter-toggle-btn .btn-label{transition:opacity .2s}
-.filter-sidebar.collapsed .filter-toggle-btn .btn-label{display:none}
 .filter-active-badge{background:var(--orange);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;font-family:'DM Mono',monospace;display:none;margin-left:auto}
 .filter-search{width:100%;font-size:12px;padding:7px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;margin-top:10px;margin-bottom:14px}
 .filter-search::placeholder{color:var(--text3)}
@@ -706,11 +702,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="stats" id="acc-stats"></div>
       <div class="cuentas-layout" id="cuentas-layout">
         <div class="filter-sidebar" id="filter-sidebar">
-          <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleFilterSidebar()" title="Ocultar filtros">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
-            <span class="btn-label">Filtros</span>
-            <span class="filter-active-badge" id="filter-active-badge"></span>
-          </button>
           <input class="filter-search" type="text" placeholder="Buscar cliente..." oninput="setAccSearch(this.value)"/>
           <div class="filter-group">
             <div class="filter-group-title">Estado</div>
@@ -738,7 +729,14 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div>
           <div class="panel">
             <div class="panel-head">
-              <h3>Cartera de cuentas</h3>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleFilterSidebar()" title="Filtros">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
+                  <span>Filtros</span>
+                  <span class="filter-active-badge" id="filter-active-badge"></span>
+                </button>
+                <h3>Cartera de cuentas</h3>
+              </div>
               <div class="panel-head-right">
                 <span class="results-count" id="results-count"></span>
                 <span class="locales-total" id="locales-total"></span>
@@ -1209,6 +1207,7 @@ window.toggleFilterSidebar=function(){
   const isCollapsed=sidebar.classList.toggle('collapsed');
   layout.classList.toggle('collapsed',isCollapsed);
   btn.title=isCollapsed?'Mostrar filtros':'Ocultar filtros';
+  btn.style.opacity=isCollapsed?'0.6':'1';
 };
 
 // ── TASKS
@@ -1418,7 +1417,7 @@ function updateCounts(){
   const badge=el('filter-active-badge');
   if(badge){badge.style.display=activeCount>0?'inline':'none';badge.textContent=activeCount;}
   const toggleBtn=el('filter-toggle-btn');
-  if(toggleBtn)toggleBtn.classList.toggle('has-filters',activeCount>0);
+  if(toggleBtn){toggleBtn.classList.toggle('has-filters',activeCount>0);}
 }
 
 function renderAccounts(){
