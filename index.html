@@ -3060,9 +3060,9 @@ window.renderMetricas = function(){
               <div style="font-size:11px;color:var(--text3)">> 30 días</div>
             </div>
           </div>
-          ${agingDays.length?`<table class="backlog-table"><thead><tr><th>Ticket</th><th>Cliente</th><th>Días</th><th>Status</th></tr></thead><tbody>
+          ${agingDays.length?`<table class="backlog-table" style="table-layout:fixed;width:100%"><thead><tr><th style="width:45%">Ticket</th><th style="width:20%">Cliente</th><th style="width:10%">Días</th><th style="width:25%">Status</th></tr></thead><tbody>
             ${agingDays.slice(0,8).map(t=>`<tr>
-              <td style="font-size:12px;max-width:180px"><div style="font-weight:500">${t.detalle||'—'}</div>${t.jira?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${t.jira}</span>`:''}</td>
+              <td style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0"><div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.detalle||'—'}</div>${t.jira?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${t.jira}</span>`:''}</td>
               <td style="font-size:12px">${t.cliente||'—'}</td>
               <td style="font-family:'DM Mono',monospace;font-weight:700;color:${t.days>30?'var(--red)':t.days>7?'var(--amber)':'var(--green)'}">${t.days}d</td>
               <td><span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span></td>
