@@ -464,7 +464,21 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .provincia-path.activa:hover{fill:var(--orange2)}
 .provincia-path:hover{fill:var(--surface3)}
 
-/* Interacciones recientes en ficha */
+/* Product grid */
+.prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.prod-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--border);text-align:center;gap:4px;transition:all .15s}
+.prod-item.activo{background:var(--green-dim);border-color:var(--green)}
+.prod-item.inactivo{background:var(--surface2);border-color:var(--border);opacity:.6}
+.prod-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.prod-dot.verde{background:var(--green)}
+.prod-dot.rojo{background:var(--red)}
+.prod-name{font-size:11px;font-weight:600;color:var(--text2);line-height:1.2}
+.prod-badge-new{font-size:9px;background:var(--orange);color:#fff;padding:1px 5px;border-radius:8px;font-family:'DM Mono',monospace}
+.dash-semestre-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500}
+.dash-semestre-badge.sumó{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+.dash-semestre-badge.igual{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+
+/* Interacciones recientes en ficha *//* Interacciones recientes en ficha */
 .ficha-int-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
 .ficha-int-item:last-child{border-bottom:none}
 .ficha-int-tipo{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--navy-dim);color:var(--navy);font-weight:500;flex-shrink:0}
@@ -1966,6 +1980,37 @@ function getSemaforoState(a){
 }
 
 
+
+const ALL_PRODUCTS = ['8.2','MINI 2.0','SHOPPER','JBP','Multicadena','Precios Semanales','ScannOP','Perecederos','Marca Propia','Price Position'];
+
+function buildProductosHTML(a){
+  const b = BASE2026_DATA[a.nombre] || null;
+  const activeDashes = b ? (b.d||[]) : [];
+  const present26 = b ? (b.p||0) : 0;
+  const present24 = b ? (b.p24||0) : 0;
+
+  // Product grid
+  const grid = ALL_PRODUCTS.map(function(prod){
+    const isActive = activeDashes.includes(prod);
+    return '<div class="prod-item '+(isActive?'activo':'inactivo')+'">'
+      + '<div class="prod-dot '+(isActive?'verde':'rojo')+'"></div>'
+      + '<div class="prod-name">'+prod+'</div>'
+      + '</div>';
+  }).join('');
+
+  // Semestre badge
+  const dashCount = activeDashes.length;
+  const semBadge = dashCount > 0
+    ? '<span class="dash-semestre-badge sumó">✓ '+dashCount+' dashboard'+(dashCount>1?'s':'')+' activos este semestre</span>'
+    : '<span class="dash-semestre-badge igual">Sin dashboards activos</span>';
+
+  return '<div class="prod-grid">'+grid+'</div>'
+    + '<div style="margin-top:4px">'+semBadge+'</div>'
+    + (activeDashes.length>0
+      ? '<div style="margin-top:8px;font-size:11px;color:var(--text3)">Activos: <strong style="color:var(--navy)">'+activeDashes.join(' · ')+'</strong></div>'
+      : '');
+}
+
 function buildTableroHTML(a, tablero){
   const b = BASE2026_DATA[a.nombre] || null;
   const t = tablero || null;
@@ -2137,17 +2182,8 @@ ${buildTableroHTML(a, tablero)}
 
       <!-- Dashboards -->
       <div class="ficha-card">
-        <div class="ficha-card-title">Dashboards / productos activos</div>
-        <div id="ficha-dashboards-${id}">
-          ${(a.dashboardsList||[]).length>0
-            ? (a.dashboardsList||[]).map((d,i)=>`<div class="dash-item"><div class="dash-dot"></div><div class="dash-name">${d}</div><button onclick="removeDash('${id}',${i})" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:11px">✕</button></div>`).join('')
-            : `<div style="font-size:12px;color:var(--text3)">Sin dashboards cargados aún</div>`}
-        </div>
-        <div class="add-dash-row">
-          <input class="add-dash-input" id="new-dash-${id}" type="text" placeholder="Nombre del dashboard..." onkeydown="if(event.key==='Enter')addDash('${id}')"/>
-          <button class="btn btn-primary btn-sm" onclick="addDash('${id}')">+ Agregar</button>
-        </div>
-        ${tablero?`<div style="margin-top:10px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);padding-top:8px">📊 Export tablero: <strong style="color:var(--orange)">${tablero.dashboards}</strong> dashboards registrados</div>`:''}
+        <div class="ficha-card-title">Productos activos</div>
+        ${buildProductosHTML(a)}
       </div>
 
       <!-- Interacciones recientes -->
