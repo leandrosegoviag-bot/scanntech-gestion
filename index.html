@@ -1962,6 +1962,33 @@ function getSemaforoState(a){
   return {state:'verde', label:'Relación activa', detail:`Último contacto hace ${daysSinceContact} días`};
 }
 
+
+function buildTableroHTML(a, tablero){
+  const b = BASE2026_DATA[a.nombre] || null;
+  const t = tablero || null;
+  if(!b && !t) return '<div style="font-size:13px;color:var(--text3);padding:16px 0">Sin datos del tablero para esta cuenta.</div>';
+  const dashes = b ? (b.d||[]) : [];
+  const cantDash = b ? dashes.length : (t ? t.dashboards : '—');
+  const usuarios = t ? t.usuarios : (b ? b.u||'—' : '—');
+  const accesos = t ? t.cantAccesos : '—';
+  const media = t ? t.mediaVisitas : '—';
+  const ingresos26 = b ? (b.i||'—') : '—';
+  const present26 = b ? (b.p||'—') : '—';
+  const dashRow = dashes.length > 0
+    ? '<div style="margin-top:10px;font-size:11px;color:var(--text3)">Dashboards activos: <strong style="color:var(--navy)">'+dashes.join(' · ')+'</strong></div>'
+    : '';
+  return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">'
+    + '<div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">'+usuarios+'</div><div class="ficha-stat-label">Usuarios</div></div>'
+    + '<div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">'+accesos+'</div><div class="ficha-stat-label">Accesos (abr)</div></div>'
+    + '<div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">'+media+'</div><div class="ficha-stat-label">Media visitas</div></div>'
+    + '<div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val" style="color:var(--orange)">'+cantDash+'</div><div class="ficha-stat-label">Dashboards</div><div class="ficha-stat-sub">OKR 1.3</div></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-top:8px">'
+    + '<div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">'+ingresos26+'</div><div class="ficha-stat-label">Ingresos acum. 2026</div></div>'
+    + '<div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">'+present26+'</div><div class="ficha-stat-label">Presentaciones 2026</div></div>'
+    + '</div>' + dashRow;
+}
+
 function renderMapaSVG(provincia){
   const prov = (provincia||'').toUpperCase().trim();
   // Map to SVG province IDs
@@ -2081,31 +2108,7 @@ function renderFicha(){
       <!-- Datos del tablero -->
       <div class="ficha-card">
         <div class="ficha-card-title">Métricas del tablero · ${tablero?tablero.mes:'Sin datos del export'}</div>
-        ${(()=>{
-          const b = BASE2026_DATA[a.nombre] || null;
-          const t = tablero || null;
-          if(!b && !t) return '<div style="font-size:13px;color:var(--text3);padding:16px 0">Sin datos del tablero para esta cuenta.</div>';
-          const dashes = b ? (b.d||[]) : [];
-          const cantDash = b ? (b.d||[]).length : (t ? t.dashboards : '—');
-          const usuarios = t ? t.usuarios : (b ? b.u : '—');
-          const accesos = t ? t.cantAccesos : '—';
-          const media = t ? t.mediaVisitas : '—';
-          const ingresos26 = b ? b.i : '—';
-          const present26 = b ? b.p : '—';
-          return \`
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
-            <div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">\${usuarios??'—'}</div><div class="ficha-stat-label">Usuarios</div></div>
-            <div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">\${accesos??'—'}</div><div class="ficha-stat-label">Accesos (abr)</div></div>
-            <div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">\${media??'—'}</div><div class="ficha-stat-label">Media visitas</div></div>
-            <div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val" style="color:var(--orange)">\${cantDash}</div><div class="ficha-stat-label">Dashboards</div><div class="ficha-stat-sub">OKR 1.3</div></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-top:8px">
-            <div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">\${ingresos26??'—'}</div><div class="ficha-stat-label">Ingresos acum. 2026</div></div>
-            <div class="ficha-stat" style="background:var(--surface)"><div class="ficha-stat-val">\${present26??'—'}</div><div class="ficha-stat-label">Presentaciones 2026</div></div>
-          </div>
-          \${dashes.length>0?\`<div style="margin-top:10px;font-size:11px;color:var(--text3)">Dashboards activos: <strong style="color:var(--navy)">\${dashes.join(' · ')}</strong></div>\`:''}
-          \`;
-        })()}
+${buildTableroHTML(a, tablero)}
       </div>
 
       <!-- Info general -->
