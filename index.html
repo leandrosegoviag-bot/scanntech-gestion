@@ -2732,13 +2732,46 @@ window.marcarEnviados = async function(){
   try{
     for(const id of ids){
       const t = jiraTickets.find(x=>(x.id||x.jira)===id);
-      if(t && t.id) await updateDoc(doc(db,'jiras',t.id),{enPrioridades:true});
+      if(!t || !t.id) continue;
+      await updateDoc(doc(db,'jiras',t.id),{enPrioridades:true});
+
+      // Auto-create task for "Verificar" tickets
+      if(t.status==='Verificar'){
+        const ejecutivoMap = {'AJG':'Aime','LS':'Leandro','EE':'Ezequiel','SAR':'Leandro'};
+        const asignado = ejecutivoMap[t.ejecutivo] || t.ejecutivo || '';
+        const dueDate = new Date(); dueDate.setDate(dueDate.getDate()+7);
+        const taskTitle = 'Verificar: '+( t.cliente ? t.cliente+' · ' : '')+( t.producto||'')+( t.jira ? ' ('+t.jira+')' : '');
+        await addDoc(collection(db,'tasks'),{
+          title: taskTitle,
+          desc: t.detalle||'',
+          status: 'urgente',
+          assignee: asignado,
+          tag: 'Tickets',
+          due: dueDate.toISOString().split('T')[0],
+          steps: [],
+          comments: [],
+          createdAt: serverTimestamp(),
+          fromJira: t.id,
+        });
+      }
     }
     window._selectedJiras.clear();
     updateSelectedCount();
     setSyncStatus('ok');
     renderBacklog();
-  }catch{setSyncStatus('error');}
+    // Notify if tasks were created
+    const verificarCount = [...ids].filter(id=>{
+      const t=jiraTickets.find(x=>(x.id||x.jira)===id);
+      return t && t.status==='Verificar';
+    }).length;
+    if(verificarCount>0){
+      const msg = document.createElement('div');
+      msg.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:9999;box-shadow:var(--shadow)';
+      msg.innerHTML = '✅ '+verificarCount+' tarea'+(verificarCount>1?'s':'')+' creada'+(verificarCount>1?'s':'')+' automáticamente en Tareas';
+      document.body.appendChild(msg);
+      setTimeout(()=>msg.remove(), 4000);
+    }
+  }catch(e){setSyncStatus('error');console.error(e);}
 };
 
 // ── DRAG & DROP PRIORIDADES
