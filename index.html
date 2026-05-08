@@ -1845,11 +1845,59 @@ onAuthStateChanged(auth, user=>{
     el('user-role').textContent=info.role==='admin'?'Administrador':'Integrante';
     // Apply role restrictions
     applyRoleUI();
+    // Start Firebase listeners only after auth confirmed
+    if(!window._listenersStarted){
+      window._listenersStarted = true;
+      setSyncStatus('syncing');
+onSnapshot(collection(db,'tasks'),snap=>{
+  tasks=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderTasks();updateAccountSelect();
+  if(currentTab==='dashboard')renderDashboard();
+  setSyncStatus('ok');
+},()=>setSyncStatus('error'));
+
+onSnapshot(collection(db,'accounts'),snap=>{
+  accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderAccounts();updateAccountSelect();updateFichaSelect();
+  if(currentTab==='dashboard')renderDashboard();
+  if(currentTab==='historial')renderHistorial();
+  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item"><div class="history-dot" style="background:var(--navy)"></div><div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
+  setSyncStatus('ok');
+},()=>setSyncStatus('error'));
+
+// ── JIRAS FIREBASE LISTENERS
+let jiraSeeded=false, usuarioSeeded=false;
+
+onSnapshot(collection(db,'jiras'), snap=>{
+  jiraTickets = snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(jiraTickets.length===0 && INIT_TICKETS.length>0 && !jiraSeeded){
+    jiraSeeded=true;
+    INIT_TICKETS.forEach(t=>addDoc(collection(db,'jiras'),{...t,createdAt:serverTimestamp()}).catch(()=>{}));
+  }
+  if(currentTab==='jiras') window.renderJiras();
+},()=>{
+  if(jiraTickets.length===0) jiraTickets=INIT_TICKETS.map((t,i)=>({...t,id:'local-'+i}));
+  if(currentTab==='jiras') window.renderJiras();
+});
+
+onSnapshot(collection(db,'jiraUsuarios'), snap=>{
+  jiraUsuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(jiraUsuarios.length===0 && INIT_USUARIOS.length>0 && !usuarioSeeded){
+    usuarioSeeded=true;
+    INIT_USUARIOS.forEach(u=>addDoc(collection(db,'jiraUsuarios'),{...u,createdAt:serverTimestamp()}).catch(()=>{}));
+  }
+  if(currentTab==='jiras') window.renderUsuariosJira();
+},()=>{
+  if(jiraUsuarios.length===0) jiraUsuarios=INIT_USUARIOS.map((u,i)=>({...u,id:'local-u-'+i}));
+  if(currentTab==='jiras') window.renderUsuariosJira();
+});
+    }
   } else {
     currentUser=null; currentRole=null;
     el('login-overlay').classList.add('show');
     el('main-app').style.display='none';
     el('user-info').style.display='none';
+    window._listenersStarted = false;
     // Reset login form
     el('login-btn').disabled=false;
     el('login-btn').textContent='Ingresar';
@@ -3024,121 +3072,14 @@ window.addUsuarioJira = async function(){
   setSyncStatus('syncing');
   try{
     await addDoc(collection(db,'jiraUsuarios'),{...usr,createdAt:serverTimestamp()});
-    ['nu-empresa','nu-nombre','nu-apellido','nu-mail','nu-carpeta','nu-fecha'].forEach(id=>{const e=el(id);if(e)e.value='';});
-    el('usuario-form').style.display='none';
-    setSyncStatus('ok');
-  }catch{setSyncStatus('error');}
-};
-
-// Export to Excel using SheetJS
-window.exportJirasExcel = function(){
-  const area = el('jira-filter-area')?.value||'todos';
-  let data = jiraTickets.filter(t=>t.enPrioridades);
-  if(area!=='todos') data=data.filter(t=>t.area===area);
-  data.sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
-
-  const today = new Date().toISOString().split('T')[0];
-  const wb = XLSX.utils.book_new();
-
-  // Build worksheet manually to support hyperlinks
-  const wsData = [
-    ['Prioridad','Ejecutivo','Cliente','Producto','Área','Detalle','# Jira','Fecha inicio','Status']
-  ];
-  data.forEach((t,i)=>{
-    wsData.push([
-      i+1,
-      t.ejecutivo||'',
-      t.cliente||'',
-      t.producto||'',
-      t.area||'',
-      t.detalle||'',
-      t.jira||'',
-      t.fechaInicio||'',
-      t.status||'',
-    ]);
-  });
-
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-  // Add hyperlinks to # Jira column (col G = index 6)
-  data.forEach((t,i)=>{
-    if(!t.jira) return;
-    const cellRef = XLSX.utils.encode_cell({r:i+1, c:6});
-    if(!ws[cellRef]) return;
-    ws[cellRef].l = {
-      Target: 'https://scanntechuy.atlassian.net/browse/'+t.jira,
-      Tooltip: t.jira
-    };
-    ws[cellRef].s = {font:{color:{rgb:'0563C1'},underline:true}};
-  });
-
-  // Column widths
-  ws['!cols'] = [{wch:8},{wch:10},{wch:25},{wch:15},{wch:6},{wch:60},{wch:14},{wch:12},{wch:12}];
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Prioridades SAR');
-  XLSX.writeFile(wb, 'Prioridades_SAR_'+today+'.xlsx');
-};
-
-window.enviarEmailPrioridades = function(){
-  const area = el('jira-filter-area')?.value||'todos';
-  let data = jiraTickets.filter(t=>t.enPrioridades);
-  if(area!=='todos') data=data.filter(t=>t.area===area);
-  data.sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
-
-  const today = new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
-  const subject = encodeURIComponent('Prioridades SAR · Reunión ' + today);
-  const body = encodeURIComponent(
-    'Hola equipo,\n\nAdjunto las prioridades de esta semana para la reunión del lunes:\n\n' +
-    data.map((t,i)=>`${i+1}. [${t.area||''}] ${t.cliente||''} · ${t.producto||''} · ${t.jira||''}\n   ${t.detalle||''}`).join('\n\n') +
+    ['nu-empresa','nu-nombre','nu
+</script>|''}`).join('\n\n') +
     '\n\nSaludos,\nEquipo SAR · Scanntech Argentina'
   );
   // Open mail client
   window.location.href = 'mailto:?subject='+subject+'&body='+body;
 };
 
-setSyncStatus('syncing');
-onSnapshot(collection(db,'tasks'),snap=>{
-  tasks=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderTasks();updateAccountSelect();
-  if(currentTab==='dashboard')renderDashboard();
-  setSyncStatus('ok');
-},()=>setSyncStatus('error'));
-
-onSnapshot(collection(db,'accounts'),snap=>{
-  accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderAccounts();updateAccountSelect();updateFichaSelect();
-  if(currentTab==='dashboard')renderDashboard();
-  if(currentTab==='historial')renderHistorial();
-  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item"><div class="history-dot" style="background:var(--navy)"></div><div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
-  setSyncStatus('ok');
-},()=>setSyncStatus('error'));
-
-// ── JIRAS FIREBASE LISTENERS
-let jiraSeeded=false, usuarioSeeded=false;
-
-onSnapshot(collection(db,'jiras'), snap=>{
-  jiraTickets = snap.docs.map(d=>({id:d.id,...d.data()}));
-  if(jiraTickets.length===0 && INIT_TICKETS.length>0 && !jiraSeeded){
-    jiraSeeded=true;
-    INIT_TICKETS.forEach(t=>addDoc(collection(db,'jiras'),{...t,createdAt:serverTimestamp()}).catch(()=>{}));
-  }
-  if(currentTab==='jiras') window.renderJiras();
-},()=>{
-  if(jiraTickets.length===0) jiraTickets=INIT_TICKETS.map((t,i)=>({...t,id:'local-'+i}));
-  if(currentTab==='jiras') window.renderJiras();
-});
-
-onSnapshot(collection(db,'jiraUsuarios'), snap=>{
-  jiraUsuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
-  if(jiraUsuarios.length===0 && INIT_USUARIOS.length>0 && !usuarioSeeded){
-    usuarioSeeded=true;
-    INIT_USUARIOS.forEach(u=>addDoc(collection(db,'jiraUsuarios'),{...u,createdAt:serverTimestamp()}).catch(()=>{}));
-  }
-  if(currentTab==='jiras') window.renderUsuariosJira();
-},()=>{
-  if(jiraUsuarios.length===0) jiraUsuarios=INIT_USUARIOS.map((u,i)=>({...u,id:'local-u-'+i}));
-  if(currentTab==='jiras') window.renderUsuariosJira();
-});
 </script>
 </body>
 </html>
