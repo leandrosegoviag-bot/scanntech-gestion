@@ -2582,7 +2582,9 @@ window.switchJiraTab = function(tab, btn){
 
 window.toggleJiraForm = function(){
   const f=el('jira-form');
-  f.style.display=f.style.display==='none'?'block':'none';
+  const show=f.style.display==='none';
+  f.style.display=show?'block':'none';
+  if(show) f.scrollIntoView({behavior:'smooth',block:'start'});
 };
 window.toggleUsuarioForm = function(){
   const f=el('usuario-form');
