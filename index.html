@@ -1994,10 +1994,24 @@ function buildTableroHTML(a, tablero){
 
 function renderMapaSVG(provincia){
   const prov = (provincia||'').toUpperCase().trim();
+  const label = prov ? prov.charAt(0)+prov.slice(1).toLowerCase() : 'Provincia no especificada';
+  const color = prov ? 'color:var(--orange);font-weight:500' : 'color:var(--text3)';
+  // Store province for initMap to use after DOM renders
+  window._pendingMapProv = prov;
+  return '<div id="ficha-map" style="height:260px;border-radius:8px;border:1px solid var(--border)"></div>'
+    + '<div style="text-align:center;margin-top:6px;font-size:12px;'+color+'">'
+    + (prov ? '● '+label : 'Provincia no especificada')
+    + '</div>';
+}
 
-  // Province centroids [lat, lng, zoom]
+function initFichaMap(){
+  const mapEl = document.getElementById('ficha-map');
+  if(!mapEl || !window.L) return;
+  // Destroy previous map instance
+  if(window._fichaMap){ window._fichaMap.remove(); window._fichaMap = null; }
+  
   const PROV_COORDS = {
-    'BUENOS AIRES':[-36.6,-60.0,6],'AMBA':[-34.6,-58.4,9],'CABA':[-34.60,-58.44,12],
+    'BUENOS AIRES':[-36.6,-60.0,6],'AMBA':[-34.6,-58.4,8],'CABA':[-34.60,-58.44,12],
     'CIUDAD AUTONOMA DE BUENOS AIRES':[-34.60,-58.44,12],
     'CORDOBA':[-31.4,-64.2,7],'SANTA FE':[-30.7,-60.7,7],
     'MENDOZA':[-34.8,-68.5,7],'TUCUMAN':[-26.8,-65.2,8],
@@ -2012,24 +2026,20 @@ function renderMapaSVG(provincia){
     'SANTA CRUZ':[-49.3,-68.6,6],'TIERRA DEL FUEGO':[-54.4,-67.6,7],
   };
 
+  const prov = window._pendingMapProv || '';
   const coords = PROV_COORDS[prov] || [-38.0,-63.0,4];
-
-  return '<div id="ficha-map" style="height:260px;border-radius:8px;overflow:hidden"></div>'
-    + '<div style="text-align:center;margin-top:6px;font-size:12px;'
-    + (prov ? 'color:var(--orange);font-weight:500' : 'color:var(--text3)') + '">'
-    + (prov ? '● ' + prov.charAt(0) + prov.slice(1).toLowerCase() : 'Provincia no especificada')
-    + '</div>'
-    + '<script>setTimeout(function(){'
-    + 'var existing=window._fichaMap;'
-    + 'if(existing){existing.remove();window._fichaMap=null;}'
-    + 'var mapEl=document.getElementById("ficha-map");'
-    + 'if(!mapEl)return;'
-    + 'var m=L.map("ficha-map",{zoomControl:true,attributionControl:false}).setView(['+ coords[0] +','+ coords[1] +'],'+ coords[2] +');'
-    + 'L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18}).addTo(m);'
-    + (prov ? 'L.marker(['+ coords[0] +','+ coords[1] +']).addTo(m).bindPopup("<b>' + prov.charAt(0)+prov.slice(1).toLowerCase() + '</b>").openPopup();' : '')
-    + 'window._fichaMap=m;'
-    + '},100);</scr'+'ipt>';
+  
+  const m = L.map('ficha-map', {zoomControl:true, attributionControl:false})
+    .setView([coords[0], coords[1]], coords[2]);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18}).addTo(m);
+  if(prov && coords[2] > 4){
+    L.marker([coords[0], coords[1]]).addTo(m)
+      .bindPopup('<b>'+prov.charAt(0)+prov.slice(1).toLowerCase()+'</b>').openPopup();
+  }
+  window._fichaMap = m;
 }
+
+
 
 
 
@@ -2044,6 +2054,7 @@ function renderFicha(){
   if(!a){ fichaEl.classList.remove('show'); return; }
 
   fichaEl.classList.add('show');
+  setTimeout(initFichaMap, 50);
 
   const tier = normTier(a.tier);
   const semaforo = getSemaforoState(a);
