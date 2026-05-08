@@ -2621,10 +2621,17 @@ window.renderJiras = function(){
   }
   list.innerHTML=`<table class="backlog-table">
     <thead><tr>
+      <th style="width:20px"></th>
       <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
       <th>Área</th><th>Ejecutivo</th><th>Status</th><th>Fecha</th><th></th>
     </tr></thead>
-    <tbody>${data.map((t,i)=>`<tr>
+    <tbody id="pri-tbody">${data.map((t,i)=>`<tr draggable="true" data-id="${t.id||t.jira}" data-idx="${i}"
+      ondragstart="priDragStart(event,${i})"
+      ondragover="priDragOver(event)"
+      ondrop="priDrop(event,${i})"
+      ondragend="priDragEnd(event)"
+      style="cursor:grab">
+      <td style="cursor:grab;color:var(--text3);font-size:16px;padding:8px 6px">⠿</td>
       <td><div class="pri-order-badge">${i+1}</div></td>
       <td style="max-width:260px">
         <div style="font-size:12px;color:var(--text);font-weight:500;line-height:1.4">${t.detalle||'—'}</div>
@@ -2732,6 +2739,65 @@ window.marcarEnviados = async function(){
     renderBacklog();
   }catch{setSyncStatus('error');}
 };
+
+// ── DRAG & DROP PRIORIDADES
+let priDragSrcIdx = null;
+let priDragData = [];
+
+window.priDragStart = function(e, idx){
+  priDragSrcIdx = idx;
+  e.currentTarget.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+};
+
+window.priDragOver = function(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  // Highlight row
+  document.querySelectorAll('#pri-tbody tr').forEach(r=>r.style.borderTop='');
+  e.currentTarget.style.borderTop = '2px solid var(--orange)';
+};
+
+window.priDragEnd = function(e){
+  e.currentTarget.style.opacity = '1';
+  document.querySelectorAll('#pri-tbody tr').forEach(r=>{
+    r.style.borderTop='';
+    r.style.opacity='1';
+  });
+};
+
+window.priDrop = function(e, targetIdx){
+  e.preventDefault();
+  if(priDragSrcIdx === null || priDragSrcIdx === targetIdx) return;
+  // Reorder the priority tickets
+  const area = el('jira-filter-area')?.value||'todos';
+  let data = jiraTickets.filter(t=>t.enPrioridades);
+  if(area!=='todos') data=data.filter(t=>t.area===area);
+  data.sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
+
+  // Move item
+  const moved = data.splice(priDragSrcIdx, 1)[0];
+  data.splice(targetIdx, 0, moved);
+
+  // Update prioridad field in jiraTickets
+  data.forEach((t, i) => {
+    const orig = jiraTickets.find(x=>(x.id||x.jira)===(t.id||t.jira));
+    if(orig) orig.prioridad = i + 1;
+  });
+
+  priDragSrcIdx = null;
+  savePrioritiesToFirebase();
+  window.renderJiras();
+};
+
+async function savePrioritiesToFirebase(){
+  setSyncStatus('syncing');
+  try{
+    const updates = jiraTickets.filter(t=>t.id && t.enPrioridades);
+    await Promise.all(updates.map(t=>updateDoc(doc(db,'jiras',t.id),{prioridad:t.prioridad})));
+    setSyncStatus('ok');
+  }catch{ setSyncStatus('error'); }
+}
 
 window.removeFromPrioridades = async function(idOrJira){
   const t = jiraTickets.find(x=>(x.id||x.jira)===idOrJira);
