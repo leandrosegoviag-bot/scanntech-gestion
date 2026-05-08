@@ -1983,11 +1983,26 @@ function getSemaforoState(a){
 
 const ALL_PRODUCTS = ['8.2','MINI 2.0','SHOPPER','JBP','Multicadena','Precios Semanales','ScannOP','Perecederos','Marca Propia','Price Position'];
 
+// Baseline = abril 2026 export (BASE2026_DATA)
+// Current = latest TABLERO_DATA (updated when new export uploaded)
 function buildProductosHTML(a){
-  const b = BASE2026_DATA[a.nombre] || null;
+  const b = BASE2026_DATA[a.nombre] || null;          // abril baseline
+  const t = TABLERO_DATA[a.nombre] || null;            // latest export
   const activeDashes = b ? (b.d||[]) : [];
-  const present26 = b ? (b.p||0) : 0;
-  const present24 = b ? (b.p24||0) : 0;
+  
+  // Current dashboards from latest export (if available and newer than april)
+  const currentDashes = t ? t.dashboards : null;
+  const dashesForDisplay = activeDashes; // use base2026 for product status
+
+  // Delta dashboards vs april baseline
+  const baseCount = activeDashes.length;
+  const currentCount = (t && t.dashboards != null) ? t.dashboards : baseCount;
+  const deltaDash = currentCount - baseCount;
+
+  // Delta usuarios vs april baseline
+  const baseUsuarios = b ? (parseInt(b.u)||0) : 0;
+  const currentUsuarios = t ? (parseInt(t.usuarios)||0) : baseUsuarios;
+  const deltaUsuarios = currentUsuarios - baseUsuarios;
 
   // Product grid
   const grid = ALL_PRODUCTS.map(function(prod){
@@ -1998,17 +2013,21 @@ function buildProductosHTML(a){
       + '</div>';
   }).join('');
 
-  // Semestre badge
-  const dashCount = activeDashes.length;
-  const semBadge = dashCount > 0
-    ? '<span class="dash-semestre-badge sumó">✓ '+dashCount+' dashboard'+(dashCount>1?'s':'')+' activos este semestre</span>'
-    : '<span class="dash-semestre-badge igual">Sin dashboards activos</span>';
+  // Delta badges
+  function deltaBadge(label, delta){
+    if(delta > 0) return '<span class="dash-semestre-badge sumó">▲ +'+delta+' '+label+' nuevos vs abril</span>';
+    if(delta < 0) return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500;background:var(--red-dim);color:var(--red);border:1px solid var(--red)">▼ '+delta+' '+label+' vs abril</span>';
+    return '<span class="dash-semestre-badge igual">= 0 '+label+' nuevos vs abril</span>';
+  }
+
+  const mesRef = t ? t.mes : 'abril 2026';
 
   return '<div class="prod-grid">'+grid+'</div>'
-    + '<div style="margin-top:4px">'+semBadge+'</div>'
-    + (activeDashes.length>0
-      ? '<div style="margin-top:8px;font-size:11px;color:var(--text3)">Activos: <strong style="color:var(--navy)">'+activeDashes.join(' · ')+'</strong></div>'
-      : '');
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
+    + deltaBadge('dashboards', deltaDash)
+    + deltaBadge('usuarios', deltaUsuarios)
+    + '</div>'
+    + '<div style="margin-top:6px;font-size:10px;color:var(--text3)">Base: abril 2026 · Actual: '+mesRef+'</div>';
 }
 
 function buildTableroHTML(a, tablero){
