@@ -874,7 +874,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <span id="selected-count" style="font-size:12px;color:var(--text3)"></span>
-            <button id="btn-enviar-dev" class="btn btn-navy btn-sm" onclick="marcarEnviados()" style="display:none">📤 Agregar a prioridades</button>
+            <button id="btn-enviar-dev" class="btn btn-navy btn-sm" onclick="marcarEnviados()" style="display:none;align-items:center;gap:5px">📤 Agregar a prioridades</button>
             <button class="btn btn-primary btn-sm" onclick="toggleJiraForm()">+ Nuevo ticket</button>
           </div>
         </div>
@@ -2650,12 +2650,18 @@ window.renderJiras = function(){
 window._selectedJiras = new Set();
 
 window.toggleJiraSelect = function(cb){
+  if(!window._selectedJiras) window._selectedJiras = new Set();
   const id = cb.dataset.id;
   if(cb.checked) window._selectedJiras.add(id);
   else window._selectedJiras.delete(id);
   const row = cb.closest('tr');
   if(row) row.classList.toggle('selected', cb.checked);
-  updateSelectedCount();
+  // Update button directly
+  const elBtn = document.getElementById('btn-enviar-dev');
+  const elCount = document.getElementById('selected-count');
+  const count = window._selectedJiras.size;
+  if(elBtn) elBtn.style.display = count>0 ? 'inline-flex' : 'none';
+  if(elCount) elCount.textContent = count>0 ? count + ' seleccionado' + (count!==1?'s':'') : '';
 };
 
 window.toggleStatusDropdown = function(){
@@ -2703,11 +2709,12 @@ window.toggleAllBacklog = function(checked){
 };
 
 function updateSelectedCount(){
+  if(!window._selectedJiras) window._selectedJiras = new Set();
   const count = window._selectedJiras.size;
-  const el_count = el('selected-count');
-  const el_btn = el('btn-enviar-dev');
-  if(el_count) el_count.textContent = count>0 ? count + ' seleccionado' + (count!==1?'s':'') : '';
-  if(el_btn) el_btn.style.display = count>0?'inline-flex':'none';
+  const elCount = document.getElementById('selected-count');
+  const elBtn = document.getElementById('btn-enviar-dev');
+  if(elCount) elCount.textContent = count>0 ? count + ' seleccionado' + (count!==1?'s':'') : '';
+  if(elBtn) elBtn.style.display = count>0 ? 'inline-flex' : 'none';
 }
 
 window.marcarEnviados = async function(){
