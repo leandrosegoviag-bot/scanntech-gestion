@@ -6,6 +6,7 @@
 <title>SAR · Servicios al Retail</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -484,6 +485,44 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .ficha-int-tipo{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--navy-dim);color:var(--navy);font-weight:500;flex-shrink:0}
 .ficha-int-text{font-size:12px;color:var(--text2);flex:1}
 .ficha-int-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;flex-shrink:0}
+
+/* ── JIRAS ── */
+.jiras-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0}
+.jira-tab-btn{font-size:13px;font-weight:500;padding:8px 16px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.jira-tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
+.jira-tab-btn:hover{color:var(--text2)}
+.jira-tab-content{display:none}.jira-tab-content.active{display:block}
+.jira-status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.jira-status.pendiente{background:var(--navy-dim2);color:var(--navy)}
+.jira-status.verificar{background:var(--amber-dim);color:var(--amber)}
+.jira-status.corregir{background:var(--red-dim);color:var(--red)}
+.jira-status.cerrado{background:var(--green-dim);color:var(--green)}
+.jira-status.otro{background:var(--surface3);color:var(--text3)}
+.jira-area{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:'DM Mono',monospace}
+.jira-area.bi{background:var(--purple-dim);color:var(--purple)}
+.jira-area.bd{background:var(--orange-dim);color:var(--orange)}
+.priority-badge{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;cursor:grab}
+.priority-badge:active{cursor:grabbing}
+.jira-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .1s}
+.jira-row:last-child{border-bottom:none}
+.jira-row:hover{background:var(--navy-dim)}
+.jira-row.dragging{opacity:.4;background:var(--surface2)}
+.jira-row.drag-over{border-top:2px solid var(--orange)}
+.jira-body{flex:1;min-width:0}
+.jira-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:4px}
+.jira-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.jira-num{font-size:10px;font-family:'DM Mono',monospace;color:var(--navy);font-weight:600;text-decoration:none}
+.jira-num:hover{text-decoration:underline}
+.jira-client{font-size:11px;color:var(--text3)}
+.jira-producto{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--surface2);color:var(--text3)}
+.export-btn{background:var(--green);border-color:var(--green);color:#fff}
+.export-btn:hover{background:#158a5a;border-color:#158a5a}
+.usr-row{display:grid;grid-template-columns:auto 1fr 1fr 1fr auto auto;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.usr-row:last-child{border-bottom:none}
+.usr-avatar{width:28px;height:28px;border-radius:50%;background:var(--navy-dim2);color:var(--navy);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.usr-done{font-size:10px;padding:2px 8px;border-radius:10px}
+.usr-done.listo{background:var(--green-dim);color:var(--green)}
+.usr-done.pendiente{background:var(--amber-dim);color:var(--amber)}
 </style>
 </head>
 <body>
@@ -537,6 +576,10 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <button class="nav-item" onclick="goTab('ficha',this)">
       <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/></svg>
       Ficha cliente<span class="nav-badge" id="badge-ficha"></span>
+    </button>
+    <button class="nav-item" onclick="goTab('jiras',this)">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Tickets / Jiras<span class="nav-badge" id="badge-jiras">—</span>
     </button>
   </nav>
   <div class="user-info" id="user-info" style="display:none">
@@ -730,7 +773,130 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="ficha-content" id="ficha-content"></div>
     </div>
 
-        <!-- TAREAS -->
+        <!-- JIRAS -->
+    <div class="tab-content" id="tab-jiras">
+      <div class="stats" id="jiras-stats" style="margin-bottom:16px"></div>
+      <div class="jiras-tabs">
+        <button class="jira-tab-btn active" onclick="switchJiraTab('prioridades',this)">🎯 Prioridades semana</button>
+        <button class="jira-tab-btn" onclick="switchJiraTab('backlog',this)">📋 Backlog completo</button>
+        <button class="jira-tab-btn" onclick="switchJiraTab('usuarios',this)">👤 Solicitudes de usuarios</button>
+      </div>
+
+      <!-- PRIORIDADES -->
+      <div class="jira-tab-content active" id="jira-tab-prioridades">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="jira-filter-area" onchange="renderJiras()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+              <option value="todos">Todas las áreas</option>
+              <option value="BI">BI</option>
+              <option value="BD">BD</option>
+            </select>
+            <select id="jira-filter-status-pri" onchange="renderJiras()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+              <option value="activos">Solo activos</option>
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn export-btn btn-sm" onclick="exportJirasExcel()">⬇ Exportar Excel</button>
+            <button class="btn btn-primary btn-sm" onclick="toggleJiraForm()">+ Nuevo ticket</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Prioridades para reunión del lunes</h3><span style="font-size:11px;color:var(--text3)">Arrastrá para reordenar</span></div>
+          <div id="jira-priority-list"></div>
+        </div>
+      </div>
+
+      <!-- BACKLOG -->
+      <div class="jira-tab-content" id="jira-tab-backlog">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <input type="text" id="jira-search" placeholder="🔍 Buscar ticket, cliente, jira..." oninput="renderBacklog()" style="font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;min-width:240px;font-family:'DM Sans',sans-serif"/>
+          <select id="jira-backlog-area" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+            <option value="todos">Todas las áreas</option>
+            <option value="BI">BI</option>
+            <option value="BD">BD</option>
+          </select>
+          <select id="jira-backlog-status" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+            <option value="todos">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Verificar">Verificar</option>
+            <option value="Corregir">Corregir</option>
+            <option value="Cerrado">Cerrado</option>
+          </select>
+          <select id="jira-backlog-ejec" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+            <option value="todos">Todos los ejecutivos</option>
+            <option value="AJG">AJG</option>
+            <option value="LS">LS</option>
+            <option value="EE">EE</option>
+          </select>
+        </div>
+        <div class="panel">
+          <div id="jira-backlog-list"></div>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div class="jira-tab-content" id="jira-tab-usuarios">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="toggleUsuarioForm()">+ Nueva solicitud</button>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Solicitudes de acceso a dashboards</h3>
+          </div>
+          <div id="jira-usuarios-list"></div>
+        </div>
+      </div>
+
+      <!-- FORM nuevo ticket -->
+      <div class="add-panel" id="jira-form" style="display:none;margin-top:14px">
+        <h3>Nuevo ticket / Jira</h3>
+        <div class="form-grid">
+          <div class="form-row four">
+            <div class="field"><label>Ejecutivo</label><select id="nj-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option><option value="SAR">SAR</option></select></div>
+            <div class="field"><label>Área</label><select id="nj-area"><option value="BI">BI</option><option value="BD">BD</option></select></div>
+            <div class="field"><label>Producto</label><input type="text" id="nj-producto" placeholder="ej: 8.2, MINI 2.0"/></div>
+            <div class="field"><label>Status</label><select id="nj-status"><option value="Pendiente">Pendiente</option><option value="Verificar">Verificar</option><option value="Corregir">Corregir</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" placeholder="Nombre del cliente"/></div>
+            <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX"/></div>
+          </div>
+          <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
+          <div class="form-row">
+            <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
+            <div class="field"><label>Prioridad</label><select id="nj-prioridad"><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></div>
+          </div>
+          <button class="btn btn-primary" onclick="addJira()" style="width:fit-content">Agregar ticket</button>
+        </div>
+      </div>
+
+      <!-- FORM nuevo usuario -->
+      <div class="add-panel" id="usuario-form" style="display:none;margin-top:14px">
+        <h3>Nueva solicitud de acceso</h3>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><label>Empresa / Cliente</label><input type="text" id="nu-empresa" placeholder="Nombre empresa"/></div>
+            <div class="field"><label>Ejecutivo</label><select id="nu-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Nombre</label><input type="text" id="nu-nombre" placeholder="Nombre"/></div>
+            <div class="field"><label>Apellido</label><input type="text" id="nu-apellido" placeholder="Apellido"/></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Email</label><input type="email" id="nu-mail" placeholder="mail@empresa.com"/></div>
+            <div class="field"><label>Carpeta de acceso</label><input type="text" id="nu-carpeta" placeholder="ej: Argentina La banderita"/></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Multicadena</label><select id="nu-multicadena"><option value="Si">Si</option><option value="No">No</option></select></div>
+            <div class="field"><label>Fecha solicitud</label><input type="date" id="nu-fecha"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="addUsuarioJira()" style="width:fit-content">Agregar solicitud</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAREAS -->
     <div class="tab-content" id="tab-tareas">
       <div class="stats" id="task-stats"></div>
       <div class="panel">
@@ -949,6 +1115,7 @@ window.goTab=function(tab,e){
   el('task-add-panel').style.display='none';
   if(tab==='calendario') renderCalendario();
   if(tab==='ficha'){updateFichaSelect();renderFicha();}
+  if(tab==='jiras') renderJiras();
   const btnAgregar=el('btn-agregar');
   if(btnAgregar)btnAgregar.style.display=tab==='tareas'?'inline-flex':'none';
   if(tab==='dashboard')renderDashboard();
@@ -1988,7 +2155,7 @@ const ALL_PRODUCTS = ['8.2','MINI 2.0','SHOPPER','JBP','Multicadena','Precios Se
 function buildProductosHTML(a){
   const b = BASE2026_DATA[a.nombre] || null;          // abril baseline
   const t = TABLERO_DATA[a.nombre] || null;            // latest export
-  const activeDashes = b ? (b.d||[]) : [];
+  const activeDashes = b ? (b.d||[]).filter(function(d){ return ALL_PRODUCTS.includes(d); }) : [];
   
   // Current dashboards from latest export (if available and newer than april)
   const currentDashes = t ? t.dashboards : null;
@@ -2311,6 +2478,301 @@ function updateFichaSelect(){
   sel.innerHTML = '<option value="">Seleccioná una cuenta...</option>'
     + sorted.map(a=>`<option value="${a.id}"${a.id===cur?' selected':''}>${a.nombre} (${normTier(a.tier)}${isActivo(a)?'':' · Caído'})</option>`).join('');
 }
+
+
+// ── JIRAS MODULE
+const INIT_TICKETS = [{"jira": "SIBR-188978", "ejecutivo": "AJG", "codEmpresa": "13384", "cliente": "Super Todo (13384)", "producto": "Peso Variable", "area": "BD", "detalle": "Replicar dash Pesables para cliente Super Todo (13384) y Template", "fechaInicio": "2026-09-30", "status": "Verificar", "prioridad": 1, "prioridadNivel": "alta"}, {"jira": "SIBR-191405", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "General", "producto": "Template TPR", "area": "BD", "detalle": "Agregar TPR en Template dashboard grupo 8.2", "fechaInicio": "2026-10-09", "status": "Pendiente", "prioridad": 2, "prioridadNivel": "alta"}, {"jira": "SIBR-206177", "ejecutivo": "LS", "codEmpresa": "67059", "cliente": "Libertad", "producto": "8.2", "area": "BI", "detalle": "Replicar dash 8.2 cliente Hiper Libertad (67059) y ajustar mercado personalizado", "fechaInicio": "2026-12-05", "status": "Corregir", "prioridad": 3, "prioridadNivel": "alta"}, {"jira": "SIBR-223895", "ejecutivo": "LS", "codEmpresa": "67059", "cliente": "Libertad", "producto": "8.2", "area": "BI", "detalle": "Dashboard 8.2 Libertad (Continuación SIBR-206177 - Replicar Dash 8.2 Libertad y mercado personalizado que se cerró pero aún no está cerrado)", "fechaInicio": "2026-12-05", "status": "Corregir", "prioridad": 4, "prioridadNivel": "alta"}, {"jira": "SIBR-228953", "ejecutivo": "AJG", "codEmpresa": "10638", "cliente": "La banderita (10638)", "producto": "8.2", "area": "BI", "detalle": "Replicar dashboard 8.2 para el cliente LA BANDERITA  (10638)", "fechaInicio": "2026-03-20", "status": "Verificar", "prioridad": 5, "prioridadNivel": "alta"}, {"jira": "SIBR-217738", "ejecutivo": "LS", "codEmpresa": "67059", "cliente": "Libertad", "producto": "8.2", "area": "BD", "detalle": "Replicar dash 8.2 cliente Hiper Libertad (67059) con información histórica 2024 y 2025", "fechaInicio": "2026-02-03", "status": "Corregir", "prioridad": 6, "prioridadNivel": "media"}, {"jira": "SIBR-217250", "ejecutivo": "EE", "codEmpresa": "67053", "cliente": "Distribuidora Tata (67053)", "producto": "Mini 2.0", "area": "BD", "detalle": "Replicar dashboard Mini 2.0 B para cliente Distribuidora Tata (67053)", "fechaInicio": "2026-02-02", "status": "Corregir", "prioridad": 7, "prioridadNivel": "media"}, {"jira": "SIBR-223578", "ejecutivo": "AJG", "codEmpresa": "13221", "cliente": "Zanetti", "producto": "8.2", "area": "BI", "detalle": "Error en la facturación mensual, dash 8.2 del cliente Zanetti (13221)", "fechaInicio": "2026-02-27", "status": "Ver con API (eloy y ricardo)", "prioridad": 8, "prioridadNivel": "media"}, {"jira": "SIBR-225380", "ejecutivo": "AJG", "codEmpresa": "13221", "cliente": "Zanetti", "producto": "Locales", "area": "BI", "detalle": "Agregar locales en todos los tableros del cliente  Zanetti (13221)", "fechaInicio": "2026-03-06", "status": "Cerrado", "prioridad": 9, "prioridadNivel": "media"}, {"jira": "SIBR-228934", "ejecutivo": "EE", "codEmpresa": "13269", "cliente": "MIcropack (13269)", "producto": "Locales", "area": "BI", "detalle": "Agregar PDV 132693042 a fuentes cliente Micropack", "fechaInicio": "2026-03-20", "status": "Pendiente", "prioridad": 10, "prioridadNivel": "media"}, {"jira": "SIBR-228830", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "-", "producto": "Todos", "area": "BI", "detalle": "Algoritmo clasificaciones propias - Redes", "fechaInicio": "2026-03-20", "status": "Pendiente", "prioridad": 11, "prioridadNivel": "media"}, {"jira": "SIBR-227192", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "Todos", "producto": "Ingresos", "area": "BI", "detalle": "dash CPG - Control de Usuarios - no actualiza", "fechaInicio": "2026-03-13", "status": "Verificar", "prioridad": 12, "prioridadNivel": "media"}, {"jira": "SIBR-168361", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "General", "producto": "Mercados", "area": "BD", "detalle": "Configuración de Mercados Arg", "fechaInicio": "2026-07-03", "status": "atención confidencialidad! - 40hs", "prioridad": 13, "prioridadNivel": "media"}, {"jira": "SIBR-188996", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "General", "producto": "Marcas Propias error", "area": "BD", "detalle": "Marcas y Fabricantes propios visibles en otras redes - revisar", "fechaInicio": "2026-09-30", "status": "Re-abrir - No se realizó", "prioridad": 14, "prioridadNivel": "media"}, {"jira": "SIBR-228830", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "BI", "area": "", "detalle": "Algoritmo clasificaciones propias - Redes", "fechaInicio": "2026-03-20", "status": "Pendiente", "prioridad": 15, "prioridadNivel": "media"}, {"jira": "SIBR-179640", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "Marca Propia", "area": "BD", "detalle": "Replicar el Dashboard \"marca propia\" de Uruguay/Brasil para el Cliente DIA (13396)", "fechaInicio": "2026-08-22", "status": "Pendiente", "prioridad": 16, "prioridadNivel": "baja"}, {"jira": "SIBR-166856", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "Todos", "producto": "8.2", "area": "BD", "detalle": "Error de cantidad de tickets, dashboard template 8.2", "fechaInicio": "2026-06-27", "status": "Corregir", "prioridad": 17, "prioridadNivel": "baja"}, {"jira": "SIBR-121132", "ejecutivo": "SAR", "codEmpresa": "Todos", "cliente": "Todos", "producto": "Template 8.2", "area": "BD", "detalle": "Unidades por ticket excesivas (BI)", "fechaInicio": "2026-04-14", "status": "Corregir", "prioridad": 18, "prioridadNivel": "baja"}, {"jira": "SIBR-188985", "ejecutivo": "EE", "codEmpresa": "13935", "cliente": "A Granel (13935)", "producto": "Peso Variable", "area": "BD", "detalle": "Replicar dash Pesables para cliente A Granel (13935) y Template", "fechaInicio": "2025-09-30", "status": "Cerrado", "prioridad": 19, "prioridadNivel": "baja"}, {"jira": "SIBR-188981", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "Peso Variable", "area": "BD", "detalle": "Replicar dash Pesables para cliente DIA (13396)", "fechaInicio": "2026-09-30", "status": "Corregir", "prioridad": 20, "prioridadNivel": "baja"}, {"jira": "SIBR-188984", "ejecutivo": "EE", "codEmpresa": "13382", "cliente": "El Puente (13382)", "producto": "Peso Variable", "area": "BD", "detalle": "Replicar dash Pesables para cliente El Puente (13382)", "fechaInicio": "2026-09-30", "status": "Cerrado", "prioridad": 21, "prioridadNivel": "baja"}, {"jira": "SIBR-183014", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "Price Position", "area": "BD", "detalle": "Replicar Dashboard \"Price Position” para el cliente DIA (13396)", "fechaInicio": "2026-09-05", "status": "Pendiente", "prioridad": 22, "prioridadNivel": "baja"}, {"jira": "SIBR-182348", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "Cadena", "area": "BD", "detalle": "Error en reporte \"DIA - Reporte Cadena\" cliente dia DIA (13396)", "fechaInicio": "2026-09-03", "status": "Corregir", "prioridad": 23, "prioridadNivel": "baja"}, {"jira": "SIBR-135002", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "General", "producto": "-", "area": "BD", "detalle": "Mudar fonte de dados existente - Funcionalidad para que redes comparta información con Fabricantes", "fechaInicio": "2026-01-13", "status": "Pendiente", "prioridad": 24, "prioridadNivel": "baja"}, {"jira": "SIBR-156860", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "Tabla de precios", "area": "BD", "detalle": "Cliente Dia (13396) base de datos de la tabla precios", "fechaInicio": "2026-05-14", "status": "tiene las diferencias marcadas en el jira", "prioridad": 25, "prioridadNivel": "baja"}, {"jira": "SIBR-133898", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "-", "area": "BD", "detalle": "Mudar fonte de dados existente - Agregar estructura personalizada a fuente de ventas detalladas", "fechaInicio": "", "status": "Pendiente", "prioridad": 26, "prioridadNivel": "baja"}, {"jira": "SIBR-171526", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "Oportunidades", "area": "BD", "detalle": "Error en indicadores de Precios", "fechaInicio": "2026-07-17", "status": "Pendiente", "prioridad": 27, "prioridadNivel": "baja"}, {"jira": "SIBR-122030", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "General", "producto": "-", "area": "BD", "detalle": "Fuentes no actualizan información desde cambio de servidor", "fechaInicio": "2026-10-25", "status": "Pendiente", "prioridad": 28, "prioridadNivel": "baja"}, {"jira": "SIBR-161348", "ejecutivo": "SAR", "codEmpresa": "-", "cliente": "General", "producto": "Mapeo de Packs", "area": "BD", "detalle": "revisión Mapeo de Packs", "fechaInicio": "2026-06-04", "status": "Pendiente", "prioridad": 29, "prioridadNivel": "baja"}, {"jira": "SIBR-229837", "ejecutivo": "AJG", "codEmpresa": "13544", "cliente": "SuperChas (API) (13544)", "producto": "Mini 2.0", "area": "BI", "detalle": "Crear empresa y replicar el template del dash \"mini 2.0\", cliente SuperChas (API) (13544)", "fechaInicio": "2026-03-25", "status": "Verificar", "prioridad": 30, "prioridadNivel": "baja"}, {"jira": "SIBR-232304", "ejecutivo": "EE", "codEmpresa": "13935", "cliente": "A Granel (13935)", "producto": "Peso Variable", "area": "BI", "detalle": "Agregar un nivel más de granularidad en el dash pesables del cliente A Granel (13935)", "fechaInicio": "2026-04-06", "status": "Pendiente", "prioridad": 31, "prioridadNivel": "baja"}, {"jira": "SIBR-232307", "ejecutivo": "AJG", "codEmpresa": "13384", "cliente": "Super Todo (13384)", "producto": "Peso Variable", "area": "BI", "detalle": "Agregar un nivel más de granularidad en el dash pesables del cliente Super Todo (13384)", "fechaInicio": "2026-04-06", "status": "Cerrado", "prioridad": 32, "prioridadNivel": "baja"}, {"jira": "SIBR-232308", "ejecutivo": "AJG", "codEmpresa": "13396", "cliente": "DIA (13396)", "producto": "Peso Variable", "area": "BI", "detalle": "Agregar un nivel más de granularidad en el dash pesables del cliente Dia (13396)", "fechaInicio": "2026-04-06", "status": "Pendiente", "prioridad": 33, "prioridadNivel": "baja"}, {"jira": "PPR-653", "ejecutivo": "AJG", "codEmpresa": "11922", "cliente": "Bonprix (11922)", "producto": "Extracción de datos", "area": "BI", "detalle": "Solicito el detalle de locales que se encuentran en el mercado del cliente Bonprix (11922)", "fechaInicio": "2026-04-14", "status": "Pendiente", "prioridad": 34, "prioridadNivel": "baja"}, {"jira": "PPR-918", "ejecutivo": "EE", "codEmpresa": "13302", "cliente": "Previsora Del Paraná", "producto": "Shopper", "area": "BI", "detalle": "Replicar dashboard Shopper para cliente Super Ctes (13302)", "fechaInicio": "2026-05-05", "status": "Pendiente", "prioridad": 35, "prioridadNivel": "baja"}];
+const INIT_USUARIOS = [{"empresa": "La banderita", "nombre": "Ximena", "apellido": "Machado", "mail": "administracion@labanderita.ar", "carpeta": "Argentina La banderita", "multicadena": "Si", "fechaSolicitud": "", "usuarioListo": "2026-06-05", "ejecutivo": "AJG"}, {"empresa": "La banderita", "nombre": "Javier", "apellido": "Bancora", "mail": "bajavier2001@yahoo.com.ar", "carpeta": "Argentina La banderita", "multicadena": "Si", "fechaSolicitud": "", "usuarioListo": "2026-06-05", "ejecutivo": "AJG"}, {"empresa": "La banderita", "nombre": "Aime", "apellido": "Jurado", "mail": "aime.juradogarcia@scanntech.com", "carpeta": "Argentina La banderita", "multicadena": "", "fechaSolicitud": "", "usuarioListo": "", "ejecutivo": "AJG"}, {"empresa": "", "nombre": "Aime", "apellido": "Jurado", "mail": "aime.juradogarcia@scanntech.com", "carpeta": "Dash Avanzados", "multicadena": "Si", "fechaSolicitud": "27/04/2026", "usuarioListo": "29/04/2026", "ejecutivo": "AJG"}, {"empresa": "SUPERCOCO (API)", "nombre": "Bryan", "apellido": "Casares", "mail": "bcasares@supercoco.com.ar", "carpeta": "Argentina Super Coco", "multicadena": "Si", "fechaSolicitud": "27/04/2026", "usuarioListo": "29/04/2026", "ejecutivo": "AJG"}, {"empresa": "SUPERCOCO (API)", "nombre": "Miriam", "apellido": "Cocco", "mail": "supercoco.autoservicio@gmail.com", "carpeta": "Argentina Super Coco", "multicadena": "Si", "fechaSolicitud": "27/04/2026", "usuarioListo": "29/04/2026", "ejecutivo": "AJG"}, {"empresa": "SuperChas Machado (API)", "nombre": "Hugo Leopoldo", "apellido": "Gonzalez", "mail": "superchas.sch@gmail.com", "carpeta": "Argentina Superchas", "multicadena": "Si", "fechaSolicitud": "2026-07-05", "usuarioListo": "", "ejecutivo": "AJG"}];
+
+let jiraTickets = [];
+let jiraUsuarios = [];
+let dragSrcIdx = null;
+
+// Load from Firebase or use initial data
+function initJirasData(){
+  // We'll store in Firebase under 'jiras' collection
+  // For now seed from Excel data if collection is empty
+}
+
+function jiraStatusClass(s){
+  const sl = (s||'').toLowerCase();
+  if(sl==='pendiente') return 'pendiente';
+  if(sl==='verificar') return 'verificar';
+  if(sl==='corregir') return 'corregir';
+  if(sl==='cerrado') return 'cerrado';
+  return 'otro';
+}
+
+function jiraStatusLabel(s){
+  const map = {
+    'pendiente':'Pendiente','verificar':'Verificar',
+    'corregir':'Corregir','cerrado':'Cerrado'
+  };
+  return map[(s||'').toLowerCase()] || s || '—';
+}
+
+window.switchJiraTab = function(tab, btn){
+  document.querySelectorAll('.jira-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.jira-tab-content').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  const el_tab = document.getElementById('jira-tab-'+tab);
+  if(el_tab) el_tab.classList.add('active');
+  if(tab==='backlog') renderBacklog();
+  if(tab==='usuarios') renderUsuariosJira();
+};
+
+window.toggleJiraForm = function(){
+  const f=el('jira-form');
+  f.style.display=f.style.display==='none'?'block':'none';
+};
+window.toggleUsuarioForm = function(){
+  const f=el('usuario-form');
+  f.style.display=f.style.display==='none'?'block':'none';
+};
+
+window.renderJiras = function(){
+  if(!el('tab-jiras')) return;
+  const area = el('jira-filter-area')?.value||'todos';
+  const showClosed = (el('jira-filter-status-pri')?.value||'activos')==='todos';
+
+  // Stats
+  const total = jiraTickets.length;
+  const pendientes = jiraTickets.filter(t=>t.status==='Pendiente').length;
+  const verificar = jiraTickets.filter(t=>t.status==='Verificar').length;
+  const corregir = jiraTickets.filter(t=>t.status==='Corregir').length;
+  const cerrados = jiraTickets.filter(t=>t.status==='Cerrado').length;
+  el('badge-jiras').textContent = total - cerrados;
+  el('jiras-stats').innerHTML = `
+    <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${total}</div><div class="stat-sub">tickets</div></div>
+    <div class="stat-card sc-red"><div class="stat-label">Corregir</div><div class="stat-val">${corregir}</div><div class="stat-sub">errores activos</div></div>
+    <div class="stat-card sc-amber"><div class="stat-label">Verificar</div><div class="stat-val">${verificar}</div><div class="stat-sub">para revisar</div></div>
+    <div class="stat-card sc-green"><div class="stat-label">Cerrados</div><div class="stat-val">${cerrados}</div><div class="stat-sub">resueltos</div></div>`;
+
+  // Priority list
+  let data = [...jiraTickets].sort((a,b)=>a.prioridad-b.prioridad);
+  if(area!=='todos') data=data.filter(t=>t.area===area);
+  if(!showClosed) data=data.filter(t=>t.status!=='Cerrado');
+
+  const list = el('jira-priority-list');
+  if(!list) return;
+  if(!data.length){list.innerHTML='<div class="empty-state">Sin tickets activos</div>';return;}
+
+  list.innerHTML = data.map((t,i)=>`
+    <div class="jira-row" draggable="true" data-id="${t.id||t.jira}"
+      ondragstart="jiDragStart(event,${i})" ondragover="jiDragOver(event,${i})"
+      ondrop="jiDrop(event,${i})" ondragend="jiDragEnd(event)">
+      <div class="priority-badge">${i+1}</div>
+      <div class="jira-body">
+        <div class="jira-title">${t.detalle||'Sin descripción'}</div>
+        <div class="jira-meta">
+          ${t.jira?`<a class="jira-num" href="https://scanntechuy.atlassian.net/browse/${t.jira}" target="_blank">${t.jira}</a>`:''}
+          <span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span>
+          ${t.area?`<span class="jira-area ${(t.area||'').toLowerCase()}">${t.area}</span>`:''}
+          ${t.producto?`<span class="jira-producto">${t.producto}</span>`:''}
+          ${t.cliente?`<span class="jira-client">📍 ${t.cliente}</span>`:''}
+          ${t.ejecutivo?`<span class="jira-client">👤 ${t.ejecutivo}</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+        <select onchange="updateJiraStatus('${t.id||t.jira}',this.value)" style="font-size:11px;padding:3px 7px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif;outline:none">
+          ${['Pendiente','Verificar','Corregir','Cerrado'].map(s=>`<option value="${s}"${t.status===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="del-btn" onclick="deleteJira('${t.id||t.jira}')">✕</button>
+      </div>
+    </div>`).join('');
+};
+
+// Drag & drop for priority reorder
+window.jiDragStart = function(e,i){ dragSrcIdx=i; e.currentTarget.classList.add('dragging'); };
+window.jiDragOver = function(e,i){ e.preventDefault(); };
+window.jiDragEnd = function(e){ e.currentTarget.classList.remove('dragging'); };
+window.jiDrop = function(e,targetIdx){
+  e.preventDefault();
+  if(dragSrcIdx===null||dragSrcIdx===targetIdx) return;
+  // Reorder jiraTickets by current filtered order
+  const area = el('jira-filter-area')?.value||'todos';
+  const showClosed = (el('jira-filter-status-pri')?.value||'activos')==='todos';
+  let data = [...jiraTickets].sort((a,b)=>a.prioridad-b.prioridad);
+  if(area!=='todos') data=data.filter(t=>t.area===area);
+  if(!showClosed) data=data.filter(t=>t.status!=='Cerrado');
+  const moved = data.splice(dragSrcIdx,1)[0];
+  data.splice(targetIdx,0,moved);
+  // Update priorities
+  data.forEach((t,i)=>{
+    const orig = jiraTickets.find(x=>(x.id||x.jira)===(t.id||t.jira));
+    if(orig) orig.prioridad = i+1;
+  });
+  dragSrcIdx=null;
+  savePriorities();
+  renderJiras();
+};
+
+async function savePriorities(){
+  setSyncStatus('syncing');
+  try{
+    for(const t of jiraTickets){
+      if(t.id){
+        await updateDoc(doc(db,'jiras',t.id),{prioridad:t.prioridad});
+      }
+    }
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+}
+
+window.updateJiraStatus = async function(idOrJira, status){
+  const t = jiraTickets.find(x=>(x.id||x.jira)===idOrJira);
+  if(!t) return;
+  t.status = status;
+  setSyncStatus('syncing');
+  try{
+    if(t.id) await updateDoc(doc(db,'jiras',t.id),{status});
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+  renderJiras();
+};
+
+window.deleteJira = async function(idOrJira){
+  const idx = jiraTickets.findIndex(x=>(x.id||x.jira)===idOrJira);
+  if(idx<0) return;
+  const t = jiraTickets[idx];
+  setSyncStatus('syncing');
+  try{
+    if(t.id) await deleteDoc(doc(db,'jiras',t.id));
+    else jiraTickets.splice(idx,1);
+    setSyncStatus('ok');
+    renderJiras();
+  }catch{setSyncStatus('error');}
+};
+
+window.addJira = async function(){
+  const detalle = el('nj-detalle')?.value.trim();
+  if(!detalle) return;
+  const maxPri = jiraTickets.length ? Math.max(...jiraTickets.map(t=>t.prioridad)) : 0;
+  const ticket = {
+    jira: el('nj-jira')?.value.trim()||'',
+    ejecutivo: el('nj-ejec')?.value||'',
+    cliente: el('nj-cliente')?.value.trim()||'',
+    producto: el('nj-producto')?.value.trim()||'',
+    area: el('nj-area')?.value||'BI',
+    detalle,
+    status: el('nj-status')?.value||'Pendiente',
+    fechaInicio: el('nj-fecha')?.value||new Date().toISOString().split('T')[0],
+    prioridad: maxPri+1,
+    prioridadNivel: el('nj-prioridad')?.value||'media',
+  };
+  setSyncStatus('syncing');
+  try{
+    await addDoc(collection(db,'jiras'),{...ticket, createdAt:serverTimestamp()});
+    ['nj-detalle','nj-jira','nj-cliente','nj-producto','nj-fecha'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    el('jira-form').style.display='none';
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+};
+
+window.renderBacklog = function(){
+  const q = (el('jira-search')?.value||'').toLowerCase();
+  const area = el('jira-backlog-area')?.value||'todos';
+  const status = el('jira-backlog-status')?.value||'todos';
+  const ejec = el('jira-backlog-ejec')?.value||'todos';
+  let data = [...jiraTickets].sort((a,b)=>a.prioridad-b.prioridad);
+  if(q) data=data.filter(t=>[t.detalle,t.jira,t.cliente,t.producto].join(' ').toLowerCase().includes(q));
+  if(area!=='todos') data=data.filter(t=>t.area===area);
+  if(status!=='todos') data=data.filter(t=>t.status===status);
+  if(ejec!=='todos') data=data.filter(t=>t.ejecutivo===ejec);
+  const list=el('jira-backlog-list');
+  if(!list) return;
+  if(!data.length){list.innerHTML='<div class="empty-state">Sin tickets con estos filtros</div>';return;}
+  list.innerHTML=data.map((t,i)=>`
+    <div class="jira-row">
+      <div class="priority-badge" style="cursor:default;background:var(--surface3);color:var(--text3)">${t.prioridad}</div>
+      <div class="jira-body">
+        <div class="jira-title">${t.detalle||'Sin descripción'}</div>
+        <div class="jira-meta">
+          ${t.jira?`<a class="jira-num" href="https://scanntechuy.atlassian.net/browse/${t.jira}" target="_blank">${t.jira}</a>`:''}
+          <span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span>
+          ${t.area?`<span class="jira-area ${(t.area||'').toLowerCase()}">${t.area}</span>`:''}
+          ${t.producto?`<span class="jira-producto">${t.producto}</span>`:''}
+          ${t.cliente?`<span class="jira-client">📍 ${t.cliente}</span>`:''}
+          ${t.fechaInicio?`<span class="jira-client" style="font-family:'DM Mono',monospace;font-size:10px">${t.fechaInicio}</span>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+};
+
+window.renderUsuariosJira = function(){
+  const list = el('jira-usuarios-list');
+  if(!list) return;
+  if(!jiraUsuarios.length){list.innerHTML='<div class="empty-state">Sin solicitudes de acceso</div>';return;}
+  list.innerHTML=jiraUsuarios.map(u=>`
+    <div class="jira-row">
+      <div class="usr-avatar">${((u.nombre||'?').slice(0,1)+(u.apellido||'?').slice(0,1)).toUpperCase()}</div>
+      <div class="jira-body">
+        <div class="jira-title">${u.nombre||''} ${u.apellido||''}</div>
+        <div class="jira-meta">
+          <span class="jira-client">${u.empresa||'—'}</span>
+          <span class="jira-client" style="font-family:'DM Mono',monospace">${u.mail||''}</span>
+          ${u.carpeta?`<span class="jira-producto">${u.carpeta}</span>`:''}
+          ${u.multicadena==='Si'?'<span class="jira-area bi">Multicadena</span>':''}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="usr-done ${u.usuarioListo?'listo':'pendiente'}">${u.usuarioListo||'Pendiente'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${u.ejecutivo||''}</div>
+      </div>
+    </div>`).join('');
+};
+
+window.addUsuarioJira = async function(){
+  const mail = el('nu-mail')?.value.trim();
+  if(!mail) return;
+  const usr = {
+    empresa: el('nu-empresa')?.value.trim()||'',
+    nombre: el('nu-nombre')?.value.trim()||'',
+    apellido: el('nu-apellido')?.value.trim()||'',
+    mail,
+    carpeta: el('nu-carpeta')?.value.trim()||'',
+    multicadena: el('nu-multicadena')?.value||'No',
+    fechaSolicitud: el('nu-fecha')?.value||new Date().toISOString().split('T')[0],
+    usuarioListo: '',
+    ejecutivo: el('nu-ejec')?.value||'',
+  };
+  setSyncStatus('syncing');
+  try{
+    await addDoc(collection(db,'jiraUsuarios'),{...usr,createdAt:serverTimestamp()});
+    ['nu-empresa','nu-nombre','nu-apellido','nu-mail','nu-carpeta','nu-fecha'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    el('usuario-form').style.display='none';
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+};
+
+// Export to Excel using SheetJS
+window.exportJirasExcel = function(){
+  const area = el('jira-filter-area')?.value||'todos';
+  const showClosed = (el('jira-filter-status-pri')?.value||'activos')==='todos';
+  let data = [...jiraTickets].sort((a,b)=>a.prioridad-b.prioridad);
+  if(area!=='todos') data=data.filter(t=>t.area===area);
+  if(!showClosed) data=data.filter(t=>t.status!=='Cerrado');
+
+  const rows = data.map((t,i)=>({
+    'Prioridad': i+1,
+    'Ejecutivo': t.ejecutivo||'',
+    'Cliente': t.cliente||'',
+    'Producto': t.producto||'',
+    'Área': t.area||'',
+    'Detalle': t.detalle||'',
+    '# Jira': t.jira||'',
+    'Fecha inicio': t.fechaInicio||'',
+    'Status': t.status||'',
+  }));
+
+  const today = new Date().toISOString().split('T')[0];
+  const ws = XLSX.utils.json_to_sheet(rows);
+  // Column widths
+  ws['!cols'] = [{wch:8},{wch:10},{wch:25},{wch:15},{wch:6},{wch:60},{wch:14},{wch:12},{wch:12}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Prioridades SAR');
+  XLSX.writeFile(wb, `Prioridades_SAR_${today}.xlsx`);
+};
 
 setSyncStatus('syncing');
 onSnapshot(collection(db,'tasks'),snap=>{
