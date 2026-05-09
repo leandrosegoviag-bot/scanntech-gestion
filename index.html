@@ -3063,7 +3063,7 @@ window.renderMetricas = function(){
           ${agingDays.length?`<div style="overflow-x:auto"><table class="backlog-table" style="min-width:420px"><thead><tr><th>Ticket</th><th>Días</th><th>Status</th></tr></thead><tbody>
             ${agingDays.slice(0,8).map(t=>`<tr>
               <td style="font-size:12px"><div style="font-weight:500">${t.detalle||'—'}</div>${t.jira?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${t.jira}</span>`:''}</td>
-              <td style="font-family:'DM Mono',monospace;font-weight:700;color:${t.days>30?'var(--red)':t.days>7?'var(--amber)':'var(--green)');white-space:nowrap">${t.days}d</td>
+              <td style="font-family:'DM Mono',monospace;font-weight:700;white-space:nowrap;color:${t.days>30?'var(--red)':t.days>7?'var(--amber)':'var(--green)'}">${t.days}d</td>
               <td style="white-space:nowrap"><span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span></td>
             </tr>`).join('')}
           </tbody></table></div>`:'<div class="empty-state">Sin tickets abiertos</div>'}
