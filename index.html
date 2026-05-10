@@ -1698,7 +1698,8 @@ function renderDashboard(){
     {id:'EE', style:'background:#dcfce7;color:#166534'}
   ];
   const ejecTbody=ejecDef.map(({id,style})=>{
-    const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&(a.ejecutivo||'').includes(id));
+    const ej=a=>(a.ejecutivo||'').trim();
+    const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&(id==='LS'?ej(a).includes('LS'):ej(a)===id));
     const total=cartera.length;
     if(!total)return'';
     const conAct=cartera.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
