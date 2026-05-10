@@ -1697,7 +1697,7 @@ function renderDashboard(){
     {id:'LS', style:'background:var(--navy-dim2);color:var(--navy)'},
     {id:'EE', style:'background:#dcfce7;color:#166534'}
   ];
-  const ejecRows=ejecDef.map(({id,style})=>{
+  const ejecTbody=ejecDef.map(({id,style})=>{
     const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&a.ejecutivo===id);
     const total=cartera.length;
     if(!total)return'';
@@ -1717,7 +1717,7 @@ function renderDashboard(){
       <th style="padding:6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Con actividad</th>
       <th style="padding:6px 0 6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">%</th>
     </tr></thead>
-    <tbody>${ejecRows}</tbody>
+    <tbody>${ejecTbody}</tbody>
   </table>`;
 
   // OKR 2
