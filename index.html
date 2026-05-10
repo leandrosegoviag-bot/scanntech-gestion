@@ -646,7 +646,8 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <div class="tab-content active" id="tab-dashboard">
       <div id="month-selector-wrap" style="margin-bottom:16px"></div>
       <div class="dash-section-title">OKR 1 · Maximizar el valor que los clientes obtienen de Scanntech</div>
-      <div class="dash-grid" id="okr-grid-1"></div>
+      <div class="dash-grid" id="okr-grid-1" style="grid-template-columns:repeat(3,1fr)"></div>
+      <div id="okr-grid-12" style="margin-bottom:14px"></div>
 
       <div class="dash-section-title" style="margin-top:8px">KR 1.1 · Desglose por ejecutivo</div>
       <div id="okr-ejec-wrap" style="margin-bottom:8px"></div>
@@ -1682,14 +1683,16 @@ function renderDashboard(){
   el('okr-grid-1').innerHTML=`
     ${kr11Card('A+/A','background:#fef3c7;color:#92400e',pctAA,usoAA,totalAA,kr11Baseline.aa,kr11Obj.aa,'bar-orange')}
     ${kr11Card('B','background:var(--navy-dim2);color:var(--navy)',pctBpct,usoB,totalB,kr11Baseline.b,kr11Obj.b,'bar-navy')}
-    ${kr11Card('C','background:var(--surface2);color:var(--text3)',pctCpct,usoC,totalC,kr11Baseline.c,kr11Obj.c,'bar-green')}
-    <div class="okr-card">
+    ${kr11Card('C','background:var(--surface2);color:var(--text3)',pctCpct,usoC,totalC,kr11Baseline.c,kr11Obj.c,'bar-green')}`;
+  el('okr-grid-12').innerHTML=`<div class="okr-card" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+    <div>
       <div class="okr-label">KR 1.2 · Insights</div>
-      <div class="okr-title">Presentaciones / insights generados este mes</div>
-      <div class="okr-progress-row"><span class="okr-pct">${intEsteMes}</span><span style="font-size:12px;color:var(--text3)"> registradas</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(intEsteMes*10,100)}%"></div></div>
-      <div class="okr-target">Objetivo A+/A: 1/semana · B: 1/mes</div>
-    </div>`;
+      <div class="okr-title" style="margin-bottom:0">Presentaciones / insights generados este mes</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:8px;flex-shrink:0">
+      <span class="okr-pct">${intEsteMes}</span><span style="font-size:12px;color:var(--text3)">registradas · Objetivo A+/A: 1/semana · B: 1/mes</span>
+    </div>
+  </div>`;
 
   // KR 1.1 desglose por ejecutivo
   const ejecDef=[
@@ -1705,17 +1708,18 @@ function renderDashboard(){
     const conAct=cartera.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
     const pct=parseFloat((conAct/total*100).toFixed(1));
     return`<tr>
-      <td style="padding:5px 16px 5px 0;border-bottom:1px solid var(--border);white-space:nowrap"><span style="${style};display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:9px;font-weight:700;margin-right:8px;flex-shrink:0">${id}</span><span style="color:var(--text1);font-size:12px;font-weight:500">${id}</span></td>
-      <td style="padding:5px 24px 5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--text2);font-size:13px;font-weight:600">${total}</td>
-      <td style="padding:5px 24px 5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--text2);font-size:13px;font-weight:600">${conAct}</td>
+      <td style="padding:5px 32px 5px 0;border-bottom:1px solid var(--border);white-space:nowrap"><span style="${style};display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:9px;font-weight:700;margin-right:8px;flex-shrink:0">${id}</span><span style="color:var(--text1);font-size:12px;font-weight:500">${id}</span></td>
+      <td style="padding:5px 16px 5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--text2);font-size:13px;font-weight:600">${total}</td>
+      <td style="padding:5px 16px 5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--text2);font-size:13px;font-weight:600">${conAct}</td>
       <td style="padding:5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--amber);font-size:13px;font-weight:700">${pct}%</td>
     </tr>`;
   }).join('');
-  el('okr-ejec-wrap').innerHTML=`<table style="border-collapse:collapse;font-size:12px">
+  el('okr-ejec-wrap').innerHTML=`<table style="border-collapse:collapse;font-size:12px;width:auto">
+    <colgroup><col style="min-width:120px"><col style="width:80px"><col style="width:110px"><col style="width:60px"></colgroup>
     <thead><tr style="color:var(--text3);font-size:11px">
-      <th style="padding:4px 16px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:left">Ejecutivo</th>
-      <th style="padding:4px 24px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Cartera</th>
-      <th style="padding:4px 24px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Con actividad</th>
+      <th style="padding:4px 32px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:left">Ejecutivo</th>
+      <th style="padding:4px 16px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Cartera</th>
+      <th style="padding:4px 16px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Con actividad</th>
       <th style="padding:4px 0 8px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">%</th>
     </tr></thead>
     <tbody>${ejecTbody}</tbody>
