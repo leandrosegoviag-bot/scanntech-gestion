@@ -35,7 +35,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 ::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 
 /* Sidebar */
-.sidebar{background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;width:210px;flex-shrink:0}
+.sidebar{background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;width:210px;flex-shrink:0;transition:transform .22s ease}
+.sidebar.nav-collapsed{transform:translateX(-210px)}
 .logo-area{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
 .logo-row{display:flex;align-items:center;gap:10px}
 .logo-icon{width:34px;height:34px;background:var(--orange);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -55,7 +56,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sidebar-footer span{color:rgba(255,255,255,.5)}
 
 /* Main */
-.main{display:flex;flex-direction:column;min-height:100vh;margin-left:210px;flex:1;min-width:0}
+.main{display:flex;flex-direction:column;min-height:100vh;margin-left:210px;flex:1;min-width:0;transition:margin-left .22s ease}
+.main.nav-collapsed{margin-left:0}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow-sm)}
 .topbar-left h1{font-size:16px;font-weight:600;color:var(--text)}
 .topbar-left p{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
@@ -651,9 +653,12 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
   </div>
 
   <div class="topbar">
-    <div class="topbar-left">
-      <h1 id="tab-title">Dashboard</h1>
-      <p id="tab-sub">OKRs · Métricas operativas · 2026</p>
+    <div class="topbar-left" style="display:flex;align-items:center;gap:12px">
+      <button id="nav-toggle-btn" onclick="toggleNav()" title="Ocultar/mostrar menú" style="background:none;border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text3);font-size:14px;transition:background .15s">◀</button>
+      <div>
+        <h1 id="tab-title">Dashboard</h1>
+        <p id="tab-sub">OKRs · Métricas operativas · 2026</p>
+      </div>
     </div>
     <div class="topbar-right">
       <div class="sync-dot syncing" id="sync-dot"></div>
@@ -1174,6 +1179,15 @@ function tierClass(t){
 }
 
 // ── NAV
+window.toggleNav=function(){
+  const sidebar=document.querySelector('.sidebar');
+  const main=document.querySelector('.main');
+  const btn=el('nav-toggle-btn');
+  const collapsed=sidebar.classList.toggle('nav-collapsed');
+  main.classList.toggle('nav-collapsed',collapsed);
+  if(btn) btn.textContent=collapsed?'▶':'◀';
+};
+
 window.goTab=function(tab,e){
   currentTab=tab;
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
