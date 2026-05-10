@@ -1698,24 +1698,24 @@ function renderDashboard(){
     {id:'EE', style:'background:#dcfce7;color:#166534'}
   ];
   const ejecTbody=ejecDef.map(({id,style})=>{
-    const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&a.ejecutivo===id);
+    const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&(a.ejecutivo||'').trim()===id);
     const total=cartera.length;
     if(!total)return'';
     const conAct=cartera.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
     const pct=parseFloat((conAct/total*100).toFixed(1));
     return`<tr>
-      <td style="padding:8px 12px 8px 0;border-bottom:1px solid var(--border)"><span style="${style};display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:700;margin-right:6px">${id}</span><span style="color:var(--text1);font-weight:500">${id}</span></td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--text1);font-weight:600">${total}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--text1);font-weight:600">${conAct}</td>
-      <td style="padding:8px 0 8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--amber);font-weight:700">${pct}%</td>
+      <td style="padding:5px 16px 5px 0;border-bottom:1px solid var(--border);white-space:nowrap"><span style="${style};display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:9px;font-weight:700;margin-right:8px;flex-shrink:0">${id}</span><span style="color:var(--text1);font-size:12px;font-weight:500">${id}</span></td>
+      <td style="padding:5px 24px 5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--text2);font-size:13px;font-weight:600">${total}</td>
+      <td style="padding:5px 24px 5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--text2);font-size:13px;font-weight:600">${conAct}</td>
+      <td style="padding:5px 0;border-bottom:1px solid var(--border);text-align:right;color:var(--amber);font-size:13px;font-weight:700">${pct}%</td>
     </tr>`;
   }).join('');
-  el('okr-ejec-wrap').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead><tr style="color:var(--text3)">
-      <th style="padding:6px 12px 6px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:left">Ejecutivo</th>
-      <th style="padding:6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Cartera</th>
-      <th style="padding:6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Con actividad</th>
-      <th style="padding:6px 0 6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">%</th>
+  el('okr-ejec-wrap').innerHTML=`<table style="border-collapse:collapse;font-size:12px">
+    <thead><tr style="color:var(--text3);font-size:11px">
+      <th style="padding:4px 16px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:left">Ejecutivo</th>
+      <th style="padding:4px 24px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Cartera</th>
+      <th style="padding:4px 24px 8px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Con actividad</th>
+      <th style="padding:4px 0 8px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">%</th>
     </tr></thead>
     <tbody>${ejecTbody}</tbody>
   </table>`;
@@ -1753,6 +1753,7 @@ function renderDashboard(){
     </div>`;
 
   // Métricas operativas
+  const conAnalytics=activos.filter(a=>(a.tipoServicio||'').includes('Analytics'));
   const totalLocales=accounts.reduce((s,a)=>s+(Math.round(parseFloat(a.locales)||0)),0);
   const cuentasConInt=new Set(getAllInteracciones().map(i=>i.cuentaId)).size;
   const tareasAbiertas=tasks.filter(t=>t.status!=='completado').length;
