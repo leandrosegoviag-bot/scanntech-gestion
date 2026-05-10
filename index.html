@@ -648,6 +648,9 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="dash-section-title">OKR 1 · Maximizar el valor que los clientes obtienen de Scanntech</div>
       <div class="dash-grid" id="okr-grid-1"></div>
 
+      <div class="dash-section-title" style="margin-top:8px">KR 1.1 · Desglose por ejecutivo</div>
+      <div id="okr-ejec-wrap" style="margin-bottom:8px"></div>
+
       <div class="dash-section-title" style="margin-top:8px">OKR 2 · Fortalecer la retención y reducir riesgos en la cartera</div>
       <div class="dash-grid" id="okr-grid-2"></div>
 
@@ -1687,6 +1690,37 @@ function renderDashboard(){
       <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(intEsteMes*10,100)}%"></div></div>
       <div class="okr-target">Objetivo A+/A: 1/semana · B: 1/mes</div>
     </div>`;
+
+  // KR 1.1 desglose por ejecutivo
+  const ejecAvatarStyle={
+    AJG:'background:#fef3c7;color:#92400e',
+    LS:'background:var(--navy-dim2);color:var(--navy)',
+    EE:'background:#dcfce7;color:#166534'
+  };
+  const ejecNombre={AJG:'Alejandro J. G.',LS:'Leandro S.',EE:'Emiliano E.'};
+  let ejecRows='';
+  ['AJG','LS','EE'].forEach(ejec=>{
+    const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&a.ejecutivo===ejec);
+    const total=cartera.length;
+    if(!total)return;
+    const conAct=cartera.filter(a=>TABLERO_DATA[a.nombre]!==undefined);
+    const sinAct=cartera.filter(a=>TABLERO_DATA[a.nombre]===undefined);
+    const pct=total?parseFloat((conAct.length/total*100).toFixed(1)):0;
+    const chips=sinAct.map(a=>`<span style="display:inline-block;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);font-size:10px;margin:2px 2px 0 0;border:1px solid var(--border)">${a.nombre}</span>`).join('');
+    ejecRows+=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="${ejecAvatarStyle[ejec]};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${ejec}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:600;color:var(--text1)">${ejecNombre[ejec]}</span>
+          <span style="font-size:11px;color:var(--text3)">${conAct.length} de ${total} cuentas usando dashboards</span>
+          <span style="font-size:12px;font-weight:700;color:var(--amber);margin-left:auto">${pct}%</span>
+        </div>
+        <div class="okr-bar-wrap" style="margin-bottom:${sinAct.length?'6px':'0'}"><div class="okr-bar bar-orange" style="width:${pct}%"></div></div>
+        ${sinAct.length?`<div style="line-height:1.4">${chips}</div>`:''}
+      </div>
+    </div>`;
+  });
+  el('okr-ejec-wrap').innerHTML=ejecRows||'<span style="font-size:12px;color:var(--text3)">Sin datos de ejecutivos</span>';
 
   // OKR 2
   const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
