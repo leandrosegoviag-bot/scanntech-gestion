@@ -2260,6 +2260,9 @@ function _fuzzyLookup(map,data,nombre){
 }
 function enTablero(nombre){return _fuzzyLookup(_tNorm,TABLERO_DATA,nombre);}
 function enBase(nombre){return _fuzzyLookup(_bNorm,BASE2026_DATA,nombre);}
+// Exponer en window para debug desde consola
+window.enTablero=enTablero;window.isActivo=isActivo;window.normTier=normTier;
+window._getAccounts=()=>accounts;
 
 // Baseline = abril 2026 export (BASE2026_DATA)
 // Current = latest TABLERO_DATA (updated when new export uploaded)
