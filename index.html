@@ -1658,9 +1658,9 @@ function renderDashboard(){
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
-  const totalAA=cuentasAAA.length, usoAA=cuentasAAA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
-  const totalB =cuentasBA.length,  usoB =cuentasBA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
-  const totalC =cuentasCA.length,  usoC =cuentasCA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+  const totalAA=cuentasAAA.length, usoAA=cuentasAAA.filter(a=>enTablero(a.nombre)!==undefined).length;
+  const totalB =cuentasBA.length,  usoB =cuentasBA.filter(a=>enTablero(a.nombre)!==undefined).length;
+  const totalC =cuentasCA.length,  usoC =cuentasCA.filter(a=>enTablero(a.nombre)!==undefined).length;
   const pctAA  =totalAA?parseFloat((usoAA/totalAA*100).toFixed(1)):0;
   const pctBpct=totalB ?parseFloat((usoB /totalB *100).toFixed(1)):0;
   const pctCpct=totalC ?parseFloat((usoC /totalC *100).toFixed(1)):0;
@@ -1707,7 +1707,7 @@ function renderDashboard(){
     const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&(id==='LS'?ej(a).includes('LS'):ej(a)===id));
     const total=cartera.length;
     if(!total)return'';
-    const conAct=cartera.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+    const conAct=cartera.filter(a=>enTablero(a.nombre)!==undefined).length;
     const pct=parseFloat((conAct/total*100).toFixed(1));
     const bw=total?Math.min(conAct/total*100,100):0;
     const pctColor=pct===0?'var(--text3)':'#F4600C';
@@ -2243,11 +2243,27 @@ function getSemaforoState(a){
 
 const ALL_PRODUCTS = ['8.2','MINI 2.0','SHOPPER','JBP','Multicadena','Precios Semanales','ScannOP','Perecederos','Marca Propia','Price Position'];
 
+// Fuzzy name matching: normaliza y construye índices para TABLERO_DATA y BASE2026_DATA
+function _normNombre(s){
+  return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+const _tNorm={},_bNorm={};
+Object.keys(TABLERO_DATA).forEach(k=>{const n=_normNombre(k);if(n)_tNorm[n]=k;});
+Object.keys(BASE2026_DATA).forEach(k=>{const n=_normNombre(k);if(n)_bNorm[n]=k;});
+function _fuzzyLookup(map,data,nombre){
+  const n=_normNombre(nombre);if(!n)return undefined;
+  if(map[n])return data[map[n]];
+  for(const[mk,ok]of Object.entries(map)){if(n.length>=5&&mk.length>=5&&(mk.includes(n)||n.includes(mk)))return data[ok];}
+  return undefined;
+}
+function enTablero(nombre){return _fuzzyLookup(_tNorm,TABLERO_DATA,nombre);}
+function enBase(nombre){return _fuzzyLookup(_bNorm,BASE2026_DATA,nombre);}
+
 // Baseline = abril 2026 export (BASE2026_DATA)
 // Current = latest TABLERO_DATA (updated when new export uploaded)
 function buildProductosHTML(a){
-  const b = BASE2026_DATA[a.nombre] || null;          // abril baseline
-  const t = TABLERO_DATA[a.nombre] || null;            // latest export
+  const b = enBase(a.nombre) || null;
+  const t = enTablero(a.nombre) || null;
   const activeDashes = b ? (b.d||[]).filter(function(d){ return ALL_PRODUCTS.includes(d); }) : [];
   
   // Current dashboards from latest export (if available and newer than april)
@@ -2291,7 +2307,7 @@ function buildProductosHTML(a){
 }
 
 function buildTableroHTML(a, tablero){
-  const b = BASE2026_DATA[a.nombre] || null;
+  const b = enBase(a.nombre) || null;
   const t = tablero || null;
   if(!b && !t) return '<div style="font-size:13px;color:var(--text3);padding:16px 0">Sin datos del tablero para esta cuenta.</div>';
   const dashes = b ? (b.d||[]) : [];
@@ -2382,7 +2398,7 @@ function renderFicha(){
 
   const tier = normTier(a.tier);
   const semaforo = getSemaforoState(a);
-  const tablero = TABLERO_DATA[a.nombre] || null;
+  const tablero = enTablero(a.nombre) || null;
 
   // Province for map
   const provNorm = (a.localidad||'').toUpperCase().trim();
