@@ -1692,30 +1692,32 @@ function renderDashboard(){
     </div>`;
 
   // KR 1.1 desglose por ejecutivo
-  const ejecData=[
+  const ejecDef=[
     {id:'AJG',style:'background:#fef3c7;color:#92400e'},
     {id:'LS', style:'background:var(--navy-dim2);color:var(--navy)'},
     {id:'EE', style:'background:#dcfce7;color:#166534'}
-  ].map(({id,style})=>{
+  ];
+  const ejecRows=ejecDef.map(({id,style})=>{
     const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&a.ejecutivo===id);
     const total=cartera.length;
+    if(!total)return'';
     const conAct=cartera.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
-    const pct=total?parseFloat((conAct/total*100).toFixed(1)):0;
-    return{id,style,total,conAct,pct};
-  }).filter(e=>e.total>0);
+    const pct=parseFloat((conAct/total*100).toFixed(1));
+    return`<tr>
+      <td style="padding:8px 12px 8px 0;border-bottom:1px solid var(--border)"><span style="${style};display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:700;margin-right:6px">${id}</span><span style="color:var(--text1);font-weight:500">${id}</span></td>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--text1);font-weight:600">${total}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--text1);font-weight:600">${conAct}</td>
+      <td style="padding:8px 0 8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--amber);font-weight:700">${pct}%</td>
+    </tr>`;
+  }).join('');
   el('okr-ejec-wrap').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead><tr style="color:var(--text3);text-align:left">
-      <th style="padding:6px 12px 6px 0;font-weight:600;border-bottom:1px solid var(--border)">Ejecutivo</th>
+    <thead><tr style="color:var(--text3)">
+      <th style="padding:6px 12px 6px 0;font-weight:600;border-bottom:1px solid var(--border);text-align:left">Ejecutivo</th>
       <th style="padding:6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Cartera</th>
       <th style="padding:6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">Con actividad</th>
       <th style="padding:6px 0 6px 12px;font-weight:600;border-bottom:1px solid var(--border);text-align:right">%</th>
     </tr></thead>
-    <tbody>${ejecData.map(e=>`<tr>
-      <td style="padding:8px 12px 8px 0;border-bottom:1px solid var(--border)"><span style="${e.style};display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:700;margin-right:6px">${e.id}</span><span style="color:var(--text1);font-weight:500">${e.id}</span></td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--text1);font-weight:600">${e.total}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--text1);font-weight:600">${e.conAct}</td>
-      <td style="padding:8px 0 8px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--amber);font-weight:700">${e.pct}%</td>
-    </tr>`).join('')}</tbody>
+    <tbody>${ejecRows}</tbody>
   </table>`;
 
   // OKR 2
