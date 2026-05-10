@@ -127,6 +127,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* Table */
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:600px}
+.overflow-wrap{overflow-x:auto}
 thead th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:9px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
 thead th.sortable{cursor:pointer;user-select:none}
 thead th.sortable:hover{color:var(--navy)}
@@ -323,6 +324,13 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
   .field-grid{grid-template-columns:1fr}
   .field-item.full{grid-column:span 1}
   .dash-grid,.ops-grid{grid-template-columns:repeat(2,1fr)}
+  table{min-width:0}
+  .jiras-tabs{flex-wrap:wrap;gap:4px}
+  .jira-tab-btn{flex:1 1 calc(50% - 4px);min-width:0;font-size:11px;padding:7px 6px;text-align:center}
+  .panel-head{flex-wrap:wrap;gap:8px}
+  .panel-head-right{flex-wrap:wrap;gap:6px;justify-content:flex-start}
+  .metrics-cards-grid{grid-template-columns:1fr 1fr!important}
+  .metrics-main-grid{grid-template-columns:1fr!important}
 }
 
 /* ── LOGIN ── */
@@ -840,7 +848,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="jira-tab-content active" id="jira-tab-backlog">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input type="text" id="jira-search" placeholder="🔍 Buscar..." oninput="renderBacklog()" style="font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;min-width:200px;font-family:'DM Sans',sans-serif"/>
+            <input type="text" id="jira-search" placeholder="🔍 Buscar..." oninput="renderBacklog()" style="font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;width:180px;min-width:0;font-family:'DM Sans',sans-serif"/>
             <select id="jira-backlog-area" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
               <option value="todos">Todas las áreas</option>
               <option value="BI">BI</option>
@@ -1048,6 +1056,10 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
       Agenda
     </button>
+    <button class="mobile-nav-item" id="mob-nav-jiras" onclick="goTabMobile('jiras')">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Tickets
+    </button>
   </div>
 </nav>
 
@@ -1213,6 +1225,9 @@ window.goTabMobile=function(tab){
   el('task-add-panel').style.display='none';
   if(tab==='dashboard')renderDashboard();
   if(tab==='historial')renderHistorial();
+  if(tab==='calendario')renderCalendario();
+  if(tab==='ficha'){updateFichaSelect();renderFicha();}
+  if(tab==='jiras'){window.renderJiras();window.renderBacklog();}
 };
 window.toggleAddPanel=function(){
   const p='task-add-panel';
@@ -2639,7 +2654,7 @@ window.renderJiras = function(){
     list.innerHTML='<div class="empty-state" style="padding:24px">Sin tickets enviados a desarrollo.<br><span style="font-size:11px;color:var(--text3)">Seleccioná tickets del Backlog y marcalos como enviados.</span></div>';
     return;
   }
-  list.innerHTML=`<table class="backlog-table">
+  list.innerHTML=`<div class="overflow-wrap"><table class="backlog-table">
     <thead><tr>
       <th style="width:20px"></th>
       <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
@@ -2670,7 +2685,7 @@ window.renderJiras = function(){
         <button class="del-btn" onclick="removeFromPrioridades('${t.id||t.jira}')" title="Quitar de prioridades">↩</button>
       </td>
     </tr>`).join('')}</tbody>
-  </table>`;
+  </table></div>`;
 };
 
 // ── BACKLOG SELECTION HELPERS
@@ -2976,7 +2991,7 @@ window.renderBacklog = function(){
   if(!list) return;
   if(!data.length){list.innerHTML='<div class="empty-state">Sin tickets</div>';return;}
 
-  list.innerHTML=`<table class="backlog-table">
+  list.innerHTML=`<div class="overflow-wrap"><table class="backlog-table">
     <thead><tr>
       <th><input type="checkbox" id="cb-all" onchange="toggleAllBacklog(this.checked)" class="backlog-cb"/></th>
       <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
@@ -3001,7 +3016,7 @@ window.renderBacklog = function(){
         <td><button class="del-btn" onclick="deleteJira('${t.id||t.jira}')">✕</button></td>
       </tr>`;
     }).join('')}</tbody>
-  </table>`;
+  </table></div>`;
   updateSelectedCount();
 };
 
@@ -3048,14 +3063,14 @@ window.renderMetricas = function(){
     </div>`;
 
   cont.innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">
+    <div class="metrics-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px">
       ${metricCard('⏱','Aging promedio',avgAging===('—')?'—':avgAging+'d','días en tickets abiertos','var(--amber)')}
       ${metricCard('✅','Tiempo de resolución',avgResol===('—')?'—':avgResol+'d','promedio hasta cierre','var(--green)')}
       ${metricCard('🔁','Tickets reabiertos',pctReabiertos===('—')?'—':pctReabiertos+'%',reabiertos+' de '+jiraTickets.length+' tickets','var(--red)')}
       ${metricCard('📦','Sprints registrados',sprints.length,'sprints con tickets','var(--navy)')}
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="metrics-main-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
 
       <!-- Aging detalle -->
       <div class="panel">
@@ -3089,7 +3104,7 @@ window.renderMetricas = function(){
       <div class="panel">
         <div class="panel-head"><h3>Tickets por sprint</h3></div>
         <div style="padding:16px">
-          ${sprints.length?`<table class="backlog-table"><thead><tr><th>Sprint</th><th>Total</th><th>Cerrados</th><th>% completado</th></tr></thead><tbody>
+          ${sprints.length?`<div class="overflow-wrap"><table class="backlog-table"><thead><tr><th>Sprint</th><th>Total</th><th>Cerrados</th><th>% completado</th></tr></thead><tbody>
             ${sprints.map(([s,d])=>{
               const pct = d.total?Math.round(d.cerrados/d.total*100):0;
               return`<tr>
@@ -3101,7 +3116,7 @@ window.renderMetricas = function(){
                   <span style="font-size:11px;font-family:'DM Mono',monospace;min-width:30px">${pct}%</span>
                 </div></td>
               </tr>`;}).join('')}
-          </tbody></table>`:'<div class="empty-state">Sin sprints registrados aún</div>'}
+          </tbody></table></div>`:'<div class="empty-state">Sin sprints registrados aún</div>'}
         </div>
       </div>
 
@@ -3125,13 +3140,13 @@ window.renderMetricas = function(){
       <div class="panel">
         <div class="panel-head"><h3>Tickets reabiertos</h3></div>
         <div style="padding:16px">
-          ${jiraTickets.filter(t=>(t.reopenedCount||0)>0).length?`<table class="backlog-table"><thead><tr><th>Ticket</th><th>Cliente</th><th>Veces</th></tr></thead><tbody>
+          ${jiraTickets.filter(t=>(t.reopenedCount||0)>0).length?`<div class="overflow-wrap"><table class="backlog-table"><thead><tr><th>Ticket</th><th>Cliente</th><th>Veces</th></tr></thead><tbody>
             ${jiraTickets.filter(t=>(t.reopenedCount||0)>0).sort((a,b)=>(b.reopenedCount||0)-(a.reopenedCount||0)).map(t=>`<tr>
               <td style="font-size:12px;max-width:200px"><div style="font-weight:500">${t.detalle||'—'}</div>${t.jira?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${t.jira}</span>`:''}</td>
               <td style="font-size:12px">${t.cliente||'—'}</td>
               <td style="font-family:'DM Mono',monospace;font-weight:700;color:var(--red)">${t.reopenedCount||0}x</td>
             </tr>`).join('')}
-          </tbody></table>`:'<div class="empty-state">Sin tickets reabiertos 🎉</div>'}
+          </tbody></table></div>`:'<div class="empty-state">Sin tickets reabiertos 🎉</div>'}
         </div>
       </div>
 
