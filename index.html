@@ -740,6 +740,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
               <div class="panel-head-right">
                 <span class="results-count" id="results-count"></span>
                 <span class="locales-total" id="locales-total"></span>
+                <button class="btn export-btn btn-sm" onclick="exportCuentasExcel()">⬇ Exportar Excel</button>
                 <button class="btn btn-primary btn-sm" onclick="toggleAccAddPanel()">+ Nueva cuenta</button>
               </div>
             </div>
@@ -3167,6 +3168,50 @@ window.addUsuarioJira = async function(){
     el('usuario-form').style.display='none';
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
+};
+
+window.exportCuentasExcel = function(){
+  const data = getFilteredAccounts();
+  const today = new Date().toISOString().split('T')[0];
+  const wsData = [
+    ['Cliente','NID','Ejecutivo','Tipo servicio','Tier','Estado','Provincia','Región','Locales','Último contacto','Última presentación','Últ. movimiento','Motivo baja','Notas']
+  ];
+  data.forEach(a=>{
+    wsData.push([
+      a.nombre||'',
+      a.nid||'',
+      a.ejecutivo||'',
+      a.tipoServicio||'',
+      a.tier||'',
+      isActivo(a)?'Activo':'Caído',
+      a.localidad||'',
+      a.region||'',
+      parseFloat(a.locales)||0,
+      a.ultimoContacto||'',
+      a.ultimaPresentacion||'',
+      a.ultimoMovimiento||'',
+      a.motivoBaja||'',
+      a.notas||'',
+    ]);
+  });
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const colWidths = [30,14,12,18,8,10,16,16,10,16,20,16,20,30];
+  ws['!cols'] = colWidths.map(w=>({wch:w}));
+  // Header style bold
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for(let c=range.s.c;c<=range.e.c;c++){
+    const cell = ws[XLSX.utils.encode_cell({r:0,c})];
+    if(cell) cell.s = {font:{bold:true}};
+  }
+  // Filter info in filename
+  const parts = [];
+  if(accFilters.estado!=='todos') parts.push(accFilters.estado);
+  if(accFilters.tier!=='todos') parts.push('Tier'+accFilters.tier);
+  if(accFilters.ejecutivo!=='todos') parts.push(accFilters.ejecutivo);
+  const suffix = parts.length ? '_'+parts.join('_') : '';
+  XLSX.utils.book_append_sheet(wb, ws, 'Cartera');
+  XLSX.writeFile(wb, `Cartera_Cuentas${suffix}_${today}.xlsx`);
 };
 
 // Export to Excel using SheetJS
