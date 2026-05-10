@@ -2247,27 +2247,14 @@ const ALL_PRODUCTS = ['8.2','MINI 2.0','SHOPPER','JBP','Multicadena','Precios Se
 function _normNombre(s){
   return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 }
-function _sigWords(n){return n.split(' ').filter(w=>w.length>3);}
 const _tNorm={},_bNorm={};
 Object.keys(TABLERO_DATA).forEach(k=>{const n=_normNombre(k);if(n)_tNorm[n]=k;});
 Object.keys(BASE2026_DATA).forEach(k=>{const n=_normNombre(k);if(n)_bNorm[n]=k;});
 function _fuzzyLookup(map,data,nombre){
   const n=_normNombre(nombre);if(!n)return undefined;
-  // 1. Exact normalized
   if(map[n])return data[map[n]];
-  // 2. Substring (one contains the other, min 5 chars)
   for(const[mk,ok]of Object.entries(map)){
     if(n.length>=5&&mk.length>=5&&(mk.includes(n)||n.includes(mk)))return data[ok];
-  }
-  // 3. Word overlap: ≥70% of significant words (>3 chars) in common
-  const nw=_sigWords(n);
-  if(nw.length>0){
-    for(const[mk,ok]of Object.entries(map)){
-      const mw=_sigWords(mk);
-      if(!mw.length)continue;
-      const common=nw.filter(w=>mw.includes(w)).length;
-      if(common/Math.min(nw.length,mw.length)>=0.7)return data[ok];
-    }
   }
   return undefined;
 }
