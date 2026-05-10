@@ -1648,43 +1648,38 @@ function renderDashboard(){
   const total=accounts.length;
   const activos=accounts.filter(a=>isActivo(a));
   const caidos=accounts.filter(a=>!isActivo(a));
-  const conAnalytics=activos.filter(a=>(a.tipoServicio||'').includes('Analytics'));
-  const pctAnalyticsAA=activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics')).length;
-  const totalAA=activos.filter(a=>['A+','A'].includes(normTier(a.tier))).length;
-  const pctAA=totalAA?Math.round(pctAnalyticsAA/totalAA*100):0;
-  const pctB=activos.filter(a=>normTier(a.tier)==='B').length;
-  const pctBAnalytics=activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics')).length;
-  const pctBpct=pctB?Math.round(pctBAnalytics/pctB*100):0;
-  const pctC=activos.filter(a=>normTier(a.tier)==='C').length;
-  const pctCAnalytics=activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics')).length;
-  const pctCpct=pctC?Math.round(pctCAnalytics/pctC*100):0;
+  // KR 1.1 — denominador: activos con Analytics por tier; numerador: los que aparecen en TABLERO_DATA
+  const kr11Baseline = {aa:40, b:15.4, c:4.3};
+  const kr11Obj      = {aa:100, b:90,  c:20};
+  const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
+  const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
+  const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
+  const totalAA=cuentasAAA.length, usoAA=cuentasAAA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+  const totalB =cuentasBA.length,  usoB =cuentasBA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+  const totalC =cuentasCA.length,  usoC =cuentasCA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+  const pctAA  =totalAA?parseFloat((usoAA/totalAA*100).toFixed(1)):0;
+  const pctBpct=totalB ?parseFloat((usoB /totalB *100).toFixed(1)):0;
+  const pctCpct=totalC ?parseFloat((usoC /totalC *100).toFixed(1)):0;
+  const kr11Card=(label,tierStyle,pct,uso,total,base,obj,barCls)=>{
+    const bw=obj>0?Math.min(pct/obj*100,100):0;
+    const bp=obj>0?Math.min(base/obj*100,100):0;
+    return`<div class="okr-card">
+      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="${tierStyle}">${label}</span></div>
+      <div class="okr-title">Cuentas utilizando dashboards regularmente</div>
+      <div class="okr-progress-row"><span class="okr-pct">${pct}%</span><span style="font-size:12px;color:var(--text3)"> · obj. ${obj}%</span></div>
+      <div class="okr-bar-wrap" style="position:relative"><div class="okr-bar ${barCls}" style="width:${bw}%"></div><div style="position:absolute;top:0;bottom:0;left:${bp}%;width:2px;background:var(--text3);opacity:.5;border-radius:1px" title="Baseline abril: ${base}%"></div></div>
+      <div class="okr-target">${uso} de ${total} cuentas · Baseline abr: ${base}% · Obj: ${obj}%</div>
+    </div>`;
+  };
   const churnRate=total?Math.round(caidos.length/total*100):0;
   const allInts=getAllInteracciones();
   const intEsteMes=allInts.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length;
 
   // OKR 1
   el('okr-grid-1').innerHTML=`
-    <div class="okr-card">
-      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span></div>
-      <div class="okr-title">Cuentas utilizando dashboards regularmente</div>
-      <div class="okr-progress-row"><span class="okr-pct">${pctAA}%</span><span style="font-size:12px;color:var(--text3)">/ 100%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(pctAA,100)}%"></div></div>
-      <div class="okr-target">Punto de partida: 11% · Objetivo: 100%</div>
-    </div>
-    <div class="okr-card">
-      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span></div>
-      <div class="okr-title">Cuentas B utilizando dashboards</div>
-      <div class="okr-progress-row"><span class="okr-pct">${pctBpct}%</span><span style="font-size:12px;color:var(--text3)">/ 90%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(pctBpct,100)}%"></div></div>
-      <div class="okr-target">Punto de partida: 21% · Objetivo: 90%</div>
-    </div>
-    <div class="okr-card">
-      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span></div>
-      <div class="okr-title">Cuentas C utilizando dashboards</div>
-      <div class="okr-progress-row"><span class="okr-pct">${pctCpct}%</span><span style="font-size:12px;color:var(--text3)">/ 20%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-green" style="width:${Math.min(pctCpct,100)}%"></div></div>
-      <div class="okr-target">Punto de partida: 8% · Objetivo: 20%</div>
-    </div>
+    ${kr11Card('A+/A','background:#fef3c7;color:#92400e',pctAA,usoAA,totalAA,kr11Baseline.aa,kr11Obj.aa,'bar-orange')}
+    ${kr11Card('B','background:var(--navy-dim2);color:var(--navy)',pctBpct,usoB,totalB,kr11Baseline.b,kr11Obj.b,'bar-navy')}
+    ${kr11Card('C','background:var(--surface2);color:var(--text3)',pctCpct,usoC,totalC,kr11Baseline.c,kr11Obj.c,'bar-green')}
     <div class="okr-card">
       <div class="okr-label">KR 1.2 · Insights</div>
       <div class="okr-title">Presentaciones / insights generados este mes</div>
