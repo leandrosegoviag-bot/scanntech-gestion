@@ -493,32 +493,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .ficha-int-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;flex-shrink:0}
 
 /* ── JIRAS ── */
-.jiras-tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border)}
-.jira-tab-btn{font-size:13px;font-weight:500;padding:9px 18px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
-.jira-tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
-.jira-tab-btn:hover{color:var(--text2)}
-.jira-tab-content{display:none}.jira-tab-content.active{display:block}
-
-/* Kanban */
-.kanban-col{background:var(--surface2);border-radius:var(--radius);padding:12px;min-height:200px}
-.kanban-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--border)}
-.kanban-col-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
-.kanban-col-count{font-size:11px;font-family:'DM Mono',monospace;background:var(--surface);color:var(--text3);padding:1px 7px;border-radius:8px}
-.kanban-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;box-shadow:var(--shadow-sm);transition:box-shadow .15s;border-left:3px solid transparent}
-.kanban-card:hover{box-shadow:var(--shadow)}
-.kanban-card.pendiente{border-left-color:var(--navy)}
-.kanban-card.verificar{border-left-color:var(--amber)}
-.kanban-card.corregir{border-left-color:var(--red)}
-.kanban-card.cerrado{border-left-color:var(--green);opacity:.6}
-.kanban-card-title{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:7px}
-.kanban-card-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
-.kanban-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
-.kanban-card-actions{display:flex;gap:4px}
-.k-btn{font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;transition:all .12s}
-.k-btn:hover{background:var(--surface2);color:var(--text2)}
-.k-btn.danger:hover{background:var(--red-dim);color:var(--red);border-color:var(--red)}
-.k-btn.pri{background:var(--orange-dim);color:var(--orange);border-color:var(--orange)}
-
 /* Backlog table */
 .backlog-table{width:100%;border-collapse:collapse}
 .backlog-table thead th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:9px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
@@ -542,20 +516,11 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .export-btn:hover{background:#158a5a}
 .pri-order-badge{width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace}
 
-.jiras-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0}
+.jiras-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border)}
 .jira-tab-btn{font-size:13px;font-weight:500;padding:8px 16px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
 .jira-tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
 .jira-tab-btn:hover{color:var(--text2)}
 .jira-tab-content{display:none}.jira-tab-content.active{display:block}
-.jira-status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.jira-status.pendiente{background:var(--navy-dim2);color:var(--navy)}
-.jira-status.verificar{background:var(--amber-dim);color:var(--amber)}
-.jira-status.corregir{background:var(--red-dim);color:var(--red)}
-.jira-status.cerrado{background:var(--green-dim);color:var(--green)}
-.jira-status.otro{background:var(--surface3);color:var(--text3)}
-.jira-area{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:'DM Mono',monospace}
-.jira-area.bi{background:var(--purple-dim);color:var(--purple)}
-.jira-area.bd{background:var(--orange-dim);color:var(--orange)}
 .priority-badge{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;cursor:grab}
 .priority-badge:active{cursor:grabbing}
 .jira-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .1s}
@@ -2877,30 +2842,6 @@ window.removeFromPrioridades = async function(idOrJira){
   }catch{setSyncStatus('error');}
 };
 
-// Drag & drop for priority reorder
-window.jiDragStart = function(e,i){ dragSrcIdx=i; e.currentTarget.classList.add('dragging'); };
-window.jiDragOver = function(e,i){ e.preventDefault(); };
-window.jiDragEnd = function(e){ e.currentTarget.classList.remove('dragging'); };
-window.jiDrop = function(e,targetIdx){
-  e.preventDefault();
-  if(dragSrcIdx===null||dragSrcIdx===targetIdx) return;
-  // Reorder jiraTickets by current filtered order
-  const area = el('jira-filter-area')?.value||'todos';
-  const showClosed = (el('jira-filter-status-pri')?.value||'activos')==='todos';
-  let data = [...jiraTickets].sort((a,b)=>a.prioridad-b.prioridad);
-  if(area!=='todos') data=data.filter(t=>t.area===area);
-  if(!showClosed) data=data.filter(t=>t.status!=='Cerrado');
-  const moved = data.splice(dragSrcIdx,1)[0];
-  data.splice(targetIdx,0,moved);
-  // Update priorities
-  data.forEach((t,i)=>{
-    const orig = jiraTickets.find(x=>(x.id||x.jira)===(t.id||t.jira));
-    if(orig) orig.prioridad = i+1;
-  });
-  dragSrcIdx=null;
-  savePriorities();
-  renderJiras();
-};
 
 async function savePriorities(){
   setSyncStatus('syncing');
