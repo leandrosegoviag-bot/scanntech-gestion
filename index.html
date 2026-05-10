@@ -35,7 +35,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 ::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 
 /* Sidebar */
-.sidebar{background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;width:210px;flex-shrink:0}
+.sidebar{background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;width:210px;flex-shrink:0;transition:transform .22s ease}
+.sidebar.nav-collapsed{transform:translateX(-210px)}
 .logo-area{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
 .logo-row{display:flex;align-items:center;gap:10px}
 .logo-icon{width:34px;height:34px;background:var(--orange);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -55,7 +56,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sidebar-footer span{color:rgba(255,255,255,.5)}
 
 /* Main */
-.main{display:flex;flex-direction:column;min-height:100vh;margin-left:210px;flex:1;min-width:0}
+.main{display:flex;flex-direction:column;min-height:100vh;margin-left:210px;flex:1;min-width:0;transition:margin-left .22s ease}
+.main.nav-collapsed{margin-left:0}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow-sm)}
 .topbar-left h1{font-size:16px;font-weight:600;color:var(--text)}
 .topbar-left p{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
@@ -91,18 +93,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* Cuentas layout */
 .cuentas-layout{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;transition:grid-template-columns .25s ease}
-.cuentas-layout.collapsed{grid-template-columns:44px 1fr}
+.cuentas-layout.collapsed{grid-template-columns:0 1fr;gap:0}
 
 /* Filter sidebar */
 .filter-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:12px;position:sticky;top:80px;transition:all .25s ease;overflow:hidden;max-height:calc(100vh - 100px);overflow-y:auto}
-.filter-sidebar.collapsed{padding:8px 4px;border-color:transparent;box-shadow:none;background:transparent}
-.filter-sidebar.collapsed .filter-group,.filter-sidebar.collapsed .filter-search,.filter-sidebar.collapsed .filter-divider,.filter-sidebar.collapsed .btn-clear-filters{display:none}
-.filter-toggle-btn{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:7px;padding:7px 9px;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s;margin-bottom:2px}
+.filter-sidebar.collapsed{padding:0;border-color:transparent;box-shadow:none;background:transparent;overflow:hidden;width:0;min-width:0}
+.filter-toggle-btn{display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s}
 .filter-toggle-btn:hover{background:var(--navy-dim);color:var(--navy);border-color:var(--navy)}
 .filter-toggle-btn.has-filters{background:var(--navy-dim2);color:var(--navy);border-color:var(--navy)}
-.filter-sidebar.collapsed .filter-toggle-btn{justify-content:center;border-color:var(--border);margin-bottom:0}
-.filter-toggle-btn .btn-label{transition:opacity .2s}
-.filter-sidebar.collapsed .filter-toggle-btn .btn-label{display:none}
 .filter-active-badge{background:var(--orange);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;font-family:'DM Mono',monospace;display:none;margin-left:auto}
 .filter-search{width:100%;font-size:12px;padding:7px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;margin-top:10px;margin-bottom:14px}
 .filter-search::placeholder{color:var(--text3)}
@@ -129,6 +127,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* Table */
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:600px}
+.overflow-wrap{overflow-x:auto}
 thead th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:9px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
 thead th.sortable{cursor:pointer;user-select:none}
 thead th.sortable:hover{color:var(--navy)}
@@ -325,6 +324,13 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
   .field-grid{grid-template-columns:1fr}
   .field-item.full{grid-column:span 1}
   .dash-grid,.ops-grid{grid-template-columns:repeat(2,1fr)}
+  table{min-width:0}
+  .jiras-tabs{flex-wrap:wrap;gap:4px}
+  .jira-tab-btn{flex:1 1 calc(50% - 4px);min-width:0;font-size:11px;padding:7px 6px;text-align:center}
+  .panel-head{flex-wrap:wrap;gap:8px}
+  .panel-head-right{flex-wrap:wrap;gap:6px;justify-content:flex-start}
+  .metrics-cards-grid{grid-template-columns:1fr 1fr!important}
+  .metrics-main-grid{grid-template-columns:1fr!important}
 }
 
 /* ── LOGIN ── */
@@ -487,32 +493,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .ficha-int-time{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;flex-shrink:0}
 
 /* ── JIRAS ── */
-.jiras-tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border)}
-.jira-tab-btn{font-size:13px;font-weight:500;padding:9px 18px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
-.jira-tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
-.jira-tab-btn:hover{color:var(--text2)}
-.jira-tab-content{display:none}.jira-tab-content.active{display:block}
-
-/* Kanban */
-.kanban-col{background:var(--surface2);border-radius:var(--radius);padding:12px;min-height:200px}
-.kanban-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--border)}
-.kanban-col-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
-.kanban-col-count{font-size:11px;font-family:'DM Mono',monospace;background:var(--surface);color:var(--text3);padding:1px 7px;border-radius:8px}
-.kanban-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;box-shadow:var(--shadow-sm);transition:box-shadow .15s;border-left:3px solid transparent}
-.kanban-card:hover{box-shadow:var(--shadow)}
-.kanban-card.pendiente{border-left-color:var(--navy)}
-.kanban-card.verificar{border-left-color:var(--amber)}
-.kanban-card.corregir{border-left-color:var(--red)}
-.kanban-card.cerrado{border-left-color:var(--green);opacity:.6}
-.kanban-card-title{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:7px}
-.kanban-card-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
-.kanban-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
-.kanban-card-actions{display:flex;gap:4px}
-.k-btn{font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;transition:all .12s}
-.k-btn:hover{background:var(--surface2);color:var(--text2)}
-.k-btn.danger:hover{background:var(--red-dim);color:var(--red);border-color:var(--red)}
-.k-btn.pri{background:var(--orange-dim);color:var(--orange);border-color:var(--orange)}
-
 /* Backlog table */
 .backlog-table{width:100%;border-collapse:collapse}
 .backlog-table thead th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:9px 12px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
@@ -536,20 +516,11 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .export-btn:hover{background:#158a5a}
 .pri-order-badge{width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace}
 
-.jiras-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0}
+.jiras-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border)}
 .jira-tab-btn{font-size:13px;font-weight:500;padding:8px 16px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
 .jira-tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
 .jira-tab-btn:hover{color:var(--text2)}
 .jira-tab-content{display:none}.jira-tab-content.active{display:block}
-.jira-status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.jira-status.pendiente{background:var(--navy-dim2);color:var(--navy)}
-.jira-status.verificar{background:var(--amber-dim);color:var(--amber)}
-.jira-status.corregir{background:var(--red-dim);color:var(--red)}
-.jira-status.cerrado{background:var(--green-dim);color:var(--green)}
-.jira-status.otro{background:var(--surface3);color:var(--text3)}
-.jira-area{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;font-family:'DM Mono',monospace}
-.jira-area.bi{background:var(--purple-dim);color:var(--purple)}
-.jira-area.bd{background:var(--orange-dim);color:var(--orange)}
 .priority-badge{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;cursor:grab}
 .priority-badge:active{cursor:grabbing}
 .jira-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .1s}
@@ -655,9 +626,12 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
   </div>
 
   <div class="topbar">
-    <div class="topbar-left">
-      <h1 id="tab-title">Dashboard</h1>
-      <p id="tab-sub">OKRs · Métricas operativas · 2026</p>
+    <div class="topbar-left" style="display:flex;align-items:center;gap:12px">
+      <button id="nav-toggle-btn" onclick="toggleNav()" title="Ocultar/mostrar menú" style="background:none;border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text3);font-size:14px;transition:background .15s">◀</button>
+      <div>
+        <h1 id="tab-title">Dashboard</h1>
+        <p id="tab-sub">OKRs · Métricas operativas · 2026</p>
+      </div>
     </div>
     <div class="topbar-right">
       <div class="sync-dot syncing" id="sync-dot"></div>
@@ -673,6 +647,9 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div id="month-selector-wrap" style="margin-bottom:16px"></div>
       <div class="dash-section-title">OKR 1 · Maximizar el valor que los clientes obtienen de Scanntech</div>
       <div class="dash-grid" id="okr-grid-1"></div>
+
+      <div class="dash-section-title" style="margin-top:8px">KR 1.1 · Desglose por ejecutivo</div>
+      <div id="okr-ejec-wrap" style="margin-bottom:8px"></div>
 
       <div class="dash-section-title" style="margin-top:8px">OKR 2 · Fortalecer la retención y reducir riesgos en la cartera</div>
       <div class="dash-grid" id="okr-grid-2"></div>
@@ -706,11 +683,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="stats" id="acc-stats"></div>
       <div class="cuentas-layout" id="cuentas-layout">
         <div class="filter-sidebar" id="filter-sidebar">
-          <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleFilterSidebar()" title="Ocultar filtros">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
-            <span class="btn-label">Filtros</span>
-            <span class="filter-active-badge" id="filter-active-badge"></span>
-          </button>
           <input class="filter-search" type="text" placeholder="Buscar cliente..." oninput="setAccSearch(this.value)"/>
           <div class="filter-group">
             <div class="filter-group-title">Estado</div>
@@ -738,10 +710,18 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div>
           <div class="panel">
             <div class="panel-head">
-              <h3>Cartera de cuentas</h3>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleFilterSidebar()" title="Filtros">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
+                  <span>Filtros</span>
+                  <span class="filter-active-badge" id="filter-active-badge"></span>
+                </button>
+                <h3>Cartera de cuentas</h3>
+              </div>
               <div class="panel-head-right">
                 <span class="results-count" id="results-count"></span>
                 <span class="locales-total" id="locales-total"></span>
+                <button class="btn export-btn btn-sm" onclick="exportCuentasExcel()">⬇ Exportar Excel</button>
                 <button class="btn btn-primary btn-sm" onclick="toggleAccAddPanel()">+ Nueva cuenta</button>
               </div>
             </div>
@@ -829,13 +809,14 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <button class="jira-tab-btn active" onclick="switchJiraTab('backlog',this)">📋 Backlog</button>
         <button class="jira-tab-btn" onclick="switchJiraTab('prioridades',this)">🎯 Prioridades</button>
         <button class="jira-tab-btn" onclick="switchJiraTab('usuarios',this)">👤 Solicitudes usuarios</button>
+        <button class="jira-tab-btn" onclick="switchJiraTab('metricas',this)">📊 Métricas</button>
       </div>
 
       <!-- BACKLOG -->
       <div class="jira-tab-content active" id="jira-tab-backlog">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input type="text" id="jira-search" placeholder="🔍 Buscar..." oninput="renderBacklog()" style="font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;min-width:200px;font-family:'DM Sans',sans-serif"/>
+            <input type="text" id="jira-search" placeholder="🔍 Buscar..." oninput="renderBacklog()" style="font-size:12px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;width:180px;min-width:0;font-family:'DM Sans',sans-serif"/>
             <select id="jira-backlog-area" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
               <option value="todos">Todas las áreas</option>
               <option value="BI">BI</option>
@@ -881,6 +862,28 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <div class="panel">
           <div id="jira-backlog-list"></div>
         </div>
+        <!-- FORM nuevo ticket -->
+        <div class="add-panel" id="jira-form" style="display:none;margin-top:14px">
+          <h3>Nuevo ticket</h3>
+          <div class="form-grid">
+            <div class="form-row four">
+              <div class="field"><label>Ejecutivo</label><select id="nj-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option><option value="SAR">SAR</option></select></div>
+              <div class="field"><label>Área</label><select id="nj-area"><option value="BI">BI</option><option value="BD">BD</option></select></div>
+              <div class="field"><label>Producto</label><input type="text" id="nj-producto" placeholder="ej: 8.2, MINI 2.0"/></div>
+              <div class="field"><label>Status</label><select id="nj-status"><option value="Pendiente">Pendiente</option><option value="Verificar">Verificar</option><option value="Corregir">Corregir</option></select></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" placeholder="Nombre del cliente"/></div>
+              <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX"/></div>
+            </div>
+            <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
+            <div class="form-row">
+              <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
+              <div class="field"><label>Sprint</label><input type="text" id="nj-sprint" placeholder="ej: Sprint 12"/></div>
+            </div>
+            <button class="btn btn-primary" onclick="addJira()" style="width:fit-content">Agregar ticket</button>
+          </div>
+        </div>
       </div>
 
       <!-- PRIORIDADES ENVIADAS -->
@@ -912,26 +915,9 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         </div>
       </div>
 
-      <!-- FORM nuevo ticket -->
-      <div class="add-panel" id="jira-form" style="display:none;margin-top:14px">
-        <h3>Nuevo ticket</h3>
-        <div class="form-grid">
-          <div class="form-row four">
-            <div class="field"><label>Ejecutivo</label><select id="nj-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option><option value="SAR">SAR</option></select></div>
-            <div class="field"><label>Área</label><select id="nj-area"><option value="BI">BI</option><option value="BD">BD</option></select></div>
-            <div class="field"><label>Producto</label><input type="text" id="nj-producto" placeholder="ej: 8.2, MINI 2.0"/></div>
-            <div class="field"><label>Status</label><select id="nj-status"><option value="Pendiente">Pendiente</option><option value="Verificar">Verificar</option><option value="Corregir">Corregir</option></select></div>
-          </div>
-          <div class="form-row">
-            <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" placeholder="Nombre del cliente"/></div>
-            <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX"/></div>
-          </div>
-          <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
-          <div class="form-row">
-            <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
-          </div>
-          <button class="btn btn-primary" onclick="addJira()" style="width:fit-content">Agregar ticket</button>
-        </div>
+      <!-- MÉTRICAS -->
+      <div class="jira-tab-content" id="jira-tab-metricas">
+        <div id="jira-metricas-content"></div>
       </div>
 
       <!-- FORM usuario -->
@@ -1037,6 +1023,10 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <button class="mobile-nav-item" id="mob-nav-calendario" onclick="goTabMobile('calendario')">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
       Agenda
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-jiras" onclick="goTabMobile('jiras')">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Tickets
     </button>
   </div>
 </nav>
@@ -1169,17 +1159,26 @@ function tierClass(t){
 }
 
 // ── NAV
+window.toggleNav=function(){
+  const sidebar=document.querySelector('.sidebar');
+  const main=document.querySelector('.main');
+  const btn=el('nav-toggle-btn');
+  const collapsed=sidebar.classList.toggle('nav-collapsed');
+  main.classList.toggle('nav-collapsed',collapsed);
+  if(btn) btn.textContent=collapsed?'▶':'◀';
+};
+
 window.goTab=function(tab,e){
   currentTab=tab;
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el('tab-'+tab).classList.add('active');e.classList.add('active');
-  const titles={dashboard:["Dashboard","OKRs · Métricas operativas · 2026"],cuentas:["Cartera de cuentas","Activos · Caídos · Tier A+ / A / B / C"],tareas:["Tareas pendientes","Gestioná y seguí tus tareas activas"],historial:["Historial de interacciones","Registro de llamadas, reuniones y seguimientos"]};
-  el('tab-title').textContent=titles[tab][0];el('tab-sub').textContent=titles[tab][1];
+  const titles={dashboard:["Dashboard","OKRs · Métricas operativas · 2026"],cuentas:["Cartera de cuentas","Activos · Caídos · Tier A+ / A / B / C"],tareas:["Tareas pendientes","Gestioná y seguí tus tareas activas"],historial:["Historial de interacciones","Registro de llamadas, reuniones y seguimientos"],calendario:["Calendario","Próximas tareas y vencimientos"],ficha:["Ficha de cuenta","Detalle y actividad de la cuenta"],jiras:["Tickets / Jiras","Backlog · Prioridades · Solicitudes de acceso"]};
+  if(titles[tab]){el('tab-title').textContent=titles[tab][0];el('tab-sub').textContent=titles[tab][1];}
   el('task-add-panel').style.display='none';
   if(tab==='calendario') renderCalendario();
   if(tab==='ficha'){updateFichaSelect();renderFicha();}
-  if(tab==='jiras') renderJiras();
+  if(tab==='jiras'){renderJiras();renderBacklog();}
   const btnAgregar=el('btn-agregar');
   if(btnAgregar)btnAgregar.style.display=tab==='tareas'?'inline-flex':'none';
   if(tab==='dashboard')renderDashboard();
@@ -1194,6 +1193,9 @@ window.goTabMobile=function(tab){
   el('task-add-panel').style.display='none';
   if(tab==='dashboard')renderDashboard();
   if(tab==='historial')renderHistorial();
+  if(tab==='calendario')renderCalendario();
+  if(tab==='ficha'){updateFichaSelect();renderFicha();}
+  if(tab==='jiras'){window.renderJiras();window.renderBacklog();}
 };
 window.toggleAddPanel=function(){
   const p='task-add-panel';
@@ -1209,6 +1211,7 @@ window.toggleFilterSidebar=function(){
   const isCollapsed=sidebar.classList.toggle('collapsed');
   layout.classList.toggle('collapsed',isCollapsed);
   btn.title=isCollapsed?'Mostrar filtros':'Ocultar filtros';
+  btn.style.opacity=isCollapsed?'0.6':'1';
 };
 
 // ── TASKS
@@ -1418,7 +1421,7 @@ function updateCounts(){
   const badge=el('filter-active-badge');
   if(badge){badge.style.display=activeCount>0?'inline':'none';badge.textContent=activeCount;}
   const toggleBtn=el('filter-toggle-btn');
-  if(toggleBtn)toggleBtn.classList.toggle('has-filters',activeCount>0);
+  if(toggleBtn){toggleBtn.classList.toggle('has-filters',activeCount>0);}
 }
 
 function renderAccounts(){
@@ -1648,43 +1651,38 @@ function renderDashboard(){
   const total=accounts.length;
   const activos=accounts.filter(a=>isActivo(a));
   const caidos=accounts.filter(a=>!isActivo(a));
-  const conAnalytics=activos.filter(a=>(a.tipoServicio||'').includes('Analytics'));
-  const pctAnalyticsAA=activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics')).length;
-  const totalAA=activos.filter(a=>['A+','A'].includes(normTier(a.tier))).length;
-  const pctAA=totalAA?Math.round(pctAnalyticsAA/totalAA*100):0;
-  const pctB=activos.filter(a=>normTier(a.tier)==='B').length;
-  const pctBAnalytics=activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics')).length;
-  const pctBpct=pctB?Math.round(pctBAnalytics/pctB*100):0;
-  const pctC=activos.filter(a=>normTier(a.tier)==='C').length;
-  const pctCAnalytics=activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics')).length;
-  const pctCpct=pctC?Math.round(pctCAnalytics/pctC*100):0;
+  // KR 1.1 — denominador: activos con Analytics por tier; numerador: los que aparecen en TABLERO_DATA
+  const kr11Baseline = {aa:40, b:15.4, c:4.3};
+  const kr11Obj      = {aa:100, b:90,  c:20};
+  const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
+  const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
+  const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
+  const totalAA=cuentasAAA.length, usoAA=cuentasAAA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+  const totalB =cuentasBA.length,  usoB =cuentasBA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+  const totalC =cuentasCA.length,  usoC =cuentasCA.filter(a=>TABLERO_DATA[a.nombre]!==undefined).length;
+  const pctAA  =totalAA?parseFloat((usoAA/totalAA*100).toFixed(1)):0;
+  const pctBpct=totalB ?parseFloat((usoB /totalB *100).toFixed(1)):0;
+  const pctCpct=totalC ?parseFloat((usoC /totalC *100).toFixed(1)):0;
+  const kr11Card=(label,tierStyle,pct,uso,total,base,obj,barCls)=>{
+    const bw=obj>0?Math.min(pct/obj*100,100):0;
+    const bp=obj>0?Math.min(base/obj*100,100):0;
+    return`<div class="okr-card">
+      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="${tierStyle}">${label}</span></div>
+      <div class="okr-title">Cuentas utilizando dashboards regularmente</div>
+      <div class="okr-progress-row"><span class="okr-pct">${pct}%</span><span style="font-size:12px;color:var(--text3)"> · obj. ${obj}%</span></div>
+      <div class="okr-bar-wrap" style="position:relative"><div class="okr-bar ${barCls}" style="width:${bw}%"></div><div style="position:absolute;top:0;bottom:0;left:${bp}%;width:2px;background:var(--text3);opacity:.5;border-radius:1px" title="Baseline abril: ${base}%"></div></div>
+      <div class="okr-target">${uso} de ${total} cuentas · Baseline abr: ${base}% · Obj: ${obj}%</div>
+    </div>`;
+  };
   const churnRate=total?Math.round(caidos.length/total*100):0;
   const allInts=getAllInteracciones();
   const intEsteMes=allInts.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length;
 
   // OKR 1
   el('okr-grid-1').innerHTML=`
-    <div class="okr-card">
-      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span></div>
-      <div class="okr-title">Cuentas utilizando dashboards regularmente</div>
-      <div class="okr-progress-row"><span class="okr-pct">${pctAA}%</span><span style="font-size:12px;color:var(--text3)">/ 100%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(pctAA,100)}%"></div></div>
-      <div class="okr-target">Punto de partida: 11% · Objetivo: 100%</div>
-    </div>
-    <div class="okr-card">
-      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span></div>
-      <div class="okr-title">Cuentas B utilizando dashboards</div>
-      <div class="okr-progress-row"><span class="okr-pct">${pctBpct}%</span><span style="font-size:12px;color:var(--text3)">/ 90%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(pctBpct,100)}%"></div></div>
-      <div class="okr-target">Punto de partida: 21% · Objetivo: 90%</div>
-    </div>
-    <div class="okr-card">
-      <div class="okr-label">KR 1.1 · <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span></div>
-      <div class="okr-title">Cuentas C utilizando dashboards</div>
-      <div class="okr-progress-row"><span class="okr-pct">${pctCpct}%</span><span style="font-size:12px;color:var(--text3)">/ 20%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-green" style="width:${Math.min(pctCpct,100)}%"></div></div>
-      <div class="okr-target">Punto de partida: 8% · Objetivo: 20%</div>
-    </div>
+    ${kr11Card('A+/A','background:#fef3c7;color:#92400e',pctAA,usoAA,totalAA,kr11Baseline.aa,kr11Obj.aa,'bar-orange')}
+    ${kr11Card('B','background:var(--navy-dim2);color:var(--navy)',pctBpct,usoB,totalB,kr11Baseline.b,kr11Obj.b,'bar-navy')}
+    ${kr11Card('C','background:var(--surface2);color:var(--text3)',pctCpct,usoC,totalC,kr11Baseline.c,kr11Obj.c,'bar-green')}
     <div class="okr-card">
       <div class="okr-label">KR 1.2 · Insights</div>
       <div class="okr-title">Presentaciones / insights generados este mes</div>
@@ -1692,6 +1690,37 @@ function renderDashboard(){
       <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(intEsteMes*10,100)}%"></div></div>
       <div class="okr-target">Objetivo A+/A: 1/semana · B: 1/mes</div>
     </div>`;
+
+  // KR 1.1 desglose por ejecutivo
+  const ejecAvatarStyle={
+    AJG:'background:#fef3c7;color:#92400e',
+    LS:'background:var(--navy-dim2);color:var(--navy)',
+    EE:'background:#dcfce7;color:#166534'
+  };
+  const ejecNombre={AJG:'Alejandro J. G.',LS:'Leandro S.',EE:'Emiliano E.'};
+  let ejecRows='';
+  ['AJG','LS','EE'].forEach(ejec=>{
+    const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&a.ejecutivo===ejec);
+    const total=cartera.length;
+    if(!total)return;
+    const conAct=cartera.filter(a=>TABLERO_DATA[a.nombre]!==undefined);
+    const sinAct=cartera.filter(a=>TABLERO_DATA[a.nombre]===undefined);
+    const pct=total?parseFloat((conAct.length/total*100).toFixed(1)):0;
+    const chips=sinAct.map(a=>`<span style="display:inline-block;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text3);font-size:10px;margin:2px 2px 0 0;border:1px solid var(--border)">${a.nombre}</span>`).join('');
+    ejecRows+=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="${ejecAvatarStyle[ejec]};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${ejec}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:600;color:var(--text1)">${ejecNombre[ejec]}</span>
+          <span style="font-size:11px;color:var(--text3)">${conAct.length} de ${total} cuentas usando dashboards</span>
+          <span style="font-size:12px;font-weight:700;color:var(--amber);margin-left:auto">${pct}%</span>
+        </div>
+        <div class="okr-bar-wrap" style="margin-bottom:${sinAct.length?'6px':'0'}"><div class="okr-bar bar-orange" style="width:${pct}%"></div></div>
+        ${sinAct.length?`<div style="line-height:1.4">${chips}</div>`:''}
+      </div>
+    </div>`;
+  });
+  el('okr-ejec-wrap').innerHTML=ejecRows||'<span style="font-size:12px;color:var(--text3)">Sin datos de ejecutivos</span>';
 
   // OKR 2
   const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
@@ -1970,7 +1999,7 @@ function renderCalendario(){
 
   // Badge
   const upcoming = events.filter(e=>e.nextDate).length;
-  el('badge-calendario').textContent = upcoming;
+  const badgeCal=el('badge-calendario');if(badgeCal)badgeCal.textContent=upcoming;
 
   if(calView==='month') renderMonthView(events, today);
   else renderWeekView(events, today);
@@ -2576,14 +2605,18 @@ window.switchJiraTab = function(tab, btn){
   btn.classList.add('active');
   const t=document.getElementById('jira-tab-'+tab);
   if(t) t.classList.add('active');
+  const f=el('jira-form');if(f)f.style.display='none';
   if(tab==='backlog') renderBacklog();
   if(tab==='prioridades') window.renderJiras();
   if(tab==='usuarios') window.renderUsuariosJira();
+  if(tab==='metricas') window.renderMetricas();
 };
 
 window.toggleJiraForm = function(){
   const f=el('jira-form');
-  f.style.display=f.style.display==='none'?'block':'none';
+  const show=f.style.display==='none';
+  f.style.display=show?'block':'none';
+  if(show) f.scrollIntoView({behavior:'smooth',block:'start'});
 };
 window.toggleUsuarioForm = function(){
   const f=el('usuario-form');
@@ -2597,7 +2630,7 @@ window.renderJiras = function(){
   const corregir = jiraTickets.filter(t=>t.status==='Corregir').length;
   const verificar = jiraTickets.filter(t=>t.status==='Verificar').length;
   const cerrados = jiraTickets.filter(t=>t.status==='Cerrado').length;
-  el('badge-jiras').textContent = total-cerrados;
+  const badgeJiras=el('badge-jiras');if(badgeJiras)badgeJiras.textContent=total-cerrados;
   el('jiras-stats').innerHTML=`
     <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${total}</div><div class="stat-sub">tickets</div></div>
     <div class="stat-card sc-red"><div class="stat-label">Corregir</div><div class="stat-val">${corregir}</div><div class="stat-sub">errores</div></div>
@@ -2615,7 +2648,7 @@ window.renderJiras = function(){
     list.innerHTML='<div class="empty-state" style="padding:24px">Sin tickets enviados a desarrollo.<br><span style="font-size:11px;color:var(--text3)">Seleccioná tickets del Backlog y marcalos como enviados.</span></div>';
     return;
   }
-  list.innerHTML=`<table class="backlog-table">
+  list.innerHTML=`<div class="overflow-wrap"><table class="backlog-table">
     <thead><tr>
       <th style="width:20px"></th>
       <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
@@ -2646,7 +2679,7 @@ window.renderJiras = function(){
         <button class="del-btn" onclick="removeFromPrioridades('${t.id||t.jira}')" title="Quitar de prioridades">↩</button>
       </td>
     </tr>`).join('')}</tbody>
-  </table>`;
+  </table></div>`;
 };
 
 // ── BACKLOG SELECTION HELPERS
@@ -2838,30 +2871,6 @@ window.removeFromPrioridades = async function(idOrJira){
   }catch{setSyncStatus('error');}
 };
 
-// Drag & drop for priority reorder
-window.jiDragStart = function(e,i){ dragSrcIdx=i; e.currentTarget.classList.add('dragging'); };
-window.jiDragOver = function(e,i){ e.preventDefault(); };
-window.jiDragEnd = function(e){ e.currentTarget.classList.remove('dragging'); };
-window.jiDrop = function(e,targetIdx){
-  e.preventDefault();
-  if(dragSrcIdx===null||dragSrcIdx===targetIdx) return;
-  // Reorder jiraTickets by current filtered order
-  const area = el('jira-filter-area')?.value||'todos';
-  const showClosed = (el('jira-filter-status-pri')?.value||'activos')==='todos';
-  let data = [...jiraTickets].sort((a,b)=>a.prioridad-b.prioridad);
-  if(area!=='todos') data=data.filter(t=>t.area===area);
-  if(!showClosed) data=data.filter(t=>t.status!=='Cerrado');
-  const moved = data.splice(dragSrcIdx,1)[0];
-  data.splice(targetIdx,0,moved);
-  // Update priorities
-  data.forEach((t,i)=>{
-    const orig = jiraTickets.find(x=>(x.id||x.jira)===(t.id||t.jira));
-    if(orig) orig.prioridad = i+1;
-  });
-  dragSrcIdx=null;
-  savePriorities();
-  renderJiras();
-};
 
 async function savePriorities(){
   setSyncStatus('syncing');
@@ -2878,10 +2887,19 @@ async function savePriorities(){
 window.updateJiraStatus = async function(idOrJira, status){
   const t = jiraTickets.find(x=>(x.id||x.jira)===idOrJira);
   if(!t) return;
+  const prevStatus = t.status;
   t.status = status;
+  const today = new Date().toISOString().split('T')[0];
+  const updates = {status};
+  if(status==='Cerrado'){
+    updates.fechaCierre = today; t.fechaCierre = today;
+  } else if(prevStatus==='Cerrado'){
+    updates.fechaCierre = ''; t.fechaCierre = '';
+    updates.reopenedCount = (t.reopenedCount||0)+1; t.reopenedCount = updates.reopenedCount;
+  }
   setSyncStatus('syncing');
   try{
-    if(t.id) await updateDoc(doc(db,'jiras',t.id),{status});
+    if(t.id) await updateDoc(doc(db,'jiras',t.id),updates);
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
   renderJiras();
@@ -2913,13 +2931,16 @@ window.addJira = async function(){
     detalle,
     status: el('nj-status')?.value||'Pendiente',
     fechaInicio: el('nj-fecha')?.value||new Date().toISOString().split('T')[0],
+    sprint: el('nj-sprint')?.value.trim()||'',
     prioridad: maxPri+1,
     prioridadNivel: el('nj-prioridad')?.value||'media',
+    fechaCierre: '',
+    reopenedCount: 0,
   };
   setSyncStatus('syncing');
   try{
     await addDoc(collection(db,'jiras'),{...ticket, createdAt:serverTimestamp()});
-    ['nj-detalle','nj-jira','nj-cliente','nj-producto','nj-fecha'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    ['nj-detalle','nj-jira','nj-cliente','nj-producto','nj-fecha','nj-sprint'].forEach(id=>{const e=el(id);if(e)e.value='';});
     el('jira-form').style.display='none';
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
@@ -2940,7 +2961,7 @@ window.renderBacklog = function(){
   if(!list) return;
   if(!data.length){list.innerHTML='<div class="empty-state">Sin tickets</div>';return;}
 
-  list.innerHTML=`<table class="backlog-table">
+  list.innerHTML=`<div class="overflow-wrap"><table class="backlog-table">
     <thead><tr>
       <th><input type="checkbox" id="cb-all" onchange="toggleAllBacklog(this.checked)" class="backlog-cb"/></th>
       <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
@@ -2965,8 +2986,141 @@ window.renderBacklog = function(){
         <td><button class="del-btn" onclick="deleteJira('${t.id||t.jira}')">✕</button></td>
       </tr>`;
     }).join('')}</tbody>
-  </table>`;
+  </table></div>`;
   updateSelectedCount();
+};
+
+window.renderMetricas = function(){
+  const cont = el('jira-metricas-content');
+  if(!cont) return;
+  const today = new Date();
+  const diffDays = (a,b)=>Math.max(0,Math.floor((b-a)/86400000));
+  const parseDate = s=>s?new Date(s):null;
+
+  // ── Aging (tickets abiertos)
+  const abiertos = jiraTickets.filter(t=>t.status!=='Cerrado'&&t.fechaInicio);
+  const agingDays = abiertos.map(t=>({...t,days:diffDays(parseDate(t.fechaInicio),today)}));
+  agingDays.sort((a,b)=>b.days-a.days);
+  const avgAging = abiertos.length ? (agingDays.reduce((s,t)=>s+t.days,0)/abiertos.length).toFixed(1) : '—';
+  const aged7  = agingDays.filter(t=>t.days<=7).length;
+  const aged30 = agingDays.filter(t=>t.days>7&&t.days<=30).length;
+  const aged30p = agingDays.filter(t=>t.days>30).length;
+
+  // ── Tiempo promedio de resolución
+  const cerrados = jiraTickets.filter(t=>t.status==='Cerrado'&&t.fechaInicio&&t.fechaCierre);
+  const resolDays = cerrados.map(t=>diffDays(parseDate(t.fechaInicio),parseDate(t.fechaCierre)));
+  const avgResol = cerrados.length ? (resolDays.reduce((s,d)=>s+d,0)/cerrados.length).toFixed(1) : '—';
+
+  // ── Tickets por sprint
+  const sprintMap = {};
+  jiraTickets.forEach(t=>{
+    const s = t.sprint||'Sin sprint';
+    if(!sprintMap[s]) sprintMap[s]={total:0,cerrados:0};
+    sprintMap[s].total++;
+    if(t.status==='Cerrado') sprintMap[s].cerrados++;
+  });
+  const sprints = Object.entries(sprintMap).sort((a,b)=>a[0].localeCompare(b[0]));
+
+  // ── % reabiertos
+  const reabiertos = jiraTickets.filter(t=>(t.reopenedCount||0)>0).length;
+  const pctReabiertos = jiraTickets.length ? ((reabiertos/jiraTickets.length)*100).toFixed(1) : '—';
+
+  const metricCard = (icon,label,value,sub,color='var(--navy)')=>`
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">${icon} ${label}</div>
+      <div style="font-size:32px;font-weight:700;color:${color};font-family:'DM Mono',monospace;line-height:1.1">${value}</div>
+      <div style="font-size:11px;color:var(--text3)">${sub}</div>
+    </div>`;
+
+  cont.innerHTML=`
+    <div class="metrics-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px">
+      ${metricCard('⏱','Aging promedio',avgAging===('—')?'—':avgAging+'d','días en tickets abiertos','var(--amber)')}
+      ${metricCard('✅','Tiempo de resolución',avgResol===('—')?'—':avgResol+'d','promedio hasta cierre','var(--green)')}
+      ${metricCard('🔁','Tickets reabiertos',pctReabiertos===('—')?'—':pctReabiertos+'%',reabiertos+' de '+jiraTickets.length+' tickets','var(--red)')}
+      ${metricCard('📦','Sprints registrados',sprints.length,'sprints con tickets','var(--navy)')}
+    </div>
+
+    <div class="metrics-main-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <!-- Aging detalle -->
+      <div class="panel">
+        <div class="panel-head"><h3>Aging de tickets abiertos</h3></div>
+        <div style="padding:16px">
+          <div style="display:flex;gap:12px;margin-bottom:16px">
+            <div style="flex:1;text-align:center;background:rgba(26,158,106,.08);border-radius:8px;padding:10px">
+              <div style="font-size:20px;font-weight:700;color:var(--green)">${aged7}</div>
+              <div style="font-size:11px;color:var(--text3)">≤ 7 días</div>
+            </div>
+            <div style="flex:1;text-align:center;background:rgba(217,119,6,.08);border-radius:8px;padding:10px">
+              <div style="font-size:20px;font-weight:700;color:var(--amber)">${aged30}</div>
+              <div style="font-size:11px;color:var(--text3)">8–30 días</div>
+            </div>
+            <div style="flex:1;text-align:center;background:rgba(220,38,38,.08);border-radius:8px;padding:10px">
+              <div style="font-size:20px;font-weight:700;color:var(--red)">${aged30p}</div>
+              <div style="font-size:11px;color:var(--text3)">> 30 días</div>
+            </div>
+          </div>
+          ${agingDays.length?`<div style="overflow-x:auto"><table class="backlog-table" style="min-width:420px"><thead><tr><th>Ticket</th><th>Días</th><th>Status</th></tr></thead><tbody>
+            ${agingDays.slice(0,8).map(t=>`<tr>
+              <td style="font-size:12px"><div style="font-weight:500">${t.detalle||'—'}</div>${t.jira?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${t.jira}</span>`:''}</td>
+              <td style="font-family:'DM Mono',monospace;font-weight:700;white-space:nowrap;color:${t.days>30?'var(--red)':t.days>7?'var(--amber)':'var(--green)'}">${t.days}d</td>
+              <td style="white-space:nowrap"><span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span></td>
+            </tr>`).join('')}
+          </tbody></table></div>`:'<div class="empty-state">Sin tickets abiertos</div>'}
+        </div>
+      </div>
+
+      <!-- Sprints -->
+      <div class="panel">
+        <div class="panel-head"><h3>Tickets por sprint</h3></div>
+        <div style="padding:16px">
+          ${sprints.length?`<div class="overflow-wrap"><table class="backlog-table"><thead><tr><th>Sprint</th><th>Total</th><th>Cerrados</th><th>% completado</th></tr></thead><tbody>
+            ${sprints.map(([s,d])=>{
+              const pct = d.total?Math.round(d.cerrados/d.total*100):0;
+              return`<tr>
+                <td style="font-size:12px;font-weight:500">${s}</td>
+                <td style="font-family:'DM Mono',monospace">${d.total}</td>
+                <td style="font-family:'DM Mono',monospace;color:var(--green)">${d.cerrados}</td>
+                <td><div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:6px;background:var(--border);border-radius:3px"><div style="width:${pct}%;height:100%;background:var(--green);border-radius:3px"></div></div>
+                  <span style="font-size:11px;font-family:'DM Mono',monospace;min-width:30px">${pct}%</span>
+                </div></td>
+              </tr>`;}).join('')}
+          </tbody></table></div>`:'<div class="empty-state">Sin sprints registrados aún</div>'}
+        </div>
+      </div>
+
+      <!-- Resolución por área -->
+      <div class="panel">
+        <div class="panel-head"><h3>Tiempo de resolución por área</h3></div>
+        <div style="padding:16px">
+          ${['BI','BD'].map(area=>{
+            const ts=cerrados.filter(t=>t.area===area);
+            const avg=ts.length?(ts.reduce((s,t)=>s+diffDays(parseDate(t.fechaInicio),parseDate(t.fechaCierre)),0)/ts.length).toFixed(1):'—';
+            return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+              <span class="jira-area ${area.toLowerCase()}">${area}</span>
+              <span style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--navy)">${avg==='—'?'—':avg+'d'}</span>
+              <span style="font-size:11px;color:var(--text3)">${ts.length} cerrado${ts.length!==1?'s':''}</span>
+            </div>`;}).join('')}
+          <div style="padding-top:12px;font-size:11px;color:var(--text3)">Promedio global: <strong>${avgResol==='—'?'—':avgResol+'d'}</strong> · ${cerrados.length} ticket${cerrados.length!==1?'s':''} cerrado${cerrados.length!==1?'s':''}</div>
+        </div>
+      </div>
+
+      <!-- Reabiertos -->
+      <div class="panel">
+        <div class="panel-head"><h3>Tickets reabiertos</h3></div>
+        <div style="padding:16px">
+          ${jiraTickets.filter(t=>(t.reopenedCount||0)>0).length?`<div class="overflow-wrap"><table class="backlog-table"><thead><tr><th>Ticket</th><th>Cliente</th><th>Veces</th></tr></thead><tbody>
+            ${jiraTickets.filter(t=>(t.reopenedCount||0)>0).sort((a,b)=>(b.reopenedCount||0)-(a.reopenedCount||0)).map(t=>`<tr>
+              <td style="font-size:12px;max-width:200px"><div style="font-weight:500">${t.detalle||'—'}</div>${t.jira?`<span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${t.jira}</span>`:''}</td>
+              <td style="font-size:12px">${t.cliente||'—'}</td>
+              <td style="font-family:'DM Mono',monospace;font-weight:700;color:var(--red)">${t.reopenedCount||0}x</td>
+            </tr>`).join('')}
+          </tbody></table></div>`:'<div class="empty-state">Sin tickets reabiertos 🎉</div>'}
+        </div>
+      </div>
+
+    </div>`;
 };
 
 window.renderUsuariosJira = function(){
@@ -3013,6 +3167,50 @@ window.addUsuarioJira = async function(){
     el('usuario-form').style.display='none';
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
+};
+
+window.exportCuentasExcel = function(){
+  const data = getFilteredAccounts();
+  const today = new Date().toISOString().split('T')[0];
+  const wsData = [
+    ['Cliente','NID','Ejecutivo','Tipo servicio','Tier','Estado','Provincia','Región','Locales','Último contacto','Última presentación','Últ. movimiento','Motivo baja','Notas']
+  ];
+  data.forEach(a=>{
+    wsData.push([
+      a.nombre||'',
+      a.nid||'',
+      a.ejecutivo||'',
+      a.tipoServicio||'',
+      a.tier||'',
+      isActivo(a)?'Activo':'Caído',
+      a.localidad||'',
+      a.region||'',
+      parseFloat(a.locales)||0,
+      a.ultimoContacto||'',
+      a.ultimaPresentacion||'',
+      a.ultimoMovimiento||'',
+      a.motivoBaja||'',
+      a.notas||'',
+    ]);
+  });
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const colWidths = [30,14,12,18,8,10,16,16,10,16,20,16,20,30];
+  ws['!cols'] = colWidths.map(w=>({wch:w}));
+  // Header style bold
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for(let c=range.s.c;c<=range.e.c;c++){
+    const cell = ws[XLSX.utils.encode_cell({r:0,c})];
+    if(cell) cell.s = {font:{bold:true}};
+  }
+  // Filter info in filename
+  const parts = [];
+  if(accFilters.estado!=='todos') parts.push(accFilters.estado);
+  if(accFilters.tier!=='todos') parts.push('Tier'+accFilters.tier);
+  if(accFilters.ejecutivo!=='todos') parts.push(accFilters.ejecutivo);
+  const suffix = parts.length ? '_'+parts.join('_') : '';
+  XLSX.utils.book_append_sheet(wb, ws, 'Cartera');
+  XLSX.writeFile(wb, `Cartera_Cuentas${suffix}_${today}.xlsx`);
 };
 
 // Export to Excel using SheetJS
@@ -3107,10 +3305,10 @@ onSnapshot(collection(db,'jiras'), snap=>{
     jiraSeeded=true;
     INIT_TICKETS.forEach(t=>addDoc(collection(db,'jiras'),{...t,createdAt:serverTimestamp()}).catch(()=>{}));
   }
-  if(currentTab==='jiras') window.renderJiras();
+  if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();window.renderMetricas();}
 },()=>{
   if(jiraTickets.length===0) jiraTickets=INIT_TICKETS.map((t,i)=>({...t,id:'local-'+i}));
-  if(currentTab==='jiras') window.renderJiras();
+  if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();window.renderMetricas();}
 });
 
 onSnapshot(collection(db,'jiraUsuarios'), snap=>{
