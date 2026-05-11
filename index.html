@@ -1669,6 +1669,8 @@ function renderDashboard(){
   const cuentasConActividad = new Set(
     accounts.filter(a=>a.tableroKey&&TABLERO_DATA[a.tableroKey]).map(a=>a.tableroKey)
   );
+  console.log('accounts cargadas:', accounts.length);
+  console.log('cuentasConActividad:', [...cuentasConActividad]);
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
