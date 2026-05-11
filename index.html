@@ -1031,6 +1031,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             <input class="search-input" style="font-size:12px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);outline:none;width:180px" type="text" placeholder="Buscar..." oninput="filterHistorial(this.value)"/>
           </div>
         </div>
+        <div id="hist-tipo-filtro" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 0 4px"></div>
         <div class="historial-list" id="historial-list"><div class="loading-state">Cargando registros...</div></div>
       </div>
     </div>
@@ -1521,7 +1522,10 @@ function renderAccounts(){
 }
 
 // ── HISTORIAL
+let _histTipoFilter='todos';
+const _HIST_TIPOS=['todos','Llamada','Reunión','Email','WhatsApp','Visita','Sin respuesta','Presentación / Insight'];
 window.filterHistorial=function(v){histSearch=v.toLowerCase();renderHistorial();};
+window.filtrarHistorialTipo=function(tipo){_histTipoFilter=tipo;renderHistorial();};
 function getAllInteracciones(){
   const all=[];
   accounts.forEach(a=>{
@@ -1534,25 +1538,50 @@ function getAllInteracciones(){
 }
 function renderHistorial(){
   const all=getAllInteracciones();
-  const filtered=histSearch?all.filter(i=>[i.cuentaNombre,i.texto,i.autor,i.tipo].join(' ').toLowerCase().includes(histSearch)):all;
+  // Pills de tipo
+  const filtroEl=el('hist-tipo-filtro');
+  if(filtroEl){
+    filtroEl.innerHTML='<span style="font-size:11px;color:var(--text3);font-weight:500">Tipo:</span>'+
+      _HIST_TIPOS.map(t=>{
+        const active=t===_histTipoFilter;
+        return`<button onclick="filtrarHistorialTipo('${t.replace(/'/g,"\\'")}')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid ${active?'var(--navy)':'var(--border)'};background:${active?'var(--navy)':'transparent'};color:${active?'#fff':'var(--text2)'};cursor:pointer;font-family:'DM Sans',sans-serif">${t==='todos'?'Todos':t}</button>`;
+      }).join('');
+  }
+  // Stats (sobre todos, sin filtro de tipo)
   el('hist-stats').innerHTML=`
     <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${all.length}</div><div class="stat-sub">interacciones</div></div>
     <div class="stat-card sc-orange"><div class="stat-label">Este mes</div><div class="stat-val">${all.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length}</div><div class="stat-sub">registradas</div></div>
     <div class="stat-card sc-green"><div class="stat-label">Cuentas</div><div class="stat-val">${new Set(all.map(i=>i.cuentaId)).size}</div><div class="stat-sub">con actividad</div></div>`;
+  // Filtrar por tipo y búsqueda
+  let filtered=_histTipoFilter==='todos'?all:all.filter(i=>i.tipo===_histTipoFilter);
+  if(histSearch) filtered=filtered.filter(i=>[i.cuentaNombre,i.texto,i.autor,i.tipo].join(' ').toLowerCase().includes(histSearch));
   const list=el('historial-list');
   if(!filtered.length){list.innerHTML='<div class="empty-state">Sin interacciones registradas aún</div>';return;}
-  list.innerHTML=filtered.map(i=>`<div class="historial-item">
-    <div class="historial-avatar">${(i.autor||'?').slice(0,2).toUpperCase()}</div>
-    <div class="historial-body">
-      <div class="historial-header">
-        <span class="historial-cuenta">${i.cuentaNombre}</span>
-        <span class="historial-tipo">${i.tipo||'Nota'}</span>
-        <span class="historial-autor">${i.autor||'—'}</span>
-        <span class="historial-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</span>
+  list.innerHTML=filtered.map(i=>{
+    const esInsight=i.tipo==='Presentación / Insight';
+    const estado=i.estadoValidacion||'pendiente';
+    const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';
+    const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';
+    return`<div class="historial-item">
+      <div class="historial-avatar">${(i.autor||'?').slice(0,2).toUpperCase()}</div>
+      <div class="historial-body">
+        <div class="historial-header">
+          <span class="historial-cuenta">${i.cuentaNombre}</span>
+          <span class="historial-tipo">${i.tipo||'Nota'}</span>
+          <span class="historial-autor">${i.autor||'—'}</span>
+          <span class="historial-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</span>
+        </div>
+        <div class="historial-text">${i.texto}</div>
+        ${esInsight?`
+          ${i.descripcion?`<div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5;font-style:italic">${i.descripcion}</div>`:''}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+            ${i.link?`<a href="${i.link}" target="_blank" rel="noopener" style="font-size:11px;color:var(--navy);font-weight:500;text-decoration:none">🔗 Ver presentación</a>`:''}
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>
+            ${estado==='rechazada'&&i.motivoRechazo?`<span style="font-size:11px;color:var(--text3)">${i.motivoRechazo}</span>`:''}
+          </div>`:''}
       </div>
-      <div class="historial-text">${i.texto}</div>
-    </div>
-  </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── INTERACCIONES
