@@ -634,6 +634,64 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <button id="config-save-btn" onclick="guardarConfig()" style="padding:8px 18px;border-radius:8px;border:none;background:#0a2463;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Guardar</button>
     </div>
   </div>
+
+  <div id="informes-overlay" onclick="closeEnviarInformes()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000"></div>
+  <div id="informes-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,94vw);max-height:90vh;overflow-y:auto;background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:28px;z-index:1001;font-family:'DM Sans',sans-serif">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <span style="font-size:16px;font-weight:700;color:var(--text1)">📨 Enviar Informes</span>
+      <button onclick="closeEnviarInformes()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);line-height:1">✕</button>
+    </div>
+    <div id="informes-step-1">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px">Paso 1 — Cargar los informes</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Informe Regional (link)</label>
+          <input id="inf-link-regional" type="text" placeholder="https://drive.google.com/..." style="font-size:12px;padding:8px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+          <div id="inf-link-regional-err" style="display:none;color:#D93025;font-size:11px;margin-top:3px">Ingresá un link válido (https://...)</div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Informe Radar (link)</label>
+          <input id="inf-link-radar" type="text" placeholder="https://drive.google.com/..." style="font-size:12px;padding:8px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+          <div id="inf-link-radar-err" style="display:none;color:#D93025;font-size:11px;margin-top:3px">Ingresá un link válido (https://...)</div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Mes de referencia</label>
+          <input id="inf-mes" type="text" placeholder="Mayo 2026" style="font-size:12px;padding:8px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Descripción</label>
+          <input id="inf-descripcion" type="text" placeholder="Informes mayo 2026..." style="font-size:12px;padding:8px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:20px">
+        <button onclick="infPaso2()" style="padding:8px 20px;border-radius:8px;border:none;background:#0a2463;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Siguiente →</button>
+      </div>
+    </div>
+    <div id="informes-step-2" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Paso 2 — Seleccionar cuentas C destinatarias</div>
+        <button onclick="infSelAll()" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Seleccionar todas</button>
+      </div>
+      <div id="inf-cuentas-list" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:20px">
+        <button onclick="infVolver()" style="padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">← Volver</button>
+        <button onclick="infPaso3()" style="padding:8px 20px;border-radius:8px;border:none;background:#0a2463;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Siguiente →</button>
+      </div>
+    </div>
+    <div id="informes-step-3" style="display:none">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px">Paso 3 — Confirmar y registrar</div>
+      <div id="inf-resumen" style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6"></div>
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:20px">
+        <input type="checkbox" id="inf-confirmar" style="margin-top:2px;flex-shrink:0">
+        <span>Confirmo que envié ambos informes a las cuentas seleccionadas por WhatsApp el día de hoy</span>
+      </label>
+      <div style="display:flex;justify-content:space-between">
+        <button onclick="infVolver2()" style="padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">← Volver</button>
+        <button id="inf-registrar-btn" onclick="infRegistrar()" style="padding:8px 20px;border-radius:8px;border:none;background:#166534;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Registrar envío masivo</button>
+      </div>
+    </div>
+  </div>
+
   <div class="sidebar-footer"><p>Hoy: <span id="today-str"></span></p></div>
 </aside>
 
@@ -690,7 +748,18 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         </button>
       </div>
       <div class="dash-grid" id="okr-grid-1" style="grid-template-columns:repeat(3,1fr)"></div>
-      <div id="okr-grid-12" style="margin-bottom:14px"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:18px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3);font-weight:500">KR 1.2 · Ejecutivo:</span>
+        <button onclick="filtrarEjecutivoKR12('todos')" id="kr12-ejec-todos"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:#F4600C;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">Todos</button>
+        <button onclick="filtrarEjecutivoKR12('AJG')" id="kr12-ejec-AJG"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Aime Jurado García</button>
+        <button onclick="filtrarEjecutivoKR12('LS')" id="kr12-ejec-LS"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Leandro Segovia</button>
+        <button onclick="filtrarEjecutivoKR12('EE')" id="kr12-ejec-EE"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ezequiel Ercoreca</button>
+      </div>
+      <div class="dash-grid" id="okr-grid-12" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px"></div>
 
       <div class="dash-section-title" style="margin-top:8px">OKR 2 · Fortalecer la retención y reducir riesgos en la cartera</div>
       <div class="dash-grid" id="okr-grid-2"></div>
@@ -763,6 +832,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
                 <span class="results-count" id="results-count"></span>
                 <span class="locales-total" id="locales-total"></span>
                 <button class="btn export-btn btn-sm" onclick="exportCuentasExcel()">⬇ Exportar Excel</button>
+                <button class="btn btn-navy btn-sm" onclick="openEnviarInformes()">📨 Enviar Informes</button>
                 <button class="btn btn-primary btn-sm" onclick="toggleAccAddPanel()">+ Nueva cuenta</button>
               </div>
             </div>
@@ -1103,11 +1173,19 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           <button class="tipo-btn" onclick="selectTipo(this,'Visita')">🚗 Visita</button>
           <button class="tipo-btn" onclick="selectTipo(this,'Sin respuesta')">🔕 Sin respuesta</button>
           <button class="tipo-btn" onclick="selectTipo(this,'Presentación / Insight')">📊 Presentación / Insight</button>
+          <button class="tipo-btn tipo-btn-informe" onclick="selectTipo(this,'Informe Regional')" style="display:none">📊 Informe Regional</button>
+          <button class="tipo-btn tipo-btn-informe" onclick="selectTipo(this,'Informe Radar')" style="display:none">📡 Informe Radar</button>
         </div>
         <div id="insight-extra-fields" style="display:none;margin-top:8px;flex-direction:column;gap:8px">
           <input id="insight-link" type="text" placeholder="Link al PPT, mail o dashboard..." style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
           <div id="insight-link-error" style="display:none;color:#D93025;font-size:11px;margin-top:4px">Ingresá un link válido (debe empezar con http:// o https://)</div>
           <textarea id="insight-descripcion" placeholder="¿Qué se presentó y cuál fue el resultado?" style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box;resize:vertical;min-height:64px"></textarea>
+        </div>
+        <div id="informe-extra-fields" style="display:none;margin-top:8px;flex-direction:column;gap:8px">
+          <input id="informe-link" type="text" placeholder="Link al informe (Drive, etc)..." style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+          <div id="informe-link-error" style="display:none;color:#D93025;font-size:11px;margin-top:4px">Ingresá un link válido (debe empezar con http:// o https://)</div>
+          <input id="informe-mes" type="text" placeholder="Mes de referencia (ej: Mayo 2026)" style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+          <textarea id="informe-descripcion" placeholder="Descripción del informe..." style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box;resize:vertical;min-height:48px"></textarea>
         </div>
         <textarea id="interaccion-texto" placeholder="Describí la interacción, acuerdos, próximos pasos..."></textarea>
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
@@ -1524,7 +1602,7 @@ function renderAccounts(){
 
 // ── HISTORIAL
 let _histTipoFilter='todos',_histEjecFilter='todos',_histClienteSearch='';
-const _HIST_TIPOS=['todos','Llamada','Reunión','Email','WhatsApp','Visita','Sin respuesta','Presentación / Insight'];
+const _HIST_TIPOS=['todos','Llamada','Reunión','Email','WhatsApp','Visita','Sin respuesta','Presentación / Insight','Informe Regional','Informe Radar'];
 const _HIST_EJECS=[{id:'todos',label:'Todos'},{id:'AJG',label:'Aime Jurado García'},{id:'LS',label:'Leandro Segovia'},{id:'EE',label:'Ezequiel Ercoreca'}];
 const _pillStyle=(active)=>`font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid ${active?'var(--navy)':'var(--border)'};background:${active?'var(--navy)':'transparent'};color:${active?'#fff':'var(--text2)'};cursor:pointer;font-family:'DM Sans',sans-serif`;
 window.filtrarHistorialEjec=function(ejec){_histEjecFilter=ejec;renderHistorial();};
@@ -1574,6 +1652,10 @@ function _renderHistorialList(){
   const codigoEjec=ROLES[currentUser?.email]?.ejecutivo;
   list.innerHTML=filtered.map(i=>{
     const esInsight=i.tipo==='Presentación / Insight';
+    const esInforme=i.tipo==='Informe Regional'||i.tipo==='Informe Radar';
+    const infBadgeColor=i.tipo==='Informe Regional'?'#1D4ED8':'#7C3AED';
+    const infBadgeBg=i.tipo==='Informe Regional'?'#EFF6FF':'#F5F3FF';
+    const infEmoji=i.tipo==='Informe Regional'?'📊':'📡';
     const estado=i.estadoValidacion||'pendiente';
     const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';
     const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';
@@ -1597,6 +1679,14 @@ function _renderHistorialList(){
             <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>
             ${estado==='rechazada'&&i.motivoRechazo?`<span style="font-size:11px;color:var(--text3)">${i.motivoRechazo}</span>`:''}
             ${_validacionActiva&&currentRole==='admin'&&!i.validada?`<button onclick="validarInteraccion('${i.cuentaId}','${tsEsc}')" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;border:1.5px solid #166534;background:#F0FDF4;color:#166534;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Aprobar</button>`:''}
+          </div>`:''}
+        ${esInforme?`
+          ${i.descripcion?`<div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5;font-style:italic">${i.descripcion}</div>`:''}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${infBadgeBg};color:${infBadgeColor}">${infEmoji} ${i.tipo}</span>
+            ${i.mesReferencia?`<span style="font-size:11px;color:var(--text3)">${i.mesReferencia}</span>`:''}
+            ${i.link?`<a href="${i.link}" target="_blank" rel="noopener" style="font-size:11px;color:${infBadgeColor};font-weight:500;text-decoration:none">🔗 Ver informe</a>`:''}
+            ${i.esEnvioMasivo?`<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:#F0FDF4;color:#166534">✓ Enviado masivo</span>`:''}
           </div>`:''}
       </div>
     </div>`;
@@ -1632,6 +1722,8 @@ window.selectTipo=function(btn,tipo){
   btn.classList.add('active');
   const extra=el('insight-extra-fields');
   if(extra) extra.style.display=tipo==='Presentación / Insight'?'flex':'none';
+  const infExtra=el('informe-extra-fields');
+  if(infExtra) infExtra.style.display=(tipo==='Informe Regional'||tipo==='Informe Radar')?'flex':'none';
 };
 window.addInteraccion=async function(){
   if(!currentDrawerAccId)return;
@@ -1659,6 +1751,20 @@ window.addInteraccion=async function(){
     interaccion.validada=false;
     interaccion.estadoValidacion='pendiente';
   }
+  if(selectedTipo==='Informe Regional'||selectedTipo==='Informe Radar'){
+    const infLink=(el('informe-link').value||'').trim();
+    const infLinkErr=el('informe-link-error');
+    if(!/^https?:\/\/.+/.test(infLink)){
+      if(infLinkErr)infLinkErr.style.display='block';
+      return;
+    }
+    if(infLinkErr)infLinkErr.style.display='none';
+    interaccion.link=infLink;
+    interaccion.mesReferencia=(el('informe-mes').value||'').trim();
+    interaccion.descripcion=(el('informe-descripcion').value||'').trim();
+    interaccion.validada=true;
+    interaccion.estadoValidacion='aprobada';
+  }
   setSyncStatus('syncing');
   try{
     await updateDoc(doc(db,'accounts',currentDrawerAccId),{
@@ -1671,6 +1777,13 @@ window.addInteraccion=async function(){
       el('insight-descripcion').value='';
       const linkErr=el('insight-link-error');
       if(linkErr)linkErr.style.display='none';
+    }
+    if(selectedTipo==='Informe Regional'||selectedTipo==='Informe Radar'){
+      el('informe-link').value='';
+      el('informe-mes').value='';
+      el('informe-descripcion').value='';
+      const infLinkErr=el('informe-link-error');
+      if(infLinkErr)infLinkErr.style.display='none';
     }
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
@@ -1759,6 +1872,9 @@ window.openDrawer=function(id){
     <div class="history-dot"></div>
     <div><div class="history-text">${h.action}</div><div class="history-time">${h.ts?new Date(h.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div>
   </div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin historial</div>';
+  // Show Informe tipos only for tier C accounts
+  const tierCuenta = normTier(a.tier);
+  document.querySelectorAll('.tipo-btn-informe').forEach(b => b.style.display = tierCuenta==='C'?'':'none');
   el('acc-drawer').classList.add('open');el('drawer-overlay').classList.add('open');
 };
 window.closeDrawer=function(){el('acc-drawer').classList.remove('open');el('drawer-overlay').classList.remove('open');currentDrawerAccId=null;};
@@ -1843,22 +1959,71 @@ function renderDashboard(){
   };
   const churnRate=total?Math.round(caidos.length/total*100):0;
   const allInts=getAllInteracciones();
-  const intEsteMes=allInts.filter(i=>{const d=new Date(i.ts);return i.tipo==='Presentación / Insight'&&d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear()&&(!_validacionActiva||i.validada===true);}).length;
 
   // OKR 1
   el('okr-grid-1').innerHTML=`
     ${kr11Card('A+/A','#EEF2FF','#3730A3',pctAA,usoAA,totalAA,kr11Baseline.aa,kr11Obj.aa)}
     ${kr11Card('B','#EFF6FF','#1D4ED8',pctBpct,usoB,totalB,kr11Baseline.b,kr11Obj.b)}
     ${kr11Card('C','#F0FDF4','#166534',pctCpct,usoC,totalC,kr11Baseline.c,kr11Obj.c)}`;
-  el('okr-grid-12').innerHTML=`<div class="okr-card" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-    <div>
-      <div class="okr-label">KR 1.2 · Insights</div>
-      <div class="okr-title" style="margin-bottom:0">Presentaciones / insights generados este mes</div>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:8px;flex-shrink:0">
-      <span class="okr-pct">${intEsteMes}</span><span style="font-size:12px;color:var(--text3)">registradas · Objetivo A+/A: 1/semana · B: 1/mes</span>
-    </div>
-  </div>`;
+  // KR 1.2 — Presentaciones e Informes
+  const kr12Ejec = window._kr12EjecFilter || 'todos';
+  const kr12EjMatch = a => kr12Ejec==='todos'||(a.ejecutivo||'').trim().includes(kr12Ejec);
+  const todayTs = todayDate.getTime();
+  const semanaAtras = new Date(todayTs - 7*24*60*60*1000);
+  const mesActualMes = todayDate.getMonth();
+  const mesActualAnio = todayDate.getFullYear();
+
+  const allIntsKR12 = getAllInteracciones();
+
+  // A+/A: cuentas con ≥1 presentación aprobada en últimos 7 días
+  const activasAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&kr12EjMatch(a));
+  const conPresentSemana = new Set(
+    allIntsKR12.filter(i=>{
+      const d=new Date(i.ts);
+      return i.tipo==='Presentación / Insight'&&i.estadoValidacion==='aprobada'&&d>=semanaAtras&&d<=todayDate&&(kr12Ejec==='todos'||(i.cuentaEjecutivo||'').includes(kr12Ejec));
+    }).map(i=>i.cuentaId)
+  );
+  const kr12AA_num=activasAA.filter(a=>conPresentSemana.has(a.id)).length;
+  const kr12AA_den=activasAA.length;
+  const kr12AA_pct=kr12AA_den?Math.round(kr12AA_num/kr12AA_den*100):0;
+
+  // B: cuentas con ≥1 presentación aprobada este mes
+  const activasB = activos.filter(a=>normTier(a.tier)==='B'&&kr12EjMatch(a));
+  const conPresentMes = new Set(
+    allIntsKR12.filter(i=>{
+      const d=new Date(i.ts);
+      return i.tipo==='Presentación / Insight'&&i.estadoValidacion==='aprobada'&&d.getMonth()===mesActualMes&&d.getFullYear()===mesActualAnio&&(kr12Ejec==='todos'||(i.cuentaEjecutivo||'').includes(kr12Ejec));
+    }).map(i=>i.cuentaId)
+  );
+  const kr12B_num=activasB.filter(a=>conPresentMes.has(a.id)).length;
+  const kr12B_den=activasB.length;
+  const kr12B_pct=kr12B_den?Math.round(kr12B_num/kr12B_den*100):0;
+
+  // C: cuentas que recibieron AMBOS informes aprobados este mes
+  const activasC_kr12 = activos.filter(a=>normTier(a.tier)==='C'&&kr12EjMatch(a));
+  const intsMesC = allIntsKR12.filter(i=>{
+    const d=new Date(i.ts);
+    return i.estadoValidacion==='aprobada'&&d.getMonth()===mesActualMes&&d.getFullYear()===mesActualAnio&&(kr12Ejec==='todos'||(i.cuentaEjecutivo||'').includes(kr12Ejec));
+  });
+  const kr12C_num=activasC_kr12.filter(a=>{
+    const intsCuenta=intsMesC.filter(i=>i.cuentaId===a.id);
+    return intsCuenta.some(i=>i.tipo==='Informe Regional')&&intsCuenta.some(i=>i.tipo==='Informe Radar');
+  }).length;
+  const kr12C_den=activasC_kr12.length;
+  const kr12C_pct=kr12C_den?Math.round(kr12C_num/kr12C_den*100):0;
+
+  const kr12Card=(label,chipBg,chipColor,pct,num,den,subtexto)=>`
+    <div class="okr-card">
+      <div class="okr-label">KR 1.2 · <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${chipBg};color:${chipColor}">${label}</span></div>
+      <div class="okr-pct">${pct}%</div>
+      <div class="okr-progress-row" style="margin-top:4px"><div class="okr-bar-wrap" style="flex:1"><div class="okr-bar" style="width:${Math.min(pct,100)}%;background:${chipColor}"></div></div></div>
+      <div class="okr-target">${num} de ${den} cuentas · ${subtexto}</div>
+    </div>`;
+
+  el('okr-grid-12').innerHTML=`
+    ${kr12Card('A+/A','#EEF2FF','#3730A3',kr12AA_pct,kr12AA_num,kr12AA_den,'Presentaciones esta semana · obj: 1/semana')}
+    ${kr12Card('B','#EFF6FF','#1D4ED8',kr12B_pct,kr12B_num,kr12B_den,'Presentaciones este mes · obj: 1/mes')}
+    ${kr12Card('C','#F0FDF4','#166534',kr12C_pct,kr12C_num,kr12C_den,'Informes Regional + Radar este mes')}`;
 
   // OKR 2
   const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
@@ -1938,6 +2103,19 @@ window.filtrarEjecutivoKR = function(ejec){
     btn.style.background = active ? '#F4600C' : 'transparent';
     btn.style.color = active ? '#fff' : 'var(--text2)';
     btn.style.borderColor = active ? '#F4600C' : 'var(--border)';
+  });
+  renderDashboard();
+};
+
+window.filtrarEjecutivoKR12 = function(ejec){
+  window._kr12EjecFilter = ejec;
+  ['todos','AJG','LS','EE'].forEach(e=>{
+    const btn=document.getElementById('kr12-ejec-'+e);
+    if(!btn)return;
+    const active=e===ejec;
+    btn.style.background=active?'#F4600C':'transparent';
+    btn.style.color=active?'#fff':'var(--text2)';
+    btn.style.borderColor=active?'#F4600C':'var(--border)';
   });
   renderDashboard();
 };
@@ -2037,6 +2215,119 @@ function _actualizarToggle(){
   btn.style.color = _validacionActiva ? '#fff' : 'var(--text2)';
   btn.style.borderColor = _validacionActiva ? '#F4600C' : 'var(--border)';
 }
+
+// ── ENVIAR INFORMES
+let _infCuentasSeleccionadas = new Set();
+
+window.openEnviarInformes = function(){
+  el('informes-overlay').style.display='block';
+  el('informes-modal').style.display='block';
+  el('informes-step-1').style.display='block';
+  el('informes-step-2').style.display='none';
+  el('informes-step-3').style.display='none';
+  el('inf-link-regional').value='';
+  el('inf-link-radar').value='';
+  el('inf-link-regional-err').style.display='none';
+  el('inf-link-radar-err').style.display='none';
+  el('inf-mes').value='';
+  el('inf-descripcion').value='';
+  _infCuentasSeleccionadas=new Set();
+};
+
+window.closeEnviarInformes = function(){
+  el('informes-overlay').style.display='none';
+  el('informes-modal').style.display='none';
+};
+
+window.infPaso2 = function(){
+  const lr=(el('inf-link-regional').value||'').trim();
+  const lrad=(el('inf-link-radar').value||'').trim();
+  let ok=true;
+  el('inf-link-regional-err').style.display=/^https?:\/\/.+/.test(lr)?'none':(ok=false,'block');
+  el('inf-link-radar-err').style.display=/^https?:\/\/.+/.test(lrad)?'none':(ok=false,'block');
+  if(!ok)return;
+  // Build C accounts list with status badges
+  const hoy=new Date();
+  const mes=hoy.getMonth(); const anio=hoy.getFullYear();
+  const cuentasC=accounts.filter(a=>isActivo(a)&&normTier(a.tier)==='C').sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+  const allI=getAllInteracciones();
+  const intsMesC=allI.filter(i=>{const d=new Date(i.ts);return i.estadoValidacion==='aprobada'&&d.getMonth()===mes&&d.getFullYear()===anio;});
+  el('inf-cuentas-list').innerHTML=cuentasC.map(a=>{
+    const ints=intsMesC.filter(i=>i.cuentaId===a.id);
+    const tieneR=ints.some(i=>i.tipo==='Informe Regional');
+    const tieneRad=ints.some(i=>i.tipo==='Informe Radar');
+    const badge=tieneR&&tieneRad?'<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:#F0FDF4;color:#166534">✓ Ambos</span>':
+      (tieneR||tieneRad)?'<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:#FFFBEB;color:#92400E">Parcial</span>':
+      '<span style="font-size:10px;padding:1px 7px;border-radius:20px;background:var(--surface2);color:var(--text3)">Ninguno</span>';
+    const checked=_infCuentasSeleccionadas.has(a.id)?'checked':'';
+    return`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--text)">
+      <input type="checkbox" value="${a.id}" ${checked} onchange="infToggleCuenta(this)" style="flex-shrink:0">
+      <span style="flex:1">${a.nombre}</span>
+      ${badge}
+    </label>`;
+  }).join('');
+  el('informes-step-1').style.display='none';
+  el('informes-step-2').style.display='block';
+};
+
+window.infSelAll = function(){
+  const cuentasC=accounts.filter(a=>isActivo(a)&&normTier(a.tier)==='C');
+  cuentasC.forEach(a=>_infCuentasSeleccionadas.add(a.id));
+  el('inf-cuentas-list').querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=true);
+};
+
+window.infToggleCuenta = function(cb){
+  if(cb.checked)_infCuentasSeleccionadas.add(cb.value);
+  else _infCuentasSeleccionadas.delete(cb.value);
+};
+
+window.infPaso3 = function(){
+  if(!_infCuentasSeleccionadas.size){alert('Seleccioná al menos una cuenta');return;}
+  const n=_infCuentasSeleccionadas.size;
+  el('inf-resumen').innerHTML=`Se registrarán <strong>Informe Regional</strong> e <strong>Informe Radar</strong> como interacciones aprobadas en <strong>${n} cuenta${n>1?'s':''}</strong>.`;
+  el('inf-confirmar').checked=false;
+  el('informes-step-2').style.display='none';
+  el('informes-step-3').style.display='block';
+};
+
+window.infVolver = function(){
+  el('informes-step-2').style.display='none';
+  el('informes-step-1').style.display='block';
+};
+
+window.infVolver2 = function(){
+  el('informes-step-3').style.display='none';
+  el('informes-step-2').style.display='block';
+};
+
+window.infRegistrar = async function(){
+  if(!el('inf-confirmar').checked){alert('Confirmá el envío antes de registrar.');return;}
+  const btn=el('inf-registrar-btn');
+  btn.textContent='Registrando...';btn.disabled=true;
+  const linkR=(el('inf-link-regional').value||'').trim();
+  const linkRad=(el('inf-link-radar').value||'').trim();
+  const mes=(el('inf-mes').value||'').trim();
+  const desc=(el('inf-descripcion').value||'').trim();
+  const ts=new Date().toISOString();
+  const codigoEjec=ROLES[currentUser?.email]?.ejecutivo||'';
+  const base={autor:ROLES[currentUser?.email]?.name||currentUser?.email||'—',ejecutivo:codigoEjec,validada:true,estadoValidacion:'aprobada',esEnvioMasivo:true,mesReferencia:mes,descripcion:desc};
+  try{
+    const promises=[..._infCuentasSeleccionadas].map(async cuentaId=>{
+      const intR={...base,tipo:'Informe Regional',link:linkR,ts:new Date().toISOString()};
+      await new Promise(r=>setTimeout(r,0));
+      const intRad={...base,tipo:'Informe Radar',link:linkRad,ts:new Date(Date.now()+1).toISOString()};
+      await updateDoc(doc(db,'accounts',cuentaId),{interacciones:arrayUnion(intR,intRad)});
+    });
+    await Promise.all(promises);
+    closeEnviarInformes();
+    const n=_infCuentasSeleccionadas.size;
+    alert(`✅ Informes Regional y Radar registrados en ${n} cuenta${n>1?'s':''}`);
+    if(currentTab==='dashboard')renderDashboard();
+  }catch(e){
+    btn.textContent='Registrar envío masivo';btn.disabled=false;
+    alert('Error al registrar. Intentá de nuevo.');
+  }
+};
 
 window.doLogin = async function(){
   const email = el('login-email').value.trim();
