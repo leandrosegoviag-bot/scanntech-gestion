@@ -1083,6 +1083,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         </div>
         <div id="insight-extra-fields" style="display:none;margin-top:8px;flex-direction:column;gap:8px">
           <input id="insight-link" type="text" placeholder="Link al PPT, mail o dashboard..." style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+          <div id="insight-link-error" style="display:none;color:#D93025;font-size:11px;margin-top:4px">Ingresá un link válido (debe empezar con http:// o https://)</div>
           <textarea id="insight-descripcion" placeholder="¿Qué se presentó y cuál fue el resultado?" style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box;resize:vertical;min-height:64px"></textarea>
         </div>
         <textarea id="interaccion-texto" placeholder="Describí la interacción, acuerdos, próximos pasos..."></textarea>
@@ -1548,7 +1549,14 @@ window.addInteraccion=async function(){
   const autor=el('interaccion-autor').value;
   const interaccion={tipo:selectedTipo,texto,autor,ts:new Date().toISOString()};
   if(selectedTipo==='Presentación / Insight'){
-    interaccion.link=(el('insight-link').value||'').trim();
+    const linkVal=(el('insight-link').value||'').trim();
+    const linkErr=el('insight-link-error');
+    if(!/^https?:\/\/.+/.test(linkVal)){
+      if(linkErr)linkErr.style.display='block';
+      return;
+    }
+    if(linkErr)linkErr.style.display='none';
+    interaccion.link=linkVal;
     interaccion.descripcion=(el('insight-descripcion').value||'').trim();
     interaccion.validada=false;
     interaccion.estadoValidacion='pendiente';
@@ -1563,6 +1571,8 @@ window.addInteraccion=async function(){
     if(selectedTipo==='Presentación / Insight'){
       el('insight-link').value='';
       el('insight-descripcion').value='';
+      const linkErr=el('insight-link-error');
+      if(linkErr)linkErr.style.display='none';
     }
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
