@@ -1079,6 +1079,11 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
           <button class="tipo-btn" onclick="selectTipo(this,'WhatsApp')">💬 WhatsApp</button>
           <button class="tipo-btn" onclick="selectTipo(this,'Visita')">🚗 Visita</button>
           <button class="tipo-btn" onclick="selectTipo(this,'Sin respuesta')">🔕 Sin respuesta</button>
+          <button class="tipo-btn" onclick="selectTipo(this,'Presentación / Insight')">📊 Presentación / Insight</button>
+        </div>
+        <div id="insight-extra-fields" style="display:none;margin-top:8px;flex-direction:column;gap:8px">
+          <input id="insight-link" type="text" placeholder="Link al PPT, mail o dashboard..." style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box">
+          <textarea id="insight-descripcion" placeholder="¿Qué se presentó y cuál fue el resultado?" style="font-size:12px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box;resize:vertical;min-height:64px"></textarea>
         </div>
         <textarea id="interaccion-texto" placeholder="Describí la interacción, acuerdos, próximos pasos..."></textarea>
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
@@ -1534,12 +1539,20 @@ window.selectTipo=function(btn,tipo){
   selectedTipo=tipo;
   document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  const extra=el('insight-extra-fields');
+  if(extra) extra.style.display=tipo==='Presentación / Insight'?'flex':'none';
 };
 window.addInteraccion=async function(){
   if(!currentDrawerAccId)return;
   const texto=el('interaccion-texto').value.trim();if(!texto)return;
   const autor=el('interaccion-autor').value;
   const interaccion={tipo:selectedTipo,texto,autor,ts:new Date().toISOString()};
+  if(selectedTipo==='Presentación / Insight'){
+    interaccion.link=(el('insight-link').value||'').trim();
+    interaccion.descripcion=(el('insight-descripcion').value||'').trim();
+    interaccion.validada=false;
+    interaccion.estadoValidacion='pendiente';
+  }
   setSyncStatus('syncing');
   try{
     await updateDoc(doc(db,'accounts',currentDrawerAccId),{
@@ -1547,6 +1560,10 @@ window.addInteraccion=async function(){
       ultimoContacto:new Date().toISOString().split('T')[0]
     });
     el('interaccion-texto').value='';
+    if(selectedTipo==='Presentación / Insight'){
+      el('insight-link').value='';
+      el('insight-descripcion').value='';
+    }
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
 };
