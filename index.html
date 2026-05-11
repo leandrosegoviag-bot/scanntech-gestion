@@ -608,7 +608,27 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="user-name" id="user-name">—</div>
       <div class="user-role" id="user-role">—</div>
     </div>
+    <button id="config-btn" onclick="openConfig()" title="Configuración" style="display:none;background:none;border:none;cursor:pointer;font-size:16px;padding:4px;color:var(--text3);line-height:1">⚙️</button>
     <button class="logout-btn" onclick="doLogout()">Salir</button>
+  </div>
+
+  <!-- Modal configuración -->
+  <div id="config-overlay" onclick="closeConfig()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000"></div>
+  <div id="config-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(480px,92vw);background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:28px;z-index:1001;font-family:'DM Sans',sans-serif">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <span style="font-size:16px;font-weight:700;color:var(--text1)">⚙️ Configuración del sistema</span>
+      <button onclick="closeConfig()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);line-height:1">✕</button>
+    </div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:14px">Presentaciones &amp; Validación</div>
+    <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:4px">Validación de presentaciones</div>
+        <div style="font-size:12px;color:var(--text3);line-height:1.5">Las presentaciones requieren aprobación<br>del administrador antes de contar para KR 1.2.</div>
+      </div>
+      <button id="config-toggle-btn" onclick="toggleValidacion()" style="flex-shrink:0;min-width:72px;padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">○ OFF</button>
+    </div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:20px 0 14px">Equipo</div>
+    <div style="font-size:12px;color:var(--text3);padding:0 4px">(vacío por ahora)</div>
   </div>
   <div class="sidebar-footer"><p>Hoy: <span id="today-str"></span></p></div>
 </aside>
@@ -1118,7 +1138,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, arrayUnion, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, arrayUnion, orderBy, query, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -1869,6 +1889,42 @@ const ROLES = {
 let currentUser = null;
 let currentRole = null;
 
+// ── CONFIGURACIÓN
+let _validacionActiva = true;
+const _configDocRef = () => doc(db, 'config', 'sistema');
+
+window.openConfig = async function(){
+  el('config-overlay').style.display='block';
+  el('config-modal').style.display='block';
+  try{
+    const snap = await getDoc(_configDocRef());
+    _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
+  }catch{ _validacionActiva = true; }
+  _actualizarToggle();
+};
+
+window.closeConfig = function(){
+  el('config-overlay').style.display='none';
+  el('config-modal').style.display='none';
+};
+
+window.toggleValidacion = async function(){
+  _validacionActiva = !_validacionActiva;
+  _actualizarToggle();
+  try{
+    await setDoc(_configDocRef(), {validacionActiva: _validacionActiva}, {merge: true});
+  }catch{ /* silent */ }
+};
+
+function _actualizarToggle(){
+  const btn = el('config-toggle-btn');
+  if(!btn) return;
+  btn.textContent = _validacionActiva ? '● ON' : '○ OFF';
+  btn.style.background = _validacionActiva ? '#F4600C' : 'var(--surface2)';
+  btn.style.color = _validacionActiva ? '#fff' : 'var(--text2)';
+  btn.style.borderColor = _validacionActiva ? '#F4600C' : 'var(--border)';
+}
+
 window.doLogin = async function(){
   const email = el('login-email').value.trim();
   const pass  = el('login-pass').value;
@@ -1921,6 +1977,7 @@ onAuthStateChanged(auth, user=>{
     el('user-avatar').textContent=info.name.slice(0,2).toUpperCase();
     el('user-name').textContent=info.name;
     el('user-role').textContent=info.role==='admin'?'Administrador':'Integrante';
+    el('config-btn').style.display=info.role==='admin'?'inline-block':'none';
     // Apply role restrictions
     applyRoleUI();
   } else {
