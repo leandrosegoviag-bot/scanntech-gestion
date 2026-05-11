@@ -1909,7 +1909,6 @@ onAuthStateChanged(auth, user=>{
     el('user-role').textContent=info.role==='admin'?'Administrador':'Integrante';
     // Apply role restrictions
     applyRoleUI();
-    seedTableroKeys();
   } else {
     currentUser=null; currentRole=null;
     el('login-overlay').classList.add('show');
