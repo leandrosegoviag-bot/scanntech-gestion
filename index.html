@@ -2250,7 +2250,19 @@ function _normNombre(s){
 const _tNorm={},_bNorm={};
 Object.keys(TABLERO_DATA).forEach(k=>{const n=_normNombre(k);if(n)_tNorm[n]=k;});
 Object.keys(BASE2026_DATA).forEach(k=>{const n=_normNombre(k);if(n)_bNorm[n]=k;});
+const NOMBRE_ALIASES={
+  'BLU':'Super Blu',
+  'LA_AMISTAD':'SUPERMERCADO LA AMISTAD (API)',
+  'LA_ILUSION':'LA ILUSION (10552)',
+  'NUEVO_PREMIUM_SA':'NUEVO PREMIUM (13878)',
+  'PARODI_AUTOSERVICIO':'PARODI (API)',
+  'RED_G2000':'G2000',
+  'REDE_DIA':'DIA (13396)',
+  'SUPER_TODO':'SUPER TODO (13384)'
+};
 function _fuzzyLookup(map,data,nombre){
+  const aliased=NOMBRE_ALIASES[nombre];
+  if(aliased!==undefined&&data[aliased]!==undefined)return data[aliased];
   const n=_normNombre(nombre);if(!n)return undefined;
   if(map[n])return data[map[n]];
   for(const[mk,ok]of Object.entries(map)){
