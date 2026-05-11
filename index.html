@@ -2250,6 +2250,12 @@ function _normNombre(s){
 const _tNorm={},_bNorm={};
 Object.keys(TABLERO_DATA).forEach(k=>{const n=_normNombre(k);if(n)_tNorm[n]=k;});
 Object.keys(BASE2026_DATA).forEach(k=>{const n=_normNombre(k);if(n)_bNorm[n]=k;});
+// \u00cdndice de palabras \u00fanicas de TABLERO_DATA (\u22653 chars, aparece en solo 1 clave)
+const _tUniqueWords=(()=>{
+  const wc={},wm={};
+  Object.keys(_tNorm).forEach(nk=>nk.split(' ').filter(w=>w.length>=3).forEach(w=>{wc[w]=(wc[w]||0)+1;wm[w]=nk;}));
+  const u={};Object.entries(wc).forEach(([w,c])=>{if(c===1)u[w]=wm[w];});return u;
+})();
 const NOMBRE_ALIASES={
   'blu':'Super Blu','super blu':'Super Blu',
   'la amistad':'SUPERMERCADO LA AMISTAD (API)','supermercado la amistad':'SUPERMERCADO LA AMISTAD (API)',
@@ -2270,7 +2276,14 @@ function _fuzzyLookup(map,data,nombre){
   }
   return undefined;
 }
-function enTablero(nombre){return _fuzzyLookup(_tNorm,TABLERO_DATA,nombre);}
+function enTablero(nombre){
+  const r=_fuzzyLookup(_tNorm,TABLERO_DATA,nombre);if(r!==undefined)return r;
+  const n=_normNombre(nombre);if(!n)return undefined;
+  for(const w of n.split(' ').filter(w=>w.length>=3)){
+    const nk=_tUniqueWords[w];if(nk){const ok=_tNorm[nk];if(ok&&TABLERO_DATA[ok]!==undefined)return TABLERO_DATA[ok];}
+  }
+  return undefined;
+}
 function enBase(nombre){return _fuzzyLookup(_bNorm,BASE2026_DATA,nombre);}
 // Exponer en window para debug desde consola
 window.enTablero=enTablero;window.isActivo=isActivo;window.normTier=normTier;
