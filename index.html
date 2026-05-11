@@ -1951,8 +1951,13 @@ function cuentaCumpleMes(cuentaId,interacciones,anio,mes,kr12Ejec){
     })
   );
 }
-window.navKR12Semana=function(dir){
-  window._kr12SemanaIdx=(window._kr12SemanaIdx||0)+dir;
+window.kr12NavSemana=function(delta){
+  if(!window._kr12SemanaRef) window._kr12SemanaRef=new Date();
+  const ref=new Date(window._kr12SemanaRef);
+  ref.setDate(ref.getDate()+delta*7);
+  // Don't navigate past current week
+  if(getLunesYDomingo(ref).lunes.getTime()>getLunesYDomingo(new Date()).lunes.getTime()) return;
+  window._kr12SemanaRef=ref;
   renderDashboard();
 };
 
@@ -2012,27 +2017,26 @@ function renderDashboard(){
 
   const allIntsKR12 = getAllInteracciones();
 
-  // A+/A: cumple mes = tuvo ≥1 presentación en CADA semana del mes (hasta hoy)
+  // A+/A: % de cuentas con ≥1 presentación aprobada en la semana seleccionada
+  if(!window._kr12SemanaRef) window._kr12SemanaRef = new Date();
+  const {lunes:_aaLunes,domingo:_aaDomingo} = getLunesYDomingo(window._kr12SemanaRef);
+  const _semActualLunes = getLunesYDomingo(new Date()).lunes.getTime();
+  const _esSemanaActual = _semActualLunes === _aaLunes.getTime();
   const activasAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&kr12EjMatch(a));
-  const kr12AA_num=activasAA.filter(a=>cuentaCumpleMes(a.id,allIntsKR12,mesActualAnio,mesActualMes,kr12Ejec)).length;
+  const kr12AA_num=activasAA.filter(a=>allIntsKR12.some(i=>{
+    const d=new Date(i.ts);
+    return i.cuentaId===a.id&&i.tipo==='Presentación / Insight'&&(!_validacionActiva||i.estadoValidacion==='aprobada')&&(kr12Ejec==='todos'||(i.cuentaEjecutivo||'').includes(kr12Ejec))&&d>=_aaLunes&&d<=_aaDomingo;
+  })).length;
   const kr12AA_den=activasAA.length;
   const kr12AA_pct=kr12AA_den?Math.round(kr12AA_num/kr12AA_den*100):0;
-  // semanas del mes para el selector de diagnóstico
-  const _semanasDelMes=semanasDelMes(mesActualAnio,mesActualMes);
-  const _hoy=new Date();
-  const _semanasHastaHoy=_semanasDelMes.filter(s=>s.lunes<=_hoy);
-  // clamp the navigation index
-  const _maxIdx=_semanasDelMes.length-1;
-  let _semIdx=window._kr12SemanaIdx??_semanasHastaHoy.length-1;
-  if(_semIdx<0)_semIdx=0;
-  if(_semIdx>_maxIdx)_semIdx=_maxIdx;
-  window._kr12SemanaIdx=_semIdx;
-  const _semSel=_semanasDelMes[_semIdx];
-  const _fmtDia=d=>d.getDate()+' '+['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][d.getMonth()];
-  const _cuentasSemSel=activasAA.filter(a=>allIntsKR12.some(i=>{
-    const d=new Date(i.ts);
-    return i.cuentaId===a.id&&i.tipo==='Presentación / Insight'&&(!_validacionActiva||i.estadoValidacion==='aprobada')&&(kr12Ejec==='todos'||(i.cuentaEjecutivo||'').includes(kr12Ejec))&&d>=_semSel.lunes&&d<=_semSel.domingo;
-  })).length;
+  const _fmtOpts={day:'numeric',month:'short'};
+  const _semLabel=(_esSemanaActual?'Semana actual: ':'')+`Lun ${_aaLunes.toLocaleDateString('es-AR',_fmtOpts)} — Dom ${_aaDomingo.toLocaleDateString('es-AR',_fmtOpts)}`;
+  const _aaSubtexto=`${kr12AA_num} de ${kr12AA_den} cuentas presentaron ${_esSemanaActual?'esta':'esa'} semana · obj: todas las semanas del mes`;
+  const _aaSelector=`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:8px;padding:6px 10px">
+    <button onclick="kr12NavSemana(-1)" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 4px;line-height:1">←</button>
+    <span style="font-size:11px;color:var(--text2);font-weight:500">${_semLabel}</span>
+    <button onclick="kr12NavSemana(1)" ${_esSemanaActual?'disabled style="background:none;border:none;cursor:default;color:var(--text3);font-size:16px;padding:0 4px;line-height:1;opacity:.35"':'style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 4px;line-height:1"'}>→</button>
+  </div>`;
 
   // B: cuentas con ≥1 presentación aprobada este mes
   const activasB = activos.filter(a=>normTier(a.tier)==='B'&&kr12EjMatch(a));
@@ -2070,22 +2074,8 @@ function renderDashboard(){
       ${extra}
     </div>`;
 
-  const _aaExtra=`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500">Detalle semanal</div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <button onclick="navKR12Semana(-1)" ${_semIdx===0?'disabled':''}
-        style="background:none;border:1.5px solid var(--border);border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:12px;color:var(--text2);line-height:1;padding:0;${_semIdx===0?'opacity:.35;cursor:default':''}">←</button>
-      <span style="font-size:11px;color:var(--text2);flex:1;text-align:center">Lun ${_fmtDia(_semSel.lunes)} — Dom ${_fmtDia(_semSel.domingo)}</span>
-      <button onclick="navKR12Semana(1)" ${_semIdx===_maxIdx?'disabled':''}
-        style="background:none;border:1.5px solid var(--border);border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:12px;color:var(--text2);line-height:1;padding:0;${_semIdx===_maxIdx?'opacity:.35;cursor:default':''}">→</button>
-    </div>
-    <div style="font-size:12px;color:var(--text2);margin-top:5px;text-align:center">
-      <strong style="color:var(--text1)">${_cuentasSemSel}</strong> de ${kr12AA_den} cuentas presentaron esta semana
-    </div>
-  </div>`;
-
   el('okr-grid-12').innerHTML=`
-    ${kr12Card('A+/A','#EEF2FF','#3730A3',kr12AA_pct,kr12AA_num,kr12AA_den,`${_semanasHastaHoy.length} semana${_semanasHastaHoy.length!==1?'s':''} transcurridas · obj: todas las semanas del mes`,_aaExtra)}
+    ${kr12Card('A+/A','#EEF2FF','#3730A3',kr12AA_pct,kr12AA_num,kr12AA_den,_aaSubtexto,_aaSelector)}
     ${kr12Card('B','#EFF6FF','#1D4ED8',kr12B_pct,kr12B_num,kr12B_den,'Presentaciones este mes · obj: 1/mes')}
     ${kr12Card('C','#F0FDF4','#166534',kr12C_pct,kr12C_num,kr12C_den,'Informes Regional + Radar este mes')}`;
 
