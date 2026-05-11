@@ -1565,6 +1565,14 @@ window.selectTipo=function(btn,tipo){
 };
 window.addInteraccion=async function(){
   if(!currentDrawerAccId)return;
+  if(currentRole!=='admin'){
+    const cuenta=accounts.find(a=>a.id===currentDrawerAccId);
+    const codigoEjec=ROLES[currentUser?.email]?.ejecutivo;
+    if(!cuenta||!(cuenta.ejecutivo||'').includes(codigoEjec||'__')){
+      alert('No tenés permiso para registrar interacciones en esta cuenta.');
+      return;
+    }
+  }
   const texto=el('interaccion-texto').value.trim();if(!texto)return;
   const autor=el('interaccion-autor').value;
   const interaccion={tipo:selectedTipo,texto,autor,ts:new Date().toISOString()};
