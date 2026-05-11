@@ -1119,6 +1119,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     </div>
     <div class="drawer-section">
       <div class="drawer-section-title">Historial de interacciones</div>
+      <div id="drawer-int-filtro"></div>
       <div id="drawer-interacciones"></div>
     </div>
     <div class="drawer-section">
@@ -1155,7 +1156,7 @@ const db=getFirestore(app);
 let tasks=[],accounts=[],interacciones=[];
 let accFilters={estado:'todos',tier:'todos',ejecutivo:'todos',servicio:'todos'};
 let accSearch='',accSortCol='locales',accSortDir=-1;
-let currentTab='dashboard',currentDrawerAccId=null,selectedTipo='Llamada';
+let currentTab='dashboard',currentDrawerAccId=null,selectedTipo='Llamada',_drawerIntTipoFilter='todos';
 let histSearch='';
 let chartTier=null,chartEstado=null,chartEjec=null,chartEvoInst=null;
 
@@ -1606,6 +1607,52 @@ window.addInteraccion=async function(){
   }catch{setSyncStatus('error');}
 };
 
+// ── DRAWER INTERACCIONES
+const _INT_TIPOS=['todos','Llamada','Reunión','Email','WhatsApp','Visita','Sin respuesta','Presentación / Insight'];
+function renderDrawerInteracciones(){
+  if(!currentDrawerAccId)return;
+  const a=accounts.find(a=>a.id===currentDrawerAccId);if(!a)return;
+  // Pills de filtro
+  const filtroEl=el('drawer-int-filtro');
+  if(filtroEl){
+    filtroEl.innerHTML='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
+      '<span style="font-size:11px;color:var(--text3);font-weight:500">Tipo:</span>'+
+      _INT_TIPOS.map(t=>{
+        const active=t===_drawerIntTipoFilter;
+        return`<button onclick="filtrarInteraccionesTipo('${t.replace(/'/g,"\\'")}')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid ${active?'var(--navy)':'var(--border)'};background:${active?'var(--navy)':'transparent'};color:${active?'#fff':'var(--text2)'};cursor:pointer;font-family:'DM Sans',sans-serif">${t==='todos'?'Todos':t}</button>`;
+      }).join('')+
+    '</div>';
+  }
+  // Lista
+  let ints=(a.interacciones||[]).slice().reverse();
+  if(_drawerIntTipoFilter!=='todos') ints=ints.filter(i=>i.tipo===_drawerIntTipoFilter);
+  el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{
+    const esInsight=i.tipo==='Presentación / Insight';
+    const estado=i.estadoValidacion||'pendiente';
+    const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';
+    const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';
+    return`<div class="history-item">
+      <div class="history-dot" style="background:var(--navy)"></div>
+      <div style="flex:1;min-width:0">
+        <div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'}</div>
+        <div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">${i.texto}</div>
+        ${esInsight?`
+          ${i.descripcion?`<div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5;font-style:italic">${i.descripcion}</div>`:''}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+            ${i.link?`<a href="${i.link}" target="_blank" rel="noopener" style="font-size:11px;color:var(--navy);font-weight:500;text-decoration:none">🔗 Ver presentación</a>`:''}
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>
+            ${estado==='rechazada'&&i.motivoRechazo?`<span style="font-size:11px;color:var(--text3)">${i.motivoRechazo}</span>`:''}
+          </div>`:''}
+      </div>
+    </div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';
+}
+window.filtrarInteraccionesTipo=function(tipo){
+  _drawerIntTipoFilter=tipo;
+  renderDrawerInteracciones();
+};
+
 // ── DRAWER
 window.openDrawer=function(id){
   const a=accounts.find(a=>a.id===id);if(!a)return;
@@ -1652,12 +1699,8 @@ window.openDrawer=function(id){
   if(noPermiso) noPermiso.style.display = canInteract ? 'none' : 'block';
 
   // Interacciones
-  const ints=(a.interacciones||[]).slice().reverse();
-  el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item">
-    <div class="history-dot" style="background:var(--navy)"></div>
-    <div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div>
-    <div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div>
-  </div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';
+  _drawerIntTipoFilter='todos';
+  renderDrawerInteracciones();
   // Tareas vinculadas
   const linked=tasks.filter(t=>t.accountId===id);
   el('drawer-tasks').innerHTML=linked.length?linked.map(t=>`<div class="linked-task">
@@ -3457,7 +3500,7 @@ onSnapshot(collection(db,'accounts'),snap=>{
   renderAccounts();updateAccountSelect();updateFichaSelect();
   if(currentTab==='dashboard')renderDashboard();
   if(currentTab==='historial')renderHistorial();
-  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item"><div class="history-dot" style="background:var(--navy)"></div><div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
+  if(currentDrawerAccId) renderDrawerInteracciones();
   setSyncStatus('ok');
 },()=>setSyncStatus('error'));
 
