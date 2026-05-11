@@ -1959,6 +1959,9 @@ window.navKR12Semana=function(dir){
 
 function renderDashboard(){
   if(!accounts.length)return;
+  const _dbgInts=accounts.flatMap(a=>(a.interacciones||[]).map(i=>({...i,cuentaNombre:a.nombre})));
+  console.log('Total interacciones:',_dbgInts.length);
+  console.log('Tipo Presentación / Insight:',_dbgInts.filter(i=>i.tipo==='Presentación / Insight').length);
   const months12=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const msWrap=el('month-selector-wrap');
   if(msWrap) msWrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</span>${months12.map((m,i)=>`<button onclick="selectMonth(${i})" style="font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid ${i===selectedMonth?'var(--navy)':'var(--border)'};background:${i===selectedMonth?'var(--navy)':'transparent'};color:${i===selectedMonth?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif">${m}</button>`).join('')}</div>`;
@@ -2057,11 +2060,13 @@ function renderDashboard(){
   const kr12C_pct=kr12C_den?Math.round(kr12C_num/kr12C_den*100):0;
 
   const kr12Card=(label,chipBg,chipColor,pct,num,den,subtexto,extra='')=>`
-    <div class="okr-card">
-      <div class="okr-label">KR 1.2 · <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${chipBg};color:${chipColor}">${label}</span></div>
-      <div class="okr-pct">${pct}%</div>
-      <div class="okr-progress-row" style="margin-top:4px"><div class="okr-bar-wrap" style="flex:1"><div class="okr-bar" style="width:${Math.min(pct,100)}%;background:${chipColor}"></div></div></div>
-      <div class="okr-target">${num} de ${den} cuentas · ${subtexto}</div>
+    <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+      <div><span style="background:${chipBg};color:${chipColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">KR 1.2 · ${label}</span></div>
+      <div style="font-size:30px;font-weight:700;color:#F4600C;line-height:1">${pct}%</div>
+      <div style="position:relative;height:6px;background:var(--surface2);border-radius:3px">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(pct,100)}%;background:#F4600C;border-radius:3px"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">${num} de ${den} cuentas · ${subtexto}</div>
       ${extra}
     </div>`;
 
