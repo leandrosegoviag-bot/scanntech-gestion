@@ -1980,7 +1980,7 @@ function renderDashboard(){
   const conPresentSemana = new Set(
     allIntsKR12.filter(i=>{
       const d=new Date(i.ts);
-      return i.tipo==='Presentación / Insight'&&(!_validacionActiva||i.estadoValidacion==='aprobada')&&d>=semanaAtras&&d<=todayDate&&(kr12Ejec==='todos'||(i.cuentaEjecutivo||'').includes(kr12Ejec));
+      return i.tipo==='Presentación / Insight'&&(!_validacionActiva||i.estadoValidacion==='aprobada')&&d>=semanaAtras&&(kr12Ejec==='todos'||(i.cuentaEjecutivo||'').includes(kr12Ejec));
     }).map(i=>i.cuentaId)
   );
   const kr12AA_num=activasAA.filter(a=>conPresentSemana.has(a.id)).length;
