@@ -1646,11 +1646,11 @@ window.selectMonth = function(m){ selectedMonth=m; renderDashboard(); };
 
 const TABLERO_MATCH = {
   'REDE_DIA':            'DIA (13396)',
-  'SUPER_TODO':          'SUPER TODO (13384)',
+  'SUPER_TODO':          'Super Todo (API)',
   'RED_G2000':           'G2000',
-  'NUEVO_PREMIUM_SA':    'NUEVO PREMIUM (13878)',
+  'NUEVO_PREMIUM_SA':    'Nuevo Premium',
   'LA_AMISTAD':          'SUPERMERCADO LA AMISTAD (API)',
-  'LA_ILUSION':          'LA ILUSION (10552)',
+  'LA_ILUSION':          'La Ilusion',
   'PARODI_AUTOSERVICIO': 'PARODI (API)',
   'BLU':                 'Super Blu',
 };
@@ -1666,11 +1666,7 @@ function renderDashboard(){
   // KR 1.1 — denominador: activos con Analytics por tier; numerador: los que aparecen en TABLERO_DATA
   const kr11Baseline = {aa:40, b:15.4, c:4.3};
   const kr11Obj      = {aa:100, b:90,  c:20};
-  const cuentasConActividad = new Set(Object.keys(TABLERO_MATCH));
-  console.log('TABLERO_DATA keys:', Object.keys(TABLERO_DATA));
-  console.log('TABLERO_MATCH:', TABLERO_MATCH);
-  console.log('cuentasConActividad set:', [...cuentasConActividad]);
-  console.log('Analytics accounts nombres:', activos.filter(a=>(a.tipoServicio||'').includes('Analytics')).map(a=>a.nombre));
+  const cuentasConActividad = new Set(Object.values(TABLERO_MATCH));
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
