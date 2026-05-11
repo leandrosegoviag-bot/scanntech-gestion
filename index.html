@@ -1646,11 +1646,11 @@ window.selectMonth = function(m){ selectedMonth=m; renderDashboard(); };
 
 const TABLERO_MATCH = {
   'REDE_DIA':            'DIA (13396)',
-  'SUPER_TODO':          'Super Todo (API)',
+  'SUPER_TODO':          'SUPER TODO (13384)',
   'RED_G2000':           'G2000',
-  'NUEVO_PREMIUM_SA':    'Nuevo Premium',
+  'NUEVO_PREMIUM_SA':    'NUEVO PREMIUM (13878)',
   'LA_AMISTAD':          'SUPERMERCADO LA AMISTAD (API)',
-  'LA_ILUSION':          'La Ilusion',
+  'LA_ILUSION':          'LA ILUSION (10552)',
   'PARODI_AUTOSERVICIO': 'PARODI (API)',
   'BLU':                 'Super Blu',
 };
@@ -1666,10 +1666,11 @@ function renderDashboard(){
   // KR 1.1 — denominador: activos con Analytics por tier; numerador: los que aparecen en TABLERO_DATA
   const kr11Baseline = {aa:40, b:15.4, c:4.3};
   const kr11Obj      = {aa:100, b:90,  c:20};
+  console.log('TABLERO_DATA keys:', Object.keys(TABLERO_DATA));
+  console.log('tableroKeys en accounts:', accounts.filter(a=>a.tableroKey).map(a=>a.tableroKey));
   const cuentasConActividad = new Set(
-    accounts.filter(a=>a.tableroKey&&TABLERO_DATA[a.tableroKey]).map(a=>a.tableroKey)
+    accounts.filter(a=>a.tableroKey&&TABLERO_MATCH[a.tableroKey]&&TABLERO_DATA[TABLERO_MATCH[a.tableroKey]]!==undefined).map(a=>a.tableroKey)
   );
-  console.log('accounts cargadas:', accounts.length);
   console.log('cuentasConActividad:', [...cuentasConActividad]);
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
