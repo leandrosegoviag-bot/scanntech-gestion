@@ -1818,7 +1818,7 @@ function renderDashboard(){
   };
   const churnRate=total?Math.round(caidos.length/total*100):0;
   const allInts=getAllInteracciones();
-  const intEsteMes=_validacionActiva?allInts.filter(i=>{const d=new Date(i.ts);return i.tipo==='Presentación / Insight'&&d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length:0;
+  const intEsteMes=!_validacionActiva?allInts.filter(i=>{const d=new Date(i.ts);return i.tipo==='Presentación / Insight'&&d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length:0;
 
   // OKR 1
   el('okr-grid-1').innerHTML=`
