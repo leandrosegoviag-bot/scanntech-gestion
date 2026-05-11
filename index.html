@@ -646,10 +646,26 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <div class="tab-content active" id="tab-dashboard">
       <div id="month-selector-wrap" style="margin-bottom:16px"></div>
       <div class="dash-section-title">OKR 1 · Maximizar el valor que los clientes obtienen de Scanntech</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3);font-weight:500">Ejecutivo:</span>
+        <button onclick="filtrarEjecutivoKR('todos')" id="kr-ejec-todos"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:#F4600C;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">
+          Todos
+        </button>
+        <button onclick="filtrarEjecutivoKR('AJG')" id="kr-ejec-AJG"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">
+          Aime Jurado García
+        </button>
+        <button onclick="filtrarEjecutivoKR('LS')" id="kr-ejec-LS"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">
+          Leandro Segovia
+        </button>
+        <button onclick="filtrarEjecutivoKR('EE')" id="kr-ejec-EE"
+          style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">
+          Ezequiel Ercoreca
+        </button>
+      </div>
       <div class="dash-grid" id="okr-grid-1" style="grid-template-columns:repeat(3,1fr)"></div>
-
-      <div class="dash-section-title" style="margin-top:8px">KR 1.1 · Desglose por ejecutivo</div>
-      <div id="okr-ejec-wrap" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px"></div>
       <div id="okr-grid-12" style="margin-bottom:14px"></div>
 
       <div class="dash-section-title" style="margin-top:8px">OKR 2 · Fortalecer la retención y reducir riesgos en la cartera</div>
@@ -1657,9 +1673,11 @@ function renderDashboard(){
   const kr11Baseline = {aa:40, b:15.4, c:4.3};
   const kr11Obj      = {aa:100, b:90,  c:20};
   const cuentasConActividad = new Set(Object.keys(TABLERO_DATA));
-  const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
-  const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
-  const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
+  const ejecFilter = window._krEjecFilter || 'todos';
+  const _ejMatch = a => ejecFilter === 'todos' || (a.ejecutivo||'').trim().includes(ejecFilter);
+  const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics')&&_ejMatch(a));
+  const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics')&&_ejMatch(a));
+  const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics')&&_ejMatch(a));
   const totalAA=cuentasAAA.length, usoAA=cuentasAAA.filter(a=>cuentasConActividad.has(a.nombre)).length;
   const totalB =cuentasBA.length,  usoB =cuentasBA.filter(a=>cuentasConActividad.has(a.nombre)).length;
   const totalC =cuentasCA.length,  usoC =cuentasCA.filter(a=>cuentasConActividad.has(a.nombre)).length;
@@ -1697,36 +1715,6 @@ function renderDashboard(){
       <span class="okr-pct">${intEsteMes}</span><span style="font-size:12px;color:var(--text3)">registradas · Objetivo A+/A: 1/semana · B: 1/mes</span>
     </div>
   </div>`;
-
-  // KR 1.1 desglose por ejecutivo
-  const ejecDef=[
-    {id:'AJG',nombre:'Aime Jurado García',   bg:'#EEF2FF',color:'#3730A3'},
-    {id:'LS', nombre:'Leandro Segovia',       bg:'#FFF7ED',color:'#C2410C'},
-    {id:'EE', nombre:'Ezequiel Ercoreca',     bg:'#F0FDF4',color:'#166534'}
-  ];
-  const ejecCards=ejecDef.map(({id,nombre,bg,color})=>{
-    const ej=a=>(a.ejecutivo||'').trim();
-    const cartera=activos.filter(a=>(a.tipoServicio||'').includes('Analytics')&&(id==='LS'?ej(a).includes('LS'):ej(a)===id));
-    const total=cartera.length;
-    if(!total)return'';
-    const conAct=cartera.filter(a=>cuentasConActividad.has(a.nombre)).length;
-    const pct=parseFloat((conAct/total*100).toFixed(1));
-    const bw=total?Math.min(conAct/total*100,100):0;
-    const pctColor=pct===0?'var(--text3)':'#F4600C';
-    return`<div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="background:${bg};color:${color};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${id}</div>
-        <span style="font-size:13px;font-weight:600;color:var(--text1)">${nombre}</span>
-      </div>
-      <div style="font-size:26px;font-weight:700;color:${pctColor};line-height:1">${pct}%</div>
-      <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
-        <div style="height:100%;width:${bw}%;background:#F4600C;border-radius:3px"></div>
-      </div>
-      <div style="font-size:11px;color:var(--text3)">${conAct} de ${total} usando dashboards</div>
-    </div>`;
-  }).join('');
-  el('okr-ejec-wrap').style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px';
-  el('okr-ejec-wrap').innerHTML=ejecCards;
 
   // OKR 2
   const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
@@ -1796,6 +1784,19 @@ function renderDashboard(){
     chartEvoInst=new Chart(ctxEvo,{type:'line',data:{labels:weeks.map(w=>w.label),datasets:[{label:'Interacciones',data:weeks.map(w=>w.count),borderColor:'#0a2463',backgroundColor:'rgba(10,36,99,.08)',fill:true,tension:.35,pointBackgroundColor:'#f4600c',pointRadius:4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
   }
 }
+
+window.filtrarEjecutivoKR = function(ejec){
+  window._krEjecFilter = ejec;
+  ['todos','AJG','LS','EE'].forEach(e => {
+    const btn = document.getElementById('kr-ejec-'+e);
+    if(!btn) return;
+    const active = e === ejec;
+    btn.style.background = active ? '#F4600C' : 'transparent';
+    btn.style.color = active ? '#fff' : 'var(--text2)';
+    btn.style.borderColor = active ? '#F4600C' : 'var(--border)';
+  });
+  renderDashboard();
+};
 
 function renderCharts(){
   const COLORS=['#f4600c','#0a2463','#1a9e6a','#d97706','#7c3aed','#d93025','#92400e'];
