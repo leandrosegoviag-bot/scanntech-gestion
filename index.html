@@ -1883,12 +1883,10 @@ async function seedTableroKeys() {
     { tableroKey: 'PARODI_AUTOSERVICIO', nombre: 'PARODI (API)' },
     { tableroKey: 'BLU',                 nombre: 'Super Blu' },
   ];
-  const snap = await getDocs(collection(db, 'accounts'));
-  for (const docSnap of snap.docs) {
-    const cuenta = docSnap.data();
+  for (const cuenta of accounts) {
     const match = mapping.find(m => m.nombre === cuenta.nombre);
-    if (match) {
-      await updateDoc(doc(db, 'accounts', docSnap.id), { tableroKey: match.tableroKey });
+    if (match && cuenta.id) {
+      await updateDoc(doc(db, 'accounts', cuenta.id), { tableroKey: match.tableroKey });
       console.log('Patched:', cuenta.nombre, '->', match.tableroKey);
     }
   }
