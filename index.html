@@ -1027,11 +1027,9 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="panel" style="margin-top:0">
         <div class="panel-head">
           <h3>Registro de interacciones</h3>
-          <div class="panel-head-right">
-            <input class="search-input" style="font-size:12px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);outline:none;width:180px" type="text" placeholder="Buscar..." oninput="filterHistorial(this.value)"/>
-          </div>
+          <div class="panel-head-right"></div>
         </div>
-        <div id="hist-tipo-filtro" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 0 4px"></div>
+        <div id="hist-filters" style="padding:10px 0 4px"></div>
         <div class="historial-list" id="historial-list"><div class="loading-state">Cargando registros...</div></div>
       </div>
     </div>
@@ -1157,7 +1155,6 @@ let tasks=[],accounts=[],interacciones=[];
 let accFilters={estado:'todos',tier:'todos',ejecutivo:'todos',servicio:'todos'};
 let accSearch='',accSortCol='locales',accSortDir=-1;
 let currentTab='dashboard',currentDrawerAccId=null,selectedTipo='Llamada';
-let histSearch='';
 let chartTier=null,chartEstado=null,chartEjec=null,chartEvoInst=null;
 
 const todayDate=new Date();todayDate.setHours(0,0,0,0);
@@ -1522,54 +1519,60 @@ function renderAccounts(){
 }
 
 // ── HISTORIAL
-let _histTipoFilter='todos';
+let _histTipoFilter='todos',_histEjecFilter='todos',_histClienteSearch='';
 const _HIST_TIPOS=['todos','Llamada','Reunión','Email','WhatsApp','Visita','Sin respuesta','Presentación / Insight'];
-window.filterHistorial=function(v){histSearch=v.toLowerCase();renderHistorial();};
+const _HIST_EJECS=[{id:'todos',label:'Todos'},{id:'AJG',label:'Aime Jurado García'},{id:'LS',label:'Leandro Segovia'},{id:'EE',label:'Ezequiel Ercoreca'}];
+const _pillStyle=(active)=>`font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid ${active?'var(--navy)':'var(--border)'};background:${active?'var(--navy)':'transparent'};color:${active?'#fff':'var(--text2)'};cursor:pointer;font-family:'DM Sans',sans-serif`;
+window.filtrarHistorialEjec=function(ejec){_histEjecFilter=ejec;renderHistorial();};
 window.filtrarHistorialTipo=function(tipo){_histTipoFilter=tipo;renderHistorial();};
+window.filtrarHistorialCliente=function(v){_histClienteSearch=v.toLowerCase();_renderHistorialList();};
+window.eliminarInteraccion=async function(cuentaId,ts){
+  if(!confirm('¿Eliminás esta interacción? Esta acción no se puede deshacer.'))return;
+  setSyncStatus('syncing');
+  try{
+    const cuentaRef=doc(db,'accounts',cuentaId);
+    const cuentaSnap=await getDoc(cuentaRef);
+    const interacciones=cuentaSnap.data().interacciones||[];
+    const nuevas=interacciones.filter(i=>i.ts!==ts);
+    await updateDoc(cuentaRef,{interacciones:nuevas});
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+};
 function getAllInteracciones(){
   const all=[];
   accounts.forEach(a=>{
     (a.interacciones||[]).forEach(i=>{
-      all.push({...i,cuentaNombre:a.nombre,cuentaId:a.id});
+      all.push({...i,cuentaNombre:a.nombre,cuentaId:a.id,cuentaEjecutivo:a.ejecutivo||''});
     });
   });
   all.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   return all;
 }
-function renderHistorial(){
+function _renderHistorialList(){
   const all=getAllInteracciones();
-  // Pills de tipo
-  const filtroEl=el('hist-tipo-filtro');
-  if(filtroEl){
-    filtroEl.innerHTML='<span style="font-size:11px;color:var(--text3);font-weight:500">Tipo:</span>'+
-      _HIST_TIPOS.map(t=>{
-        const active=t===_histTipoFilter;
-        return`<button onclick="filtrarHistorialTipo('${t.replace(/'/g,"\\'")}')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1.5px solid ${active?'var(--navy)':'var(--border)'};background:${active?'var(--navy)':'transparent'};color:${active?'#fff':'var(--text2)'};cursor:pointer;font-family:'DM Sans',sans-serif">${t==='todos'?'Todos':t}</button>`;
-      }).join('');
-  }
-  // Stats (sobre todos, sin filtro de tipo)
-  el('hist-stats').innerHTML=`
-    <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${all.length}</div><div class="stat-sub">interacciones</div></div>
-    <div class="stat-card sc-orange"><div class="stat-label">Este mes</div><div class="stat-val">${all.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length}</div><div class="stat-sub">registradas</div></div>
-    <div class="stat-card sc-green"><div class="stat-label">Cuentas</div><div class="stat-val">${new Set(all.map(i=>i.cuentaId)).size}</div><div class="stat-sub">con actividad</div></div>`;
-  // Filtrar por tipo y búsqueda
-  let filtered=_histTipoFilter==='todos'?all:all.filter(i=>i.tipo===_histTipoFilter);
-  if(histSearch) filtered=filtered.filter(i=>[i.cuentaNombre,i.texto,i.autor,i.tipo].join(' ').toLowerCase().includes(histSearch));
+  let filtered=all;
+  if(_histEjecFilter!=='todos') filtered=filtered.filter(i=>i.cuentaEjecutivo.includes(_histEjecFilter));
+  if(_histTipoFilter!=='todos') filtered=filtered.filter(i=>i.tipo===_histTipoFilter);
+  if(_histClienteSearch) filtered=filtered.filter(i=>(i.cuentaNombre||'').toLowerCase().includes(_histClienteSearch));
   const list=el('historial-list');
   if(!filtered.length){list.innerHTML='<div class="empty-state">Sin interacciones registradas aún</div>';return;}
+  const codigoEjec=ROLES[currentUser?.email]?.ejecutivo;
   list.innerHTML=filtered.map(i=>{
     const esInsight=i.tipo==='Presentación / Insight';
     const estado=i.estadoValidacion||'pendiente';
     const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';
     const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';
+    const puedeEliminar=currentRole==='admin'||(i.cuentaEjecutivo||'').includes(codigoEjec||'__');
+    const tsEsc=(i.ts||'').replace(/'/g,"\\'");
     return`<div class="historial-item">
       <div class="historial-avatar">${(i.autor||'?').slice(0,2).toUpperCase()}</div>
-      <div class="historial-body">
+      <div class="historial-body" style="flex:1;min-width:0">
         <div class="historial-header">
           <span class="historial-cuenta">${i.cuentaNombre}</span>
           <span class="historial-tipo">${i.tipo||'Nota'}</span>
           <span class="historial-autor">${i.autor||'—'}</span>
           <span class="historial-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</span>
+          ${puedeEliminar?`<button onclick="eliminarInteraccion('${i.cuentaId}','${tsEsc}')" title="Eliminar" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:0 2px;line-height:1" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button>`:''}
         </div>
         <div class="historial-text">${i.texto}</div>
         ${esInsight?`
@@ -1582,6 +1585,28 @@ function renderHistorial(){
       </div>
     </div>`;
   }).join('');
+}
+function renderHistorial(){
+  const all=getAllInteracciones();
+  el('hist-stats').innerHTML=`
+    <div class="stat-card sc-navy"><div class="stat-label">Total</div><div class="stat-val">${all.length}</div><div class="stat-sub">interacciones</div></div>
+    <div class="stat-card sc-orange"><div class="stat-label">Este mes</div><div class="stat-val">${all.filter(i=>{const d=new Date(i.ts);return d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length}</div><div class="stat-sub">registradas</div></div>
+    <div class="stat-card sc-green"><div class="stat-label">Cuentas</div><div class="stat-val">${new Set(all.map(i=>i.cuentaId)).size}</div><div class="stat-sub">con actividad</div></div>`;
+  const filtroEl=el('hist-filters');
+  if(filtroEl) filtroEl.innerHTML=
+    '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
+      '<span style="font-size:11px;color:var(--text3);font-weight:500;min-width:64px">Ejecutivo:</span>'+
+      _HIST_EJECS.map(e=>`<button onclick="filtrarHistorialEjec('${e.id}')" style="${_pillStyle(e.id===_histEjecFilter)}">${e.label}</button>`).join('')+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
+      '<span style="font-size:11px;color:var(--text3);font-weight:500;min-width:64px">Tipo:</span>'+
+      _HIST_TIPOS.map(t=>`<button onclick="filtrarHistorialTipo('${t.replace(/'/g,"\\'")}')" style="${_pillStyle(t===_histTipoFilter)}">${t==='todos'?'Todos':t}</button>`).join('')+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+      '<span style="font-size:11px;color:var(--text3);font-weight:500;min-width:64px">Cliente:</span>'+
+      `<input type="text" placeholder="🔍 Buscar cuenta..." oninput="filtrarHistorialCliente(this.value)" value="${_histClienteSearch.replace(/"/g,'&quot;')}" style="font-size:12px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);outline:none;width:200px;font-family:'DM Sans',sans-serif">`+
+    '</div>';
+  _renderHistorialList();
 }
 
 // ── INTERACCIONES
@@ -1682,11 +1707,17 @@ window.openDrawer=function(id){
 
   // Interacciones
   const ints=(a.interacciones||[]).slice().reverse();
-  el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item">
-    <div class="history-dot" style="background:var(--navy)"></div>
-    <div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div>
-    <div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div>
-  </div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';
+  el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{
+    const puedeEliminar=currentRole==='admin'||(a.ejecutivo||'').includes(window.currentEjecutivo||'__');
+    const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${i.ts}')" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';
+    return `<div class="history-item" style="align-items:flex-start">
+      <div class="history-dot" style="background:var(--navy);margin-top:4px"></div>
+      <div style="flex:1;min-width:0"><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}${i.link?` <a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px">🔗 Ver</a>`:''}</div>
+      <div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>
+      ${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}</div>
+      ${delBtn}
+    </div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';
   // Tareas vinculadas
   const linked=tasks.filter(t=>t.accountId===id);
   el('drawer-tasks').innerHTML=linked.length?linked.map(t=>`<div class="linked-task">
@@ -3486,7 +3517,7 @@ onSnapshot(collection(db,'accounts'),snap=>{
   renderAccounts();updateAccountSelect();updateFichaSelect();
   if(currentTab==='dashboard')renderDashboard();
   if(currentTab==='historial')renderHistorial();
-  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>`<div class="history-item"><div class="history-dot" style="background:var(--navy)"></div><div><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
+  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{const puedeEliminar=currentRole==='admin'||(a.ejecutivo||'').includes(window.currentEjecutivo||'__');const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${i.ts}')" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';return `<div class="history-item" style="align-items:flex-start"><div class="history-dot" style="background:var(--navy);margin-top:4px"></div><div style="flex:1;min-width:0"><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}${i.link?` <a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px">🔗 Ver</a>`:''}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}</div>${delBtn}</div>`;}).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
   setSyncStatus('ok');
 },()=>setSyncStatus('error'));
 
