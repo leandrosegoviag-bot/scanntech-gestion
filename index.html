@@ -1657,6 +1657,11 @@ const NOMBRE_A_TABLERO = {
 
 function renderDashboard(){
   if(!accounts.length)return;
+  console.log('TABLERO_DATA keys:', JSON.stringify(Object.keys(TABLERO_DATA)));
+  console.log('NOMBRE_A_TABLERO keys:', JSON.stringify(Object.keys(NOMBRE_A_TABLERO)));
+  console.log('Primer account nombre:', accounts[0]?.nombre);
+  console.log('Match test DIA:', NOMBRE_A_TABLERO['DIA (13396)']);
+  console.log('TABLERO_DATA test REDE_DIA:', TABLERO_DATA['REDE_DIA'] !== undefined);
   const months12=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const msWrap=el('month-selector-wrap');
   if(msWrap) msWrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</span>${months12.map((m,i)=>`<button onclick="selectMonth(${i})" style="font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid ${i===selectedMonth?'var(--navy)':'var(--border)'};background:${i===selectedMonth?'var(--navy)':'transparent'};color:${i===selectedMonth?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif">${m}</button>`).join('')}</div>`;
