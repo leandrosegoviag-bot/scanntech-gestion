@@ -1644,24 +1644,9 @@ let selectedMonth = new Date().getMonth();
 let selectedYear  = new Date().getFullYear();
 window.selectMonth = function(m){ selectedMonth=m; renderDashboard(); };
 
-const NOMBRE_A_TABLERO = {
-  'DIA (13396)':                   'REDE_DIA',
-  'Super Todo (API)':              'SUPER_TODO',
-  'G2000':                         'RED_G2000',
-  'Nuevo Premium':                 'NUEVO_PREMIUM_SA',
-  'SUPERMERCADO LA AMISTAD (API)': 'LA_AMISTAD',
-  'La Ilusion':                    'LA_ILUSION',
-  'PARODI (API)':                  'PARODI_AUTOSERVICIO',
-  'Super Blu':                     'BLU',
-};
 
 function renderDashboard(){
   if(!accounts.length)return;
-  console.log('TABLERO_DATA keys:', JSON.stringify(Object.keys(TABLERO_DATA)));
-  console.log('NOMBRE_A_TABLERO keys:', JSON.stringify(Object.keys(NOMBRE_A_TABLERO)));
-  console.log('Primer account nombre:', accounts[0]?.nombre);
-  console.log('Match test DIA:', NOMBRE_A_TABLERO['DIA (13396)']);
-  console.log('TABLERO_DATA test REDE_DIA:', TABLERO_DATA['REDE_DIA'] !== undefined);
   const months12=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const msWrap=el('month-selector-wrap');
   if(msWrap) msWrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</span>${months12.map((m,i)=>`<button onclick="selectMonth(${i})" style="font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid ${i===selectedMonth?'var(--navy)':'var(--border)'};background:${i===selectedMonth?'var(--navy)':'transparent'};color:${i===selectedMonth?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif">${m}</button>`).join('')}</div>`;
@@ -1671,9 +1656,7 @@ function renderDashboard(){
   // KR 1.1 — denominador: activos con Analytics por tier; numerador: los que aparecen en TABLERO_DATA
   const kr11Baseline = {aa:40, b:15.4, c:4.3};
   const kr11Obj      = {aa:100, b:90,  c:20};
-  const cuentasConActividad = new Set(
-    accounts.filter(a=>NOMBRE_A_TABLERO[a.nombre]&&TABLERO_DATA[NOMBRE_A_TABLERO[a.nombre]]!==undefined).map(a=>a.nombre)
-  );
+  const cuentasConActividad = new Set(Object.keys(TABLERO_DATA));
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
