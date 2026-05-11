@@ -1657,9 +1657,11 @@ function renderDashboard(){
   const kr11Baseline = {aa:40, b:15.4, c:4.3};
   const kr11Obj      = {aa:100, b:90,  c:20};
   const cuentasConActividad = new Set(Object.keys(TABLERO_DATA));
-  console.log('Nombres en TABLERO_DATA:', JSON.stringify(Object.keys(TABLERO_DATA)));
-  console.log('Nombres que matchean:', JSON.stringify(accounts.filter(a=>cuentasConActividad.has(a.nombre)).map(a=>a.nombre)));
-  console.log('Total matcheados:', accounts.filter(a=>cuentasConActividad.has(a.nombre)).length);
+  const buscar=['ILUSION','PREMIUM','TODO'];
+  buscar.forEach(term=>{
+    const found=accounts.filter(a=>a.nombre?.toUpperCase().includes(term));
+    console.log('Buscando',term,':',found.map(a=>a.nombre));
+  });
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
