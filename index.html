@@ -1542,6 +1542,17 @@ window.eliminarInteraccion=async function(cuentaId,ts){
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
 };
+window.validarInteraccion=async function(cuentaId,ts){
+  setSyncStatus('syncing');
+  try{
+    const cuentaRef=doc(db,'accounts',cuentaId);
+    const snap=await getDoc(cuentaRef);
+    const nuevas=(snap.data().interacciones||[]).map(i=>i.ts===ts?{...i,validada:true,estadoValidacion:'aprobada'}:i);
+    await updateDoc(cuentaRef,{interacciones:nuevas});
+    if(currentTab==='dashboard')renderDashboard();
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+};
 function getAllInteracciones(){
   const all=[];
   accounts.forEach(a=>{
@@ -1585,6 +1596,7 @@ function _renderHistorialList(){
             ${i.link?`<a href="${i.link}" target="_blank" rel="noopener" style="font-size:11px;color:var(--navy);font-weight:500;text-decoration:none">🔗 Ver presentación</a>`:''}
             <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>
             ${estado==='rechazada'&&i.motivoRechazo?`<span style="font-size:11px;color:var(--text3)">${i.motivoRechazo}</span>`:''}
+            ${_validacionActiva&&currentRole==='admin'&&!i.validada?`<button onclick="validarInteraccion('${i.cuentaId}','${tsEsc}')" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;border:1.5px solid #166534;background:#F0FDF4;color:#166534;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Aprobar</button>`:''}
           </div>`:''}
       </div>
     </div>`;
@@ -1713,12 +1725,25 @@ window.openDrawer=function(id){
   const ints=(a.interacciones||[]).slice().reverse();
   el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{
     const puedeEliminar=currentRole==='admin'||(a.ejecutivo||'').includes(window.currentEjecutivo||'__');
-    const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${i.ts}')" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';
+    const tsEsc=(i.ts||'').replace(/'/g,"\\'");
+    const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${tsEsc}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';
+    const esInsight=i.tipo==='Presentación / Insight';
+    const estado=i.estadoValidacion||'pendiente';
+    const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';
+    const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';
+    const aprobarBtn=esInsight&&_validacionActiva&&currentRole==='admin'&&!i.validada?`<button onclick="validarInteraccion('${a.id}','${tsEsc}')" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;border:1.5px solid #166534;background:#F0FDF4;color:#166534;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Aprobar</button>`:'';
     return `<div class="history-item" style="align-items:flex-start">
       <div class="history-dot" style="background:var(--navy);margin-top:4px"></div>
-      <div style="flex:1;min-width:0"><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}${i.link?` <a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px">🔗 Ver</a>`:''}</div>
-      <div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>
-      ${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}</div>
+      <div style="flex:1;min-width:0">
+        <div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div>
+        <div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>
+        ${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}
+        ${esInsight?`<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
+          ${i.link?`<a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px;font-weight:500;text-decoration:none">🔗 Ver</a>`:''}
+          <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>
+          ${aprobarBtn}
+        </div>`:''}
+      </div>
       ${delBtn}
     </div>`;
   }).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';
@@ -1818,7 +1843,7 @@ function renderDashboard(){
   };
   const churnRate=total?Math.round(caidos.length/total*100):0;
   const allInts=getAllInteracciones();
-  const intEsteMes=!_validacionActiva?allInts.filter(i=>{const d=new Date(i.ts);return i.tipo==='Presentación / Insight'&&d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear();}).length:0;
+  const intEsteMes=allInts.filter(i=>{const d=new Date(i.ts);return i.tipo==='Presentación / Insight'&&d.getMonth()===todayDate.getMonth()&&d.getFullYear()===todayDate.getFullYear()&&(!_validacionActiva||i.validada===true);}).length;
 
   // OKR 1
   el('okr-grid-1').innerHTML=`
@@ -3544,7 +3569,7 @@ onSnapshot(collection(db,'accounts'),snap=>{
     if(currentTab==='dashboard')renderDashboard();
     if(currentTab==='historial')renderHistorial();
   });
-  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{const puedeEliminar=currentRole==='admin'||(a.ejecutivo||'').includes(window.currentEjecutivo||'__');const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${i.ts}')" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';return `<div class="history-item" style="align-items:flex-start"><div class="history-dot" style="background:var(--navy);margin-top:4px"></div><div style="flex:1;min-width:0"><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}${i.link?` <a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px">🔗 Ver</a>`:''}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}</div>${delBtn}</div>`;}).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
+  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{const puedeEliminar=currentRole==='admin'||(a.ejecutivo||'').includes(window.currentEjecutivo||'__');const tsEsc=(i.ts||'').replace(/'/g,"\\'");const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${tsEsc}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';const esInsight=i.tipo==='Presentación / Insight';const estado=i.estadoValidacion||'pendiente';const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';const aprobarBtn=esInsight&&_validacionActiva&&currentRole==='admin'&&!i.validada?`<button onclick="validarInteraccion('${a.id}','${tsEsc}')" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;border:1.5px solid #166534;background:#F0FDF4;color:#166534;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Aprobar</button>`:'';return `<div class="history-item" style="align-items:flex-start"><div class="history-dot" style="background:var(--navy);margin-top:4px"></div><div style="flex:1;min-width:0"><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}${esInsight?`<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">${i.link?`<a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px;font-weight:500;text-decoration:none">🔗 Ver</a>`:''}<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>${aprobarBtn}</div>`:''}</div>${delBtn}</div>`;}).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
   setSyncStatus('ok');
 },()=>setSyncStatus('error'));
 
