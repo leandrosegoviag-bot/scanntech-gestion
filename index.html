@@ -1657,11 +1657,6 @@ function renderDashboard(){
   const kr11Baseline = {aa:40, b:15.4, c:4.3};
   const kr11Obj      = {aa:100, b:90,  c:20};
   const cuentasConActividad = new Set(Object.keys(TABLERO_DATA));
-  const buscar=['ILUSION','PREMIUM','TODO'];
-  buscar.forEach(term=>{
-    const found=accounts.filter(a=>a.nombre?.toUpperCase().includes(term));
-    console.log('Buscando',term,':',found.map(a=>a.nombre));
-  });
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasBA  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics'));
   const cuentasCA  = activos.filter(a=>normTier(a.tier)==='C'&&(a.tipoServicio||'').includes('Analytics'));
@@ -1880,10 +1875,8 @@ async function seedTableroKeys() {
     const match = mapping.find(m => m.nombre === cuenta.nombre);
     if (match && cuenta.id) {
       await updateDoc(doc(db, 'accounts', cuenta.id), { tableroKey: match.tableroKey });
-      console.log('Patched:', cuenta.nombre, '->', match.tableroKey);
     }
   }
-  console.log('seedTableroKeys done');
 }
 
 onAuthStateChanged(auth, user=>{
@@ -2152,7 +2145,7 @@ const TABLERO_DATA = {
     "usuariosActivos": 4,
     "dashboards": 33
   },
-  "LA ILUSION (10552)": {
+  "La Ilusion": {
     "mes": "nan",
     "usuarios": 1,
     "accesoUnico": 1,
@@ -2163,7 +2156,7 @@ const TABLERO_DATA = {
     "usuariosActivos": 1,
     "dashboards": 1
   },
-  "NUEVO PREMIUM (13878)": {
+  "Nuevo Premium": {
     "mes": "nan",
     "usuarios": 2,
     "accesoUnico": 2,
@@ -2207,7 +2200,7 @@ const TABLERO_DATA = {
     "usuariosActivos": 6,
     "dashboards": 33
   },
-  "SUPER TODO (13384)": {
+  "Super Todo (API)": {
     "mes": "nan",
     "usuarios": 1,
     "accesoUnico": 1,
@@ -2287,12 +2280,12 @@ const _tUniqueWords=(()=>{
 const NOMBRE_ALIASES={
   'blu':'Super Blu','super blu':'Super Blu',
   'la amistad':'SUPERMERCADO LA AMISTAD (API)','supermercado la amistad':'SUPERMERCADO LA AMISTAD (API)',
-  'la ilusion':'LA ILUSION (10552)',
-  'nuevo premium':'NUEVO PREMIUM (13878)','nuevo premium sa':'NUEVO PREMIUM (13878)',
+  'la ilusion':'La Ilusion',
+  'nuevo premium':'Nuevo Premium','nuevo premium sa':'Nuevo Premium',
   'parodi':'PARODI (API)','parodi autoservicio':'PARODI (API)',
   'g2000':'G2000','red g2000':'G2000',
   'dia':'DIA (13396)','rede dia':'DIA (13396)',
-  'super todo':'SUPER TODO (13384)','super todo api':'SUPER TODO (13384)'
+  'super todo':'Super Todo (API)','super todo api':'Super Todo (API)'
 };
 function _fuzzyLookup(map,data,nombre){
   const n=_normNombre(nombre);if(!n)return undefined;
