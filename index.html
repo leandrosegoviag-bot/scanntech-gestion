@@ -1968,6 +1968,8 @@ const _configDocRef = () => doc(db, 'config', 'sistema');
 window.openConfig = async function(){
   el('config-overlay').style.display='block';
   el('config-modal').style.display='block';
+  const saveBtn = el('config-save-btn');
+  if(saveBtn){ saveBtn.textContent='Guardar'; saveBtn.disabled=false; }
   try{
     const snap = await getDoc(_configDocRef());
     _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
