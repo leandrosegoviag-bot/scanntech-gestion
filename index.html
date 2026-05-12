@@ -1064,7 +1064,8 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <h3>Nueva solicitud de acceso</h3>
         <div class="form-grid">
           <div class="field"><label>Cliente</label>
-            <input type="text" id="nu-cliente" placeholder="Escribí el nombre del cliente..." oninput="filtrarClientesSolicitud(this.value)" autocomplete="off" style="width:100%;padding:8px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box"/>
+            <input type="text" id="nu-cliente" placeholder="Escribí el nombre del cliente..." list="nu-cliente-list" autocomplete="off"/>
+            <datalist id="nu-cliente-list"></datalist>
           </div>
           <div class="form-row">
             <div class="field"><label>Nombre <span style="color:var(--red)">*</span></label><input type="text" id="nu-nombre"/><div id="nu-nombre-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
@@ -3540,36 +3541,16 @@ window.toggleUsuarioForm = function(){
   const show=f.style.display==='none';
   f.style.display=show?'block':'none';
   if(show){
+    const dl=el('nu-cliente-list');
+    if(dl){
+      const nombres=accounts.filter(a=>a.estado!=='Inactivo'&&a.nombre).map(a=>a.nombre).sort();
+      dl.innerHTML=nombres.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+    }
     const fechaEl=el('nu-fecha');
     if(fechaEl&&!fechaEl.value) fechaEl.value=new Date().toISOString().split('T')[0];
     f.scrollIntoView({behavior:'smooth',block:'start'});
   }
 };
-window.filtrarClientesSolicitud = function(q){
-  const dd=document.getElementById('nu-cliente-dropdown');
-  const input=document.getElementById('nu-cliente');
-  if(!dd||!input) return;
-  if(!q||q.length<2){dd.style.display='none';return;}
-  const matches=accounts.filter(a=>a.nombre?.toLowerCase().includes(q.toLowerCase())).slice(0,10);
-  if(!matches.length){dd.style.display='none';return;}
-  const rect=input.getBoundingClientRect();
-  dd.style.top=(rect.bottom+2)+'px';
-  dd.style.left=rect.left+'px';
-  dd.style.width=rect.width+'px';
-  dd.innerHTML=matches.map(a=>`<div onclick="seleccionarClienteSolicitud('${a.nombre.replace(/'/g,"\\'")}')" style="padding:8px 12px;cursor:pointer;font-size:13px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''>${a.nombre}</div>`).join('');
-  dd.style.display='block';
-};
-window.seleccionarClienteSolicitud = function(nombre){
-  const input=document.getElementById('nu-cliente');
-  if(input) input.value=nombre;
-  const dd=document.getElementById('nu-cliente-dropdown');
-  if(dd) dd.style.display='none';
-};
-document.addEventListener('click',function(e){
-  const dd=document.getElementById('nu-cliente-dropdown');
-  const input=document.getElementById('nu-cliente');
-  if(dd&&input&&!dd.contains(e.target)&&e.target!==input) dd.style.display='none';
-});
 
 window.renderJiras = function(){
   if(!el('tab-jiras')) return;
@@ -4427,6 +4408,5 @@ window.procesarExportTablero=async function(file){
   }
 };
 </script>
-<div id="nu-cliente-dropdown" style="display:none;position:fixed;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);z-index:9999;max-height:200px;overflow-y:auto"></div>
 </body>
 </html>
