@@ -3537,9 +3537,11 @@ window.toggleSubtipo = function(){
 };
 function _poblarClientesSolicitud(){
   const dl=el('nu-cliente-list');
+  console.log('[nu-cliente] accounts:', accounts.length, 'datalist:', !!dl);
   if(!dl||!accounts.length) return;
   const nombres=[...new Set(accounts.filter(a=>a.nombre).map(a=>a.nombre))].sort();
-  dl.innerHTML=nombres.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+  console.log('[nu-cliente] opciones cargadas:', nombres.length, nombres.slice(0,5));
+  dl.innerHTML=nombres.map(n=>`<option value="${n.replace(/"/g,'&quot;')}"></option>`).join('');
 }
 window.toggleUsuarioForm = function(){
   const f=document.getElementById('usuario-form');
