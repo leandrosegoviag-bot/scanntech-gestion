@@ -2271,7 +2271,9 @@ window.guardarConfig = async function(){
   if(btn){ btn.textContent='Guardando...'; btn.disabled=true; }
   try{
     await setDoc(_configDocRef(), {validacionActiva: _validacionActiva}, {merge: true});
-    closeConfig();
+    // Cerrar modal directamente sin re-leer Firebase (para no pisar _validacionActiva)
+    el('config-overlay').style.display='none';
+    el('config-modal').style.display='none';
     if(currentTab==='dashboard') renderDashboard();
   }catch{
     if(btn){ btn.textContent='Guardar'; btn.disabled=false; }
