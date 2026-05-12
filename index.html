@@ -1063,9 +1063,11 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="add-panel" id="usuario-form" style="display:none;margin-top:14px">
         <h3>Nueva solicitud de acceso</h3>
         <div class="form-grid">
-          <div class="form-row">
-            <div class="field"><label>Cliente</label><input type="text" id="nu-cliente" list="nu-cliente-list" placeholder="— Sin cliente específico —"/><datalist id="nu-cliente-list"></datalist></div>
-            <div class="field"><label>Empresa</label><input type="text" id="nu-empresa" placeholder="Nombre de empresa"/></div>
+          <div class="field"><label>Cliente</label>
+            <div style="position:relative">
+              <input type="text" id="nu-cliente" placeholder="Escribí el nombre del cliente..." oninput="filtrarClientesSolicitud(this.value)" autocomplete="off" style="width:100%;padding:8px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box"/>
+              <div id="nu-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);z-index:100;max-height:200px;overflow-y:auto"></div>
+            </div>
           </div>
           <div class="form-row">
             <div class="field"><label>Nombre <span style="color:var(--red)">*</span></label><input type="text" id="nu-nombre"/><div id="nu-nombre-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
@@ -1079,10 +1081,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             <div class="field"><label>Carpeta de acceso <span style="color:var(--red)">*</span></label><input type="text" id="nu-carpeta" placeholder="ej: Argentina Precios Multicadena"/><div id="nu-carpeta-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
             <div class="field"><label>Fecha solicitud</label><input type="date" id="nu-fecha"/></div>
           </div>
-          <div class="form-row">
-            <div class="field"><label>Ejecutivo</label><select id="nu-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option></select></div>
-            <div class="field"><label>Usuario listo</label><input type="text" id="nu-usuario-listo" placeholder="Fecha de confirmación BI"/></div>
-          </div>
+          <div class="field"><label>Ejecutivo</label><select id="nu-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option></select></div>
           <div class="field">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400">
               <input type="checkbox" id="nu-acceso-ejec" style="width:14px;height:14px;accent-color:var(--navy)">
@@ -2182,10 +2181,10 @@ function renderDashboard(){
   const _kr13SemIni=new Date('2026-04-01');
   const _kr13SemFin=new Date('2026-06-30T23:59:59');
   const _tieneUsuarioNuevo=(a,fechaLim=_kr13SemFin)=>jiraUsuarios.some(u=>{
-    const nm=(u.empresa||'').toLowerCase(),nc=(u.cliente||'').toLowerCase(),na=a.nombre.toLowerCase();
-    if(!((nm&&(nm.includes(na)||na.includes(nm)))||(nc&&(nc.includes(na)||na.includes(nc)))))return false;
-    const f=_kr13ParseFecha(u.fechaSolicitud);
-    if(!f||f<_kr13SemIni||f>fechaLim)return false;
+    const nc=(u.cliente||'').toLowerCase(),na=a.nombre.toLowerCase();
+    if(!(nc&&(nc.includes(na)||na.includes(nc))))return false;
+    const fRef=u.fechaAlta?.toDate?u.fechaAlta.toDate():_kr13ParseFecha(u.fechaSolicitud);
+    if(!fRef||fRef<_kr13SemIni||fRef>fechaLim)return false;
     return !!(u.usuarioListo&&u.usuarioListo.trim());
   });
   const _kr13Cumple = a => (a.kr13DashboardsNuevos||[]).length>0 || _tieneUsuarioNuevo(a);
@@ -3546,14 +3545,29 @@ window.toggleUsuarioForm = function(){
   if(show){
     const fechaEl=el('nu-fecha');
     if(fechaEl&&!fechaEl.value) fechaEl.value=new Date().toISOString().split('T')[0];
-    const dl=el('nu-cliente-list');
-    if(dl){
-      const activas=accounts.filter(a=>a.estado!=='Inactivo').map(a=>a.nombre).sort();
-      dl.innerHTML=activas.map(n=>`<option value="${n}">`).join('');
-    }
     f.scrollIntoView({behavior:'smooth',block:'start'});
   }
 };
+window.filtrarClientesSolicitud = function(q){
+  const dd=document.getElementById('nu-cliente-dropdown');
+  if(!dd) return;
+  if(!q||q.length<2){dd.style.display='none';return;}
+  const matches=accounts.filter(a=>a.nombre?.toLowerCase().includes(q.toLowerCase())).slice(0,10);
+  if(!matches.length){dd.style.display='none';return;}
+  dd.innerHTML=matches.map(a=>`<div onclick="seleccionarClienteSolicitud('${a.nombre.replace(/'/g,"\\'")}')" style="padding:8px 12px;cursor:pointer;font-size:13px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''>${a.nombre}</div>`).join('');
+  dd.style.display='block';
+};
+window.seleccionarClienteSolicitud = function(nombre){
+  const input=document.getElementById('nu-cliente');
+  if(input) input.value=nombre;
+  const dd=document.getElementById('nu-cliente-dropdown');
+  if(dd) dd.style.display='none';
+};
+document.addEventListener('click',function(e){
+  const dd=document.getElementById('nu-cliente-dropdown');
+  const input=document.getElementById('nu-cliente');
+  if(dd&&input&&!dd.contains(e.target)&&e.target!==input) dd.style.display='none';
+});
 
 window.renderJiras = function(){
   if(!el('tab-jiras')) return;
@@ -4099,9 +4113,11 @@ window.renderUsuariosJira = function(){
           ${u.fechaSolicitud?`<span style="font-size:11px;color:var(--text3)">Solicitado: ${u.fechaSolicitud}</span>`:''}
         </div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div class="usr-done ${u.usuarioListo?'listo':'pendiente'}">${u.usuarioListo||'Pendiente'}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${u.ejecutivo||''}</div>
+      <div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        ${u.usuarioListo
+          ?`<span style="font-size:11px;background:rgba(26,158,106,.12);color:#1A9E6A;padding:3px 10px;border-radius:10px;font-weight:500">✓ Listo · ${u.usuarioListo}</span>`
+          :`<button onclick="marcarUsuarioListo('${u.id}')" style="font-size:11px;padding:4px 12px;border-radius:8px;border:1.5px solid #1A9E6A;background:transparent;color:#1A9E6A;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;white-space:nowrap">✓ Marcar como listo</button>`}
+        <div style="font-size:10px;color:var(--text3)">${u.ejecutivo||''}</div>
       </div>
     </div>`).join('');
 };
@@ -4119,9 +4135,10 @@ window.addUsuarioJira = async function(){
   setErr('nu-producto-err',producto?'':'Campo obligatorio'); if(!producto) valid=false;
   setErr('nu-carpeta-err',carpeta?'':'Campo obligatorio'); if(!carpeta) valid=false;
   if(!valid) return;
+  const clienteVal=el('nu-cliente')?.value||'';
   const usr={
-    cliente: el('nu-cliente')?.value||'',
-    empresa: el('nu-empresa')?.value.trim()||'',
+    cliente: clienteVal,
+    empresa: clienteVal,
     nombre,
     apellido: el('nu-apellido')?.value.trim()||'',
     email: mail,
@@ -4129,19 +4146,33 @@ window.addUsuarioJira = async function(){
     carpeta,
     fechaSolicitud: el('nu-fecha')?.value||new Date().toISOString().split('T')[0],
     ejecutivo: el('nu-ejec')?.value||'',
-    usuarioListo: el('nu-usuario-listo')?.value.trim()||'',
+    usuarioListo: '',
     accesoParaEjecutivo: document.getElementById('nu-acceso-ejec')?.checked||false,
   };
   setSyncStatus('syncing');
   try{
     await addDoc(collection(db,'jiraUsuarios'),{...usr,createdAt:serverTimestamp()});
-    ['nu-cliente','nu-empresa','nu-nombre','nu-apellido','nu-mail','nu-carpeta','nu-fecha','nu-usuario-listo'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    ['nu-cliente','nu-nombre','nu-apellido','nu-mail','nu-carpeta','nu-fecha'].forEach(id=>{const e=el(id);if(e)e.value='';});
     const ps=el('nu-producto');if(ps)ps.value='';
     const cb=document.getElementById('nu-acceso-ejec');if(cb)cb.checked=false;
     ['nu-nombre-err','nu-mail-err','nu-producto-err','nu-carpeta-err'].forEach(id=>setErr(id,''));
     el('usuario-form').style.display='none';
     setSyncStatus('ok');
     generarEmailSolicitudUsuario(usr);
+  }catch{setSyncStatus('error');}
+};
+
+window.marcarUsuarioListo = async function(id){
+  const fecha=new Date().toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'});
+  setSyncStatus('syncing');
+  try{
+    await updateDoc(doc(db,'jiraUsuarios',id),{usuarioListo:fecha,fechaAlta:serverTimestamp()});
+    setSyncStatus('ok');
+    const msg=document.createElement('div');
+    msg.style.cssText='position:fixed;bottom:24px;right:24px;background:#1A9E6A;color:#fff;padding:12px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:9999;box-shadow:var(--shadow)';
+    msg.textContent='✓ Usuario marcado como listo — KR 1.3 actualizado';
+    document.body.appendChild(msg);
+    setTimeout(()=>msg.remove(),4000);
   }catch{setSyncStatus('error');}
 };
 
