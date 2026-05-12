@@ -1016,7 +1016,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             </div>
             <div class="form-row">
               <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" list="nj-cliente-list" placeholder="— Sin cliente específico —"/><datalist id="nj-cliente-list"></datalist></div>
-              <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX"/></div>
+              <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX o URL completa de Atlassian"/></div>
             </div>
             <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
             <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
@@ -3806,13 +3806,19 @@ window.deleteJira = async function(idOrJira){
   }catch{setSyncStatus('error');}
 };
 
+function extraerNumeroJira(input){
+  if(!input) return '';
+  const match=input.match(/\/browse\/([A-Z]+-\d+)/);
+  if(match) return match[1];
+  return input.trim();
+}
 window.addJira = async function(){
   const detalle = el('nj-detalle')?.value.trim();
   if(!detalle) return;
   const cat = el('nj-categoria')?.value||'';
   const maxPri = jiraTickets.length ? Math.max(...jiraTickets.map(t=>t.prioridad)) : 0;
   const ticket = {
-    jira: el('nj-jira')?.value.trim()||'',
+    jira: extraerNumeroJira(el('nj-jira')?.value||''),
     ejecutivo: el('nj-ejec')?.value||'',
     cliente: el('nj-cliente')?.value.trim()||'',
     producto: el('nj-producto')?.value||'',
