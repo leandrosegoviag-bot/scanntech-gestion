@@ -1975,6 +1975,7 @@ function renderDashboard(){
   if(_dashboardRendering)return;
   if(!accounts.length)return;
   _dashboardRendering=true;
+  try{
   const months12=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const msWrap=el('month-selector-wrap');
   if(msWrap) msWrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</span>${months12.map((m,i)=>`<button onclick="selectMonth(${i})" style="font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid ${i===selectedMonth?'var(--navy)':'var(--border)'};background:${i===selectedMonth?'var(--navy)':'transparent'};color:${i===selectedMonth?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif">${m}</button>`).join('')}</div>`;
@@ -2158,7 +2159,7 @@ function renderDashboard(){
   if(ctxEvo){
     chartEvoInst=new Chart(ctxEvo,{type:'line',data:{labels:weeks.map(w=>w.label),datasets:[{label:'Interacciones',data:weeks.map(w=>w.count),borderColor:'#0a2463',backgroundColor:'rgba(10,36,99,.08)',fill:true,tension:.35,pointBackgroundColor:'#f4600c',pointRadius:4,borderWidth:2}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10},stepSize:1},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
   }
-  _dashboardRendering=false;
+  }finally{_dashboardRendering=false;}
 }
 
 window.filtrarEjecutivoKR = function(ejec){
