@@ -983,6 +983,13 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
               <option value="EE">EE</option>
               <option value="SAR">SAR</option>
             </select>
+            <select id="jira-backlog-cat" onchange="renderBacklog()" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+              <option value="todos">Todas las categorías</option>
+              <option value="Nuevo dashboard">🆕 Nuevo dashboard</option>
+              <option value="Error">🐛 Error</option>
+              <option value="Mejora">⚡ Mejora</option>
+              <option value="Otro">📌 Otro</option>
+            </select>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <span id="selected-count" style="font-size:12px;color:var(--text3)"></span>
@@ -1000,18 +1007,19 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             <div class="form-row four">
               <div class="field"><label>Ejecutivo</label><select id="nj-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option><option value="SAR">SAR</option></select></div>
               <div class="field"><label>Área</label><select id="nj-area"><option value="BI">BI</option><option value="BD">BD</option></select></div>
-              <div class="field"><label>Producto</label><input type="text" id="nj-producto" placeholder="ej: 8.2, MINI 2.0"/></div>
+              <div class="field"><label>Producto</label><select id="nj-producto"><option value="">— Todos los productos —</option><option>8.2</option><option>MINI 2.0</option><option>SHOPPER</option><option>JBP</option><option>Multicadena</option><option>Precios Semanales</option><option>ScannOP</option><option>Perecederos</option><option>Marca Propia</option><option>Price Position</option></select></div>
               <div class="field"><label>Status</label><select id="nj-status"><option value="Pendiente">Pendiente</option><option value="Verificar">Verificar</option><option value="Corregir">Corregir</option></select></div>
             </div>
             <div class="form-row">
-              <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" placeholder="Nombre del cliente"/></div>
+              <div class="field"><label>Categoría</label><select id="nj-categoria" onchange="toggleSubtipo()"><option value="">— Sin categoría —</option><option value="Nuevo dashboard">🆕 Nuevo dashboard</option><option value="Error">🐛 Error</option><option value="Mejora">⚡ Mejora</option><option value="Otro">📌 Otro</option></select></div>
+              <div class="field" id="nj-subtipo-wrapper" style="display:none"><label>Subtipo</label><select id="nj-subtipo"><option value="Réplica">Réplica</option><option value="Réplica con ajustes">Réplica con ajustes</option><option value="Nuevo producto">Nuevo producto</option></select></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Cliente</label><input type="text" id="nj-cliente" list="nj-cliente-list" placeholder="— Sin cliente específico —"/><datalist id="nj-cliente-list"></datalist></div>
               <div class="field"><label># Jira</label><input type="text" id="nj-jira" placeholder="SIBR-XXXXXX"/></div>
             </div>
             <div class="field"><label>Detalle del pedido</label><textarea id="nj-detalle" rows="3" placeholder="Describí el pedido o error..."></textarea></div>
-            <div class="form-row">
-              <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
-              <div class="field"><label>Sprint</label><input type="text" id="nj-sprint" placeholder="ej: Sprint 12"/></div>
-            </div>
+            <div class="field"><label>Fecha inicio</label><input type="date" id="nj-fecha"/></div>
             <button class="btn btn-primary" onclick="addJira()" style="width:fit-content">Agregar ticket</button>
           </div>
         </div>
@@ -3283,12 +3291,15 @@ ${buildTableroHTML(a, tablero)}
           <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Fecha de alta</div>
             <input type="date" id="kr13-fecha-${a.id}" style="width:100%;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;box-sizing:border-box">
           </div>
-          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Ticket (opcional)</div>
+          <div>${(()=>{
+            const _ticksND=jiraTickets.filter(t=>t.categoria==='Nuevo dashboard');
+            if(!_ticksND.length) return`<div style="font-size:12px;color:var(--text3);padding:8px 10px;background:var(--surface2);border-radius:8px;line-height:1.5">No hay tickets de tipo 'Nuevo dashboard' creados aún.<br>Creá uno desde el módulo de Tickets primero.</div>`;
+            return`<div style="font-size:11px;color:var(--text3);margin-bottom:4px">Ticket de evidencia <span style="color:var(--red)">*</span></div>
             <select id="kr13-ticket-${a.id}" style="width:100%;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif">
-              <option value="">— sin ticket vinculado —</option>
-              ${jiraTickets.map(t=>`<option value="${t.jira||t.id}">${t.jira||t.id} · ${(t.detalle||'').substring(0,60)}</option>`).join('')}
-            </select>
-          </div>
+              <option value="">— seleccioná un ticket —</option>
+              ${_ticksND.map(t=>`<option value="${t.jira||t.id}">${t.jira||t.id} · ${(t.detalle||'').substring(0,60)}</option>`).join('')}
+            </select>`;
+          })()}</div>
           <div style="display:flex;gap:8px">
             <button onclick="saveKR13Dashboard('${a.id}')" style="font-size:12px;padding:6px 16px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">Guardar</button>
             <button onclick="hideKR13Form('${a.id}')" style="font-size:12px;padding:6px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Cancelar</button>
@@ -3326,11 +3337,12 @@ window.hideKR13Form = function(accountId){
 window.saveKR13Dashboard = async function(accountId){
   const dashEl=el('kr13-dash-'+accountId);
   if(!dashEl||!dashEl.value) return;
+  const ticketVal=el('kr13-ticket-'+accountId)?.value||null;
+  if(!ticketVal){ alert('Seleccioná un ticket de evidencia para continuar.'); return; }
   const a=accounts.find(a=>a.id===accountId);
   if(!a) return;
-  const ticketVal=el('kr13-ticket-'+accountId)?.value||null;
-  const ticketDetalle=ticketVal?(jiraTickets.find(t=>(t.jira||t.id)===ticketVal)?.detalle||''):'';
-  const entry={dashboard:dashEl.value,fecha:el('kr13-fecha-'+accountId)?.value||null,ticketId:ticketVal||null,ticketDetalle,registradoPor:a.ejecutivo||'',registradoEl:new Date().toISOString()};
+  const ticketDetalle=jiraTickets.find(t=>(t.jira||t.id)===ticketVal)?.detalle||'';
+  const entry={dashboard:dashEl.value,fecha:el('kr13-fecha-'+accountId)?.value||null,ticketId:ticketVal,ticketDetalle,registradoPor:a.ejecutivo||'',registradoEl:new Date().toISOString()};
   setSyncStatus('syncing');
   try{
     await updateDoc(doc(db,'accounts',accountId),{kr13DashboardsNuevos:[...(a.kr13DashboardsNuevos||[]),entry]});
@@ -3481,7 +3493,18 @@ window.toggleJiraForm = function(){
   const f=el('jira-form');
   const show=f.style.display==='none';
   f.style.display=show?'block':'none';
-  if(show) f.scrollIntoView({behavior:'smooth',block:'start'});
+  if(show){
+    f.scrollIntoView({behavior:'smooth',block:'start'});
+    const dl=el('nj-cliente-list');
+    if(dl){
+      const activas=accounts.filter(a=>a.estado!=='Inactivo').map(a=>a.nombre).sort();
+      dl.innerHTML=activas.map(n=>`<option value="${n}">`).join('');
+    }
+  }
+};
+window.toggleSubtipo = function(){
+  const w=el('nj-subtipo-wrapper');
+  if(w) w.style.display=el('nj-categoria')?.value==='Nuevo dashboard'?'':'none';
 };
 window.toggleUsuarioForm = function(){
   const f=el('usuario-form');
@@ -3786,26 +3809,31 @@ window.deleteJira = async function(idOrJira){
 window.addJira = async function(){
   const detalle = el('nj-detalle')?.value.trim();
   if(!detalle) return;
+  const cat = el('nj-categoria')?.value||'';
   const maxPri = jiraTickets.length ? Math.max(...jiraTickets.map(t=>t.prioridad)) : 0;
   const ticket = {
     jira: el('nj-jira')?.value.trim()||'',
     ejecutivo: el('nj-ejec')?.value||'',
     cliente: el('nj-cliente')?.value.trim()||'',
-    producto: el('nj-producto')?.value.trim()||'',
+    producto: el('nj-producto')?.value||'',
     area: el('nj-area')?.value||'BI',
     detalle,
     status: el('nj-status')?.value||'Pendiente',
     fechaInicio: el('nj-fecha')?.value||new Date().toISOString().split('T')[0],
-    sprint: el('nj-sprint')?.value.trim()||'',
+    categoria: cat||null,
+    subtipo: cat==='Nuevo dashboard'?(el('nj-subtipo')?.value||null):null,
     prioridad: maxPri+1,
-    prioridadNivel: el('nj-prioridad')?.value||'media',
+    prioridadNivel: 'media',
     fechaCierre: '',
     reopenedCount: 0,
   };
   setSyncStatus('syncing');
   try{
     await addDoc(collection(db,'jiras'),{...ticket, createdAt:serverTimestamp()});
-    ['nj-detalle','nj-jira','nj-cliente','nj-producto','nj-fecha','nj-sprint'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    ['nj-detalle','nj-jira','nj-cliente','nj-fecha'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    const ps=el('nj-producto');if(ps)ps.value='';
+    const cs=el('nj-categoria');if(cs)cs.value='';
+    toggleSubtipo();
     el('jira-form').style.display='none';
     setSyncStatus('ok');
   }catch{setSyncStatus('error');}
@@ -3815,12 +3843,22 @@ window.renderBacklog = function(){
   const q = (el('jira-search')?.value||'').toLowerCase();
   const area = el('jira-backlog-area')?.value||'todos';
   const ejec = el('jira-backlog-ejec')?.value||'todos';
+  const cat  = el('jira-backlog-cat')?.value||'todos';
   let data = [...jiraTickets].sort((a,b)=>(a.prioridad||999)-(b.prioridad||999));
-  if(q) data=data.filter(t=>[t.detalle,t.jira,t.cliente,t.producto,t.ejecutivo].join(' ').toLowerCase().includes(q));
+  if(q) data=data.filter(t=>[t.detalle,t.jira,t.cliente,t.producto,t.ejecutivo,t.categoria].join(' ').toLowerCase().includes(q));
   if(area!=='todos') data=data.filter(t=>t.area===area);
   const statuses = window.getSelectedStatuses ? window.getSelectedStatuses() : [];
   if(statuses.length>0) data=data.filter(t=>statuses.includes(t.status));
   if(ejec!=='todos') data=data.filter(t=>t.ejecutivo===ejec);
+  if(cat!=='todos') data=data.filter(t=>t.categoria===cat);
+
+  const _catBadge=c=>{
+    if(!c) return '<span style="font-size:11px;color:var(--text3)">Sin cat.</span>';
+    const map={'Nuevo dashboard':['#1E3A5F','#DBEAFE','🆕'],'Error':['#7F1D1D','#FEE2E2','🐛'],'Mejora':['#7C2D12','#FFEDD5','⚡'],'Otro':['#374151','#F3F4F6','📌']};
+    const [fg,bg,ico]=map[c]||['var(--text3)','var(--surface2)',''];
+    const label=c==='Nuevo dashboard'?c:c;
+    return `<span style="font-size:10px;padding:2px 7px;border-radius:5px;background:${bg};color:${fg};font-weight:600;white-space:nowrap">${ico} ${label}</span>`;
+  };
 
   const list=el('jira-backlog-list');
   if(!list) return;
@@ -3829,12 +3867,13 @@ window.renderBacklog = function(){
   list.innerHTML=`<div class="overflow-wrap"><table class="backlog-table">
     <thead><tr>
       <th><input type="checkbox" id="cb-all" onchange="toggleAllBacklog(this.checked)" class="backlog-cb"/></th>
-      <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th>
+      <th>#</th><th>Ticket</th><th>Cliente</th><th>Producto</th><th>Categoría</th>
       <th>Área</th><th>Ejec.</th><th>Status</th><th>Enviado</th><th></th>
     </tr></thead>
     <tbody>${data.map((t,i)=>{
       const sel = window._selectedJiras && window._selectedJiras.has(t.id||t.jira);
       const enviado = t.enPrioridades;
+      const catLabel = t.categoria==='Nuevo dashboard'&&t.subtipo?`Nuevo dashboard (${t.subtipo})`:t.categoria||null;
       return `<tr class="${sel?'selected':''}" style="${enviado?'background:rgba(26,158,106,.04)':''}">
         <td><input type="checkbox" class="backlog-cb jira-cb" data-id="${t.id||t.jira}" ${sel?'checked':''} onchange="toggleJiraSelect(this)"/></td>
         <td style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${t.prioridad||i+1}</td>
@@ -3844,6 +3883,7 @@ window.renderBacklog = function(){
         </td>
         <td style="font-size:12px">${t.cliente||'—'}</td>
         <td><span style="font-size:11px;padding:2px 7px;border-radius:5px;background:var(--surface2);color:var(--text3)">${t.producto||'—'}</span></td>
+        <td>${_catBadge(catLabel)}</td>
         <td>${t.area?`<span class="jira-area ${(t.area||'').toLowerCase()}">${t.area}</span>`:''}</td>
         <td style="font-size:12px">${t.ejecutivo||'—'}</td>
         <td><span class="jira-status ${jiraStatusClass(t.status)}">${jiraStatusLabel(t.status)}</span></td>
