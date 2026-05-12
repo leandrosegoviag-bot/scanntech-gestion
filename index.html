@@ -1986,11 +1986,9 @@ function renderDashboard(){
   const kr11Obj      = {aa:100, b:90,  c:20};
   const _mesKey=`${selectedYear}-${String(selectedMonth+1).padStart(2,'0')}`;
   const _exportMes=EXPORTS_DATA[_mesKey]||null;
-  // Fallback: TABLERO_DATA cubre abril 2026 (2026-04)
-  const _fallbackKey='2026-04';
-  const _usarFallback=!_exportMes&&_mesKey===_fallbackKey;
-  const _exportCuentas=_exportMes?_exportMes.cuentas:(_usarFallback?TABLERO_DATA:null);
-  const cuentasConActividad=_exportCuentas?new Set(Object.keys(_exportCuentas)):new Set();
+  // Si no hay export para el mes seleccionado, usar TABLERO_DATA como fallback
+  const _exportCuentas=_exportMes?_exportMes.cuentas:TABLERO_DATA;
+  const cuentasConActividad=new Set(Object.keys(_exportCuentas));
   const ejecFilter = window._krEjecFilter || 'todos';
   const _ejMatch = a => ejecFilter === 'todos' || (a.ejecutivo||'').trim().includes(ejecFilter);
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics')&&_ejMatch(a));
