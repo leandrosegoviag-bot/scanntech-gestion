@@ -3535,17 +3535,19 @@ window.toggleSubtipo = function(){
   const w=el('nj-subtipo-wrapper');
   if(w) w.style.display=el('nj-categoria')?.value==='Nuevo dashboard'?'':'none';
 };
+function _poblarClientesSolicitud(){
+  const dl=el('nu-cliente-list');
+  if(!dl||!accounts.length) return;
+  const nombres=[...new Set(accounts.filter(a=>a.nombre).map(a=>a.nombre))].sort();
+  dl.innerHTML=nombres.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+}
 window.toggleUsuarioForm = function(){
   const f=document.getElementById('usuario-form');
   if(!f) return;
   const show=f.style.display==='none';
   f.style.display=show?'block':'none';
   if(show){
-    const dl=el('nu-cliente-list');
-    if(dl){
-      const nombres=accounts.filter(a=>a.estado!=='Inactivo'&&a.nombre).map(a=>a.nombre).sort();
-      dl.innerHTML=nombres.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
-    }
+    _poblarClientesSolicitud();
     const fechaEl=el('nu-fecha');
     if(fechaEl&&!fechaEl.value) fechaEl.value=new Date().toISOString().split('T')[0];
     f.scrollIntoView({behavior:'smooth',block:'start'});
@@ -4285,7 +4287,7 @@ onSnapshot(collection(db,'tasks'),snap=>{
 
 onSnapshot(collection(db,'accounts'),snap=>{
   accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderAccounts();updateAccountSelect();updateFichaSelect();
+  renderAccounts();updateAccountSelect();updateFichaSelect();_poblarClientesSolicitud();
   _configReady.then(()=>{
     if(currentTab==='dashboard')renderDashboard();
     if(currentTab==='historial')renderHistorial();
