@@ -2163,7 +2163,7 @@ function renderDashboard(){
   const _kr13UltKey = Object.keys(EXPORTS_DATA).sort().reverse()[0] || null;
   const _kr13UltExp = _kr13UltKey ? EXPORTS_DATA[_kr13UltKey] : null;
   const _kr13Cumple = a => {
-    if(a.kr13DashNuevo===true) return true;
+    if((a.kr13DashboardsNuevos||[]).length>0) return true;
     const base = parseFloat(enBase(a.nombre)?.u || 0);
     const actual = parseFloat(_kr13UltExp?.cuentas?.[a.nombre]?.usuarios ?? enTablero(a.nombre)?.usuarios ?? 0);
     return base > 0 && actual > base;
@@ -2198,10 +2198,7 @@ function renderDashboard(){
       const exp=EXPORTS_DATA[m.key];
       const fechaFin=new Date(m.anio,m.mes+1,0);
       const cumpleM=a=>{
-        if(a.kr13DashNuevo===true){
-          if(!a.kr13DashNuevoFecha)return true;
-          return new Date(a.kr13DashNuevoFecha+'T00:00:00')<=fechaFin;
-        }
+        if((a.kr13DashboardsNuevos||[]).some(d=>!d.fecha||new Date(d.fecha+'T00:00:00')<=fechaFin))return true;
         const base=parseFloat(enBase(a.nombre)?.u||0);
         const actual=parseFloat(exp?.cuentas?.[a.nombre]?.usuarios||0);
         return base>0&&actual>base;
@@ -3258,28 +3255,50 @@ ${buildTableroHTML(a, tablero)}
 
     <!-- KR 1.3 -->
     ${(()=>{
-      const _kBase=parseFloat(enBase(a.nombre)?.u||0);
-      const _kUltKey=Object.keys(EXPORTS_DATA).sort().reverse()[0]||null;
-      const _kUltExp=_kUltKey?EXPORTS_DATA[_kUltKey]:null;
-      const _kAct=parseFloat(_kUltExp?.cuentas?.[a.nombre]?.usuarios??enTablero(a.nombre)?.usuarios??_kBase);
-      const _kDelta=_kAct-_kBase;
-      const _kExpLbl=_kUltKey?` · ${_kUltKey}`:'';
+      const _bData=enBase(a.nombre);
+      const _kBase=_bData?parseFloat(_bData.u||0):null;
+      const _kr13UltKey=Object.keys(EXPORTS_DATA).sort().reverse()[0]||null;
+      const _kr13UltExp=_kr13UltKey?EXPORTS_DATA[_kr13UltKey]:null;
+      const _kr13Ctas=_kr13UltExp?.cuentas||{};
+      const _normS=s=>s.toLowerCase().replace(/\s+/g,' ').trim();
+      const _kr13Entry=_kr13Ctas[a.nombre]||(()=>{const an=_normS(a.nombre);return Object.entries(_kr13Ctas).find(([k])=>_normS(k)===an)?.[1]??null;})();
+      const _kActRaw=_kr13Entry?parseFloat(_kr13Entry.usuarios):null;
+      const _kAct=(_kActRaw!==null&&!isNaN(_kActRaw))?_kActRaw:null;
+      const _kDelta=(_kBase!==null&&_kAct!==null)?_kAct-_kBase:null;
+      const _dashNuevos=a.kr13DashboardsNuevos||[];
+      const _baseDashs=_bData?.d||[];
+      const _availDashs=ALL_PRODUCTS.filter(d=>!_baseDashs.includes(d));
       return`<div class="ficha-card" style="margin-bottom:16px">
         <div class="ficha-card-title">KR 1.3 · Novedades del semestre</div>
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px">
-          <input type="checkbox" ${a.kr13DashNuevo?'checked':''} onchange="toggleKR13DashNuevo('${a.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer">
-          <span style="font-size:13px;font-weight:500">Sumó dashboard nuevo en el semestre</span>
-        </label>
-        ${a.kr13DashNuevo?`<div style="margin-left:26px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-          <select onchange="saveKR13Field('${a.id}','kr13DashNuevoNombre',this.value)" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
-            ${DASHBOARDS_VALIDOS_KR13.map(d=>`<option value="${d}" ${a.kr13DashNuevoNombre===d?'selected':''}>${d}</option>`).join('')}
-          </select>
-          <input type="date" value="${a.kr13DashNuevoFecha||''}" onchange="saveKR13Field('${a.id}','kr13DashNuevoFecha',this.value)" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
-        </div>`:''}
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:12px;padding:10px;background:var(--surface2);border-radius:8px">
-          <span style="color:var(--text3)">Usuarios baseline (abr):</span><span style="font-weight:500">${_kBase}</span>
-          <span style="color:var(--text3)">Usuarios actuales${_kExpLbl}:</span><span style="font-weight:500">${_kAct}</span>
-          <span style="color:var(--text3)">Delta:</span><span style="font-weight:600;color:${_kDelta>0?'#1A9E6A':_kDelta<0?'var(--red)':'var(--text2)'}">${_kDelta>0?'+':''}${_kDelta}</span>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Dashboards nuevos</div>
+        ${_dashNuevos.length>0?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">${_dashNuevos.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;font-size:12px"><span style="color:#1A9E6A;font-size:14px">✓</span><span style="font-weight:600;flex:1">${d.dashboard}</span>${d.fecha?`<span style="color:var(--text3)">agregado ${new Date(d.fecha+'T00:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'})}</span>`:''}${d.ticketId?`<span style="color:var(--text3)">· Ticket: <span style="font-weight:500">${d.ticketId}</span></span>`:''}<button onclick="removeKR13Dashboard('${a.id}',${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button></div>`).join('')}</div>`:''}
+        <button id="kr13-add-btn-${a.id}" onclick="showKR13Form('${a.id}')" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;margin-bottom:10px">+ Registrar dashboard nuevo</button>
+        <div id="kr13-form-${a.id}" style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:10px;flex-direction:column;gap:10px;display:none">
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Dashboard</div>
+            <select id="kr13-dash-${a.id}" style="width:100%;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif">
+              <option value="">— seleccioná un dashboard —</option>
+              ${_availDashs.map(d=>`<option value="${d}">${d}</option>`).join('')}
+            </select>
+          </div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Fecha de alta</div>
+            <input type="date" id="kr13-fecha-${a.id}" style="width:100%;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;box-sizing:border-box">
+          </div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Ticket (opcional)</div>
+            <select id="kr13-ticket-${a.id}" style="width:100%;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif">
+              <option value="">— sin ticket vinculado —</option>
+              ${jiraTickets.map(t=>`<option value="${t.jira||t.id}">${t.jira||t.id} · ${(t.detalle||'').substring(0,60)}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="saveKR13Dashboard('${a.id}')" style="font-size:12px;padding:6px 16px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">Guardar</button>
+            <button onclick="hideKR13Form('${a.id}')" style="font-size:12px;padding:6px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Cancelar</button>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:10px;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:12px">
+          <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;grid-column:1/-1;margin-bottom:4px">Usuarios</span>
+          <span style="color:var(--text3)">Baseline abril 2026:</span><span style="font-weight:500">${_kBase!==null?_kBase+' usuarios':'<span style="color:var(--text3)">Sin datos</span>'}</span>
+          <span style="color:var(--text3)">Último export${_kr13UltKey?' · '+_kr13UltKey:''}:</span><span style="font-weight:500">${_kAct!==null?_kAct+' usuarios':'<span style="color:var(--text3);font-style:italic">Sin datos en export</span>'}</span>
+          ${_kDelta!==null?`<span style="color:var(--text3)">Delta:</span><span style="font-weight:600;color:${_kDelta>0?'#1A9E6A':_kDelta<0?'var(--red)':'var(--text2)'}">${_kDelta>0?'+':''}${_kDelta}</span>`:''}
         </div>
       </div>`;
     })()}
@@ -3294,21 +3313,39 @@ ${buildTableroHTML(a, tablero)}
 
 
 
-window.toggleKR13DashNuevo = async function(accountId, checked){
+window.showKR13Form = function(accountId){
+  const f=el('kr13-form-'+accountId), b=el('kr13-add-btn-'+accountId);
+  if(f) f.style.display='flex';
+  if(b) b.style.display='none';
+};
+window.hideKR13Form = function(accountId){
+  const f=el('kr13-form-'+accountId), b=el('kr13-add-btn-'+accountId);
+  if(f) f.style.display='none';
+  if(b) b.style.display='';
+};
+window.saveKR13Dashboard = async function(accountId){
+  const dashEl=el('kr13-dash-'+accountId);
+  if(!dashEl||!dashEl.value) return;
+  const a=accounts.find(a=>a.id===accountId);
+  if(!a) return;
+  const ticketVal=el('kr13-ticket-'+accountId)?.value||null;
+  const ticketDetalle=ticketVal?(jiraTickets.find(t=>(t.jira||t.id)===ticketVal)?.detalle||''):'';
+  const entry={dashboard:dashEl.value,fecha:el('kr13-fecha-'+accountId)?.value||null,ticketId:ticketVal||null,ticketDetalle,registradoPor:a.ejecutivo||'',registradoEl:new Date().toISOString()};
   setSyncStatus('syncing');
-  const upd={kr13DashNuevo:checked};
-  if(!checked){upd.kr13DashNuevoNombre=null;upd.kr13DashNuevoFecha=null;}
   try{
-    await updateDoc(doc(db,'accounts',accountId),upd);
+    await updateDoc(doc(db,'accounts',accountId),{kr13DashboardsNuevos:[...(a.kr13DashboardsNuevos||[]),entry]});
     setSyncStatus('ok');
     renderFicha();
   }catch{setSyncStatus('error');}
 };
-window.saveKR13Field = async function(accountId, field, value){
+window.removeKR13Dashboard = async function(accountId, idx){
+  const a=accounts.find(a=>a.id===accountId);
+  if(!a) return;
   setSyncStatus('syncing');
   try{
-    await updateDoc(doc(db,'accounts',accountId),{[field]:value});
+    await updateDoc(doc(db,'accounts',accountId),{kr13DashboardsNuevos:(a.kr13DashboardsNuevos||[]).filter((_,i)=>i!==idx)});
     setSyncStatus('ok');
+    renderFicha();
   }catch{setSyncStatus('error');}
 };
 
