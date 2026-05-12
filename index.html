@@ -771,6 +771,16 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:14px;line-height:1.5"><strong style="color:var(--text2)">KR 1.2 · Presentaciones e insights por cuenta</strong><br>A+/A: mínimo 1 presentación por semana · B: mínimo 1 por mes · C: Informe Regional + Radar mensual</div>
       <div class="dash-grid" id="okr-grid-12" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px"></div>
 
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:14px;line-height:1.5"><strong style="color:var(--text2)">KR 1.3 · Nuevos dashboards y usuarios en el semestre</strong><br>Cuentas que incorporaron un dashboard nuevo O sumaron usuarios vs baseline abril 2026 · A+/A: obj 50% · B: obj 20%</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3);font-weight:500">KR 1.3 · Ejecutivo:</span>
+        <button onclick="filtrarEjecutivoKR13('todos')" id="kr13-ejec-todos" style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:#F4600C;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">Todos</button>
+        <button onclick="filtrarEjecutivoKR13('AJG')" id="kr13-ejec-AJG" style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Aime Jurado García</button>
+        <button onclick="filtrarEjecutivoKR13('LS')" id="kr13-ejec-LS" style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Leandro Segovia</button>
+        <button onclick="filtrarEjecutivoKR13('EE')" id="kr13-ejec-EE" style="font-size:12px;padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Ezequiel Ercoreca</button>
+      </div>
+      <div class="dash-grid" id="okr-grid-13" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px"></div>
+
       <div class="dash-section-title" style="margin-top:8px">OKR 2 · Fortalecer la retención y reducir riesgos en la cartera</div>
       <div class="dash-grid" id="okr-grid-2"></div>
 
@@ -2146,6 +2156,63 @@ function renderDashboard(){
       _semRow('C',kr12Sem.map(m=>m.c),'100%'));
   }
 
+  // KR 1.3 — Nuevos dashboards y usuarios
+  const kr13Ejec = window._kr13EjecFilter || 'todos';
+  const kr13EjMatch = a => kr13Ejec==='todos'||(a.ejecutivo||'').trim().includes(kr13Ejec);
+  const _kr13UltKey = Object.keys(EXPORTS_DATA).sort().reverse()[0] || null;
+  const _kr13UltExp = _kr13UltKey ? EXPORTS_DATA[_kr13UltKey] : null;
+  const _kr13Cumple = a => {
+    if(a.kr13DashNuevo===true) return true;
+    const base = parseFloat(enBase(a.nombre)?.u || 0);
+    const actual = parseFloat(_kr13UltExp?.cuentas?.[a.nombre]?.usuarios ?? enTablero(a.nombre)?.usuarios ?? 0);
+    return base > 0 && actual > base;
+  };
+  const kr13AA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics')&&kr13EjMatch(a));
+  const kr13B  = activos.filter(a=>normTier(a.tier)==='B'&&(a.tipoServicio||'').includes('Analytics')&&kr13EjMatch(a));
+  const kr13AA_num = kr13AA.filter(_kr13Cumple).length;
+  const kr13B_num  = kr13B.filter(_kr13Cumple).length;
+  const kr13AA_den = kr13AA.length;
+  const kr13B_den  = kr13B.length;
+  const kr13AA_pct = kr13AA_den ? parseFloat((kr13AA_num/kr13AA_den*100).toFixed(1)) : 0;
+  const kr13B_pct  = kr13B_den  ? parseFloat((kr13B_num /kr13B_den *100).toFixed(1)) : 0;
+  const kr13Card=(label,chipBg,chipColor,pct,num,den,obj)=>{
+    const bw=obj>0?Math.min(pct/obj*100,100):0;
+    return`<div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+      <div><span style="background:${chipBg};color:${chipColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">KR 1.3 · ${label}</span></div>
+      <div style="font-size:30px;font-weight:700;color:#F4600C;line-height:1">${pct}%</div>
+      <div style="position:relative;height:6px;background:var(--surface2);border-radius:3px">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${bw}%;background:#F4600C;border-radius:3px"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">${num} de ${den} cuentas · obj: ${obj}%</div>
+    </div>`;
+  };
+  if(_vista==='mes'){
+    el('okr-grid-13').innerHTML=`
+      ${kr13Card('A+/A','#EEF2FF','#3730A3',kr13AA_pct,kr13AA_num,kr13AA_den,50)}
+      ${kr13Card('B','#EFF6FF','#1D4ED8',kr13B_pct,kr13B_num,kr13B_den,20)}`;
+  }else{
+    const kr13Sem=MESES_SEM.map(m=>{
+      if(m.key==='2026-04') return{aa:0,b:0};
+      const exp=EXPORTS_DATA[m.key];
+      const fechaFin=new Date(m.anio,m.mes+1,0);
+      const cumpleM=a=>{
+        if(a.kr13DashNuevo===true){
+          if(!a.kr13DashNuevoFecha)return true;
+          return new Date(a.kr13DashNuevoFecha+'T00:00:00')<=fechaFin;
+        }
+        const base=parseFloat(enBase(a.nombre)?.u||0);
+        const actual=parseFloat(exp?.cuentas?.[a.nombre]?.usuarios||0);
+        return base>0&&actual>base;
+      };
+      const aaNum=kr13AA.filter(cumpleM).length;
+      const bNum =kr13B.filter(cumpleM).length;
+      return{aa:kr13AA_den?Math.round(aaNum/kr13AA_den*100):0,b:kr13B_den?Math.round(bNum/kr13B_den*100):0};
+    });
+    el('okr-grid-13').innerHTML=_semTable('KR 1.3 · Nuevos dashboards y usuarios — evolución semestral',
+      _semRow('A+/A',kr13Sem.map(m=>m.aa),'50%')+
+      _semRow('B',kr13Sem.map(m=>m.b),'20%',true));
+  }
+
   // OKR 2
   const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
   if(_vista==='mes'){
@@ -2237,6 +2304,19 @@ window.filtrarEjecutivoKR = function(ejec){
     btn.style.background = active ? '#F4600C' : 'transparent';
     btn.style.color = active ? '#fff' : 'var(--text2)';
     btn.style.borderColor = active ? '#F4600C' : 'var(--border)';
+  });
+  renderDashboard();
+};
+
+window.filtrarEjecutivoKR13 = function(ejec){
+  window._kr13EjecFilter = ejec;
+  ['todos','AJG','LS','EE'].forEach(e=>{
+    const btn=document.getElementById('kr13-ejec-'+e);
+    if(!btn)return;
+    const active=e===ejec;
+    btn.style.background=active?'#F4600C':'transparent';
+    btn.style.color=active?'#fff':'var(--text2)';
+    btn.style.borderColor=active?'#F4600C':'var(--border)';
   });
   renderDashboard();
 };
@@ -2890,6 +2970,7 @@ function getSemaforoState(a){
 
 
 const ALL_PRODUCTS = ['8.2','MINI 2.0','SHOPPER','JBP','Multicadena','Precios Semanales','ScannOP','Perecederos','Marca Propia','Price Position'];
+const DASHBOARDS_VALIDOS_KR13 = ALL_PRODUCTS;
 
 // Fuzzy name matching: normaliza y construye índices para TABLERO_DATA y BASE2026_DATA
 function _normNombre(s){
@@ -3173,6 +3254,34 @@ ${buildTableroHTML(a, tablero)}
       </div>
     </div>
 
+    <!-- KR 1.3 -->
+    ${(()=>{
+      const _kBase=parseFloat(enBase(a.nombre)?.u||0);
+      const _kUltKey=Object.keys(EXPORTS_DATA).sort().reverse()[0]||null;
+      const _kUltExp=_kUltKey?EXPORTS_DATA[_kUltKey]:null;
+      const _kAct=parseFloat(_kUltExp?.cuentas?.[a.nombre]?.usuarios??enTablero(a.nombre)?.usuarios??_kBase);
+      const _kDelta=_kAct-_kBase;
+      const _kExpLbl=_kUltKey?` · ${_kUltKey}`:'';
+      return`<div class="ficha-card" style="margin-bottom:16px">
+        <div class="ficha-card-title">KR 1.3 · Novedades del semestre</div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px">
+          <input type="checkbox" ${a.kr13DashNuevo?'checked':''} onchange="toggleKR13DashNuevo('${a.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer">
+          <span style="font-size:13px;font-weight:500">Sumó dashboard nuevo en el semestre</span>
+        </label>
+        ${a.kr13DashNuevo?`<div style="margin-left:26px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <select onchange="saveKR13Field('${a.id}','kr13DashNuevoNombre',this.value)" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
+            ${DASHBOARDS_VALIDOS_KR13.map(d=>`<option value="${d}" ${a.kr13DashNuevoNombre===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+          <input type="date" value="${a.kr13DashNuevoFecha||''}" onchange="saveKR13Field('${a.id}','kr13DashNuevoFecha',this.value)" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
+        </div>`:''}
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:12px;padding:10px;background:var(--surface2);border-radius:8px">
+          <span style="color:var(--text3)">Usuarios baseline (abr):</span><span style="font-weight:500">${_kBase}</span>
+          <span style="color:var(--text3)">Usuarios actuales${_kExpLbl}:</span><span style="font-weight:500">${_kAct}</span>
+          <span style="color:var(--text3)">Delta:</span><span style="font-weight:600;color:${_kDelta>0?'#1A9E6A':_kDelta<0?'var(--red)':'var(--text2)'}">${_kDelta>0?'+':''}${_kDelta}</span>
+        </div>
+      </div>`;
+    })()}
+
     <!-- Notas -->
     ${a.notas?`<div class="ficha-card" style="margin-bottom:16px">
       <div class="ficha-card-title">Notas</div>
@@ -3182,6 +3291,24 @@ ${buildTableroHTML(a, tablero)}
 }
 
 
+
+window.toggleKR13DashNuevo = async function(accountId, checked){
+  setSyncStatus('syncing');
+  const upd={kr13DashNuevo:checked};
+  if(!checked){upd.kr13DashNuevoNombre=null;upd.kr13DashNuevoFecha=null;}
+  try{
+    await updateDoc(doc(db,'accounts',accountId),upd);
+    setSyncStatus('ok');
+    renderFicha();
+  }catch{setSyncStatus('error');}
+};
+window.saveKR13Field = async function(accountId, field, value){
+  setSyncStatus('syncing');
+  try{
+    await updateDoc(doc(db,'accounts',accountId),{[field]:value});
+    setSyncStatus('ok');
+  }catch{setSyncStatus('error');}
+};
 
 // Dashboard management
 window.addDash = async function(accountId){
