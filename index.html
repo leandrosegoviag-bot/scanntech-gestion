@@ -3567,7 +3567,6 @@ window.toggleUsuarioForm = function(){
   const show=f.style.display==='none';
   f.style.display=show?'block':'none';
   if(show){
-    _poblarClientesSolicitud();
     const fechaEl=el('nu-fecha');
     if(fechaEl&&!fechaEl.value) fechaEl.value=new Date().toISOString().split('T')[0];
     f.scrollIntoView({behavior:'smooth',block:'start'});
@@ -4314,7 +4313,7 @@ onSnapshot(collection(db,'tasks'),snap=>{
 
 onSnapshot(collection(db,'accounts'),snap=>{
   accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderAccounts();updateAccountSelect();updateFichaSelect();_poblarClientesSolicitud();
+  renderAccounts();updateAccountSelect();updateFichaSelect();
   _configReady.then(()=>{
     if(currentTab==='dashboard')renderDashboard();
     if(currentTab==='historial')renderHistorial();
