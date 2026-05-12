@@ -3472,13 +3472,18 @@ const EJECUTIVOS_DATA = {
 function generarEmailSolicitudUsuario(solicitud){
   const ejec=EJECUTIVOS_DATA[solicitud.ejecutivo];
   const incluyeEjec=solicitud.accesoParaEjecutivo;
-  const total=incluyeEjec?2:1;
   const para='santiago.bonavita@scanntech.com';
   const cc='aime.juradogarcia@scanntech.com;ezequiel.ercoreca@scanntech.com;leandro.segovia@scanntech.com';
-  const asunto='RE: Altas y accesos a Analytics';
-  let filas=`${solicitud.cliente||''}\t${solicitud.empresa||''}\t${solicitud.nombre||''}\t${solicitud.apellido||''}\t${solicitud.email||''}\t${solicitud.carpeta||''}\tSi`;
-  if(incluyeEjec&&ejec) filas+=`\n\t\t${ejec.nombre}\t${ejec.apellido}\t${ejec.email}\t${solicitud.carpeta||''}\tSi`;
-  const cuerpo=`Buenos días,\n\nTe sumo ${total} ${total===1?'usuario que es acceso':'usuarios que son accesos'} a la carpeta de ${solicitud.producto||''}:\n\nCliente\tEmpresa\tNombre\tApellido\tMail\tCarpeta a dar Acceso\tMulticadena: Si/No\n${filas}\n\nGracias, saludos.`;
+  const asunto=`Solicitud de acceso — ${solicitud.producto||''} — ${solicitud.cliente||''}`;
+  const NOMBRES_EJECUTIVOS = {
+    'AJG': 'Aimé Jurado García',
+    'LS':  'Leandro Segovia',
+    'EE':  'Ezequiel Ercoreca',
+  };
+  const nombreEjecutivo = NOMBRES_EJECUTIVOS[solicitud.ejecutivo] || solicitud.ejecutivo || '';
+  const fila1=`${(solicitud.nombre+' '+(solicitud.apellido||'')).padEnd(26)}| ${(solicitud.email||'').padEnd(35)} | Sí`;
+  const fila2=incluyeEjec&&ejec ? `${(ejec.nombre+' '+ejec.apellido).padEnd(26)}| ${(ejec.email||'').padEnd(35)} | Sí` : '';
+  const cuerpo=`Buen día Santiago,\n\nTe solicito acceso al dashboard ${solicitud.producto||''} para el cliente ${solicitud.cliente||''}. \nTe comparto los datos necesarios:\n\nCliente: ${solicitud.cliente||''}\nCarpeta de acceso: ${solicitud.carpeta||''}\n\nUsuarios a dar de alta:\n\nNombre y Apellido          | Mail                              | Multicadena\n---------------------------|-----------------------------------|------------\n${fila1}${fila2?'\n'+fila2:''}\n\nMuchas gracias,\n${nombreEjecutivo}\nServicios al Retail — Scanntech Argentina`;
   window.location.href=`mailto:${para}?cc=${encodeURIComponent(cc)}&subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
 }
 
