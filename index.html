@@ -3481,9 +3481,14 @@ function generarEmailSolicitudUsuario(solicitud){
     'EE':  'Ezequiel Ercoreca',
   };
   const nombreEjecutivo = NOMBRES_EJECUTIVOS[solicitud.ejecutivo] || solicitud.ejecutivo || '';
-  const fila1=`${(solicitud.nombre+' '+(solicitud.apellido||'')).padEnd(26)}| ${(solicitud.email||'').padEnd(35)} | Sí`;
-  const fila2=incluyeEjec&&ejec ? `${(ejec.nombre+' '+ejec.apellido).padEnd(26)}| ${(ejec.email||'').padEnd(35)} | Sí` : '';
-  const cuerpo=`Buen día Santiago,\n\nTe solicito acceso al dashboard ${solicitud.producto||''} para el cliente ${solicitud.cliente||''}. \nTe comparto los datos necesarios:\n\nCliente: ${solicitud.cliente||''}\nCarpeta de acceso: ${solicitud.carpeta||''}\n\nUsuarios a dar de alta:\n\nNombre y Apellido          | Mail                              | Multicadena\n---------------------------|-----------------------------------|------------\n${fila1}${fila2?'\n'+fila2:''}\n\nMuchas gracias,\n${nombreEjecutivo}\nServicios al Retail — Scanntech Argentina`;
+  let usuariosTexto = '';
+  usuariosTexto += `• ${solicitud.nombre||''} ${solicitud.apellido||''}\n`;
+  usuariosTexto += `  Mail: ${solicitud.email||''}\n`;
+  if(incluyeEjec&&ejec){
+    usuariosTexto += `\n• ${ejec.nombre} ${ejec.apellido}\n`;
+    usuariosTexto += `  Mail: ${ejec.email}\n`;
+  }
+  const cuerpo=`Buen día Santiago,\n\nTe solicito acceso al dashboard ${solicitud.producto||''} para el cliente ${solicitud.cliente||''}.\n\nCarpeta de acceso: ${solicitud.carpeta||''}\n\nUsuario${incluyeEjec?'s':''} a dar de alta:\n\n${usuariosTexto}\nMuchas gracias,\n${nombreEjecutivo}\nServicios al Retail — Scanntech Argentina`;
   window.location.href=`mailto:${para}?cc=${encodeURIComponent(cc)}&subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
 }
 
