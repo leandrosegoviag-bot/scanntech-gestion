@@ -2234,10 +2234,12 @@ let currentRole = null;
 
 // ── CONFIGURACIÓN
 let _validacionActiva = true;
-let _savedValidacionActiva = true; // último valor confirmado en Firebase
+let _savedValidacionActiva = true;
+let _configModalOpen = false;
 const _configDocRef = () => doc(db, 'config', 'sistema');
 
 window.openConfig = function(){
+  _configModalOpen = true;
   el('config-overlay').style.display='block';
   el('config-modal').style.display='block';
   const saveBtn = el('config-save-btn');
@@ -2249,7 +2251,8 @@ window.openConfig = function(){
 };
 
 window.closeConfig = function(){
-  _validacionActiva = _savedValidacionActiva; // descartar cambios no guardados
+  _configModalOpen = false;
+  _validacionActiva = _savedValidacionActiva;
   el('config-overlay').style.display='none';
   el('config-modal').style.display='none';
 };
@@ -2264,11 +2267,12 @@ window.guardarConfig = async function(){
   if(btn){ btn.textContent='Guardando...'; btn.disabled=true; }
   try{
     await setDoc(_configDocRef(), {validacionActiva: _validacionActiva}, {merge: true});
-    _savedValidacionActiva = _validacionActiva;
   }catch{
     if(btn){ btn.textContent='Guardar'; btn.disabled=false; }
     return;
   }
+  _configModalOpen = false;
+  _savedValidacionActiva = _validacionActiva;
   el('config-overlay').style.display='none';
   el('config-modal').style.display='none';
   _dashboardRendering = false;
@@ -3959,6 +3963,16 @@ onSnapshot(collection(db,'jiraUsuarios'), snap=>{
   if(jiraUsuarios.length===0) jiraUsuarios=INIT_USUARIOS.map((u,i)=>({...u,id:'local-u-'+i}));
   if(currentTab==='jiras') window.renderUsuariosJira();
 });
+
+// Config real-time listener — actualiza _validacionActiva cuando cambia en Firebase
+onSnapshot(doc(db,'config','sistema'), snap=>{
+  const val = snap.exists() ? snap.data().validacionActiva !== false : true;
+  _savedValidacionActiva = val;
+  if(!_configModalOpen){
+    _validacionActiva = val;
+    if(currentTab==='dashboard' && accounts.length) renderDashboard();
+  }
+},()=>{});
 
 // ── EXPORTS DEL TABLERO
 let EXPORTS_DATA = {};
