@@ -1927,6 +1927,8 @@ function isSinRespuesta(a){
 let selectedMonth = new Date().getMonth();
 let selectedYear  = new Date().getFullYear();
 window.selectMonth = function(m){ selectedMonth=m; renderDashboard(); };
+window._dashVista = 'mes';
+window.switchDashVista = function(v){ window._dashVista=v; renderDashboard(); };
 
 function getLunesYDomingo(fecha){
   const d=new Date(fecha);
@@ -1977,8 +1979,13 @@ function renderDashboard(){
   _dashboardRendering=true;
   try{
   const months12=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const _vista = window._dashVista || 'mes';
   const msWrap=el('month-selector-wrap');
-  if(msWrap) msWrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</span>${months12.map((m,i)=>`<button onclick="selectMonth(${i})" style="font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid ${i===selectedMonth?'var(--navy)':'var(--border)'};background:${i===selectedMonth?'var(--navy)':'transparent'};color:${i===selectedMonth?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif">${m}</button>`).join('')}</div>`;
+  if(msWrap){
+    const _vBtn=(v,lbl)=>`<button onclick="switchDashVista('${v}')" style="font-size:12px;padding:4px 16px;border-radius:20px;border:1.5px solid ${_vista===v?'var(--navy)':'var(--border)'};background:${_vista===v?'var(--navy)':'transparent'};color:${_vista===v?'#fff':'var(--text2)'};cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">${lbl}</button>`;
+    const _monthSel=_vista==='mes'?`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</span>${months12.map((m,i)=>`<button onclick="selectMonth(${i})" style="font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid ${i===selectedMonth?'var(--navy)':'var(--border)'};background:${i===selectedMonth?'var(--navy)':'transparent'};color:${i===selectedMonth?'#fff':'var(--text3)'};cursor:pointer;font-family:'DM Sans',sans-serif">${m}</button>`).join('')}</div>`:'';
+    msWrap.innerHTML=`<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:4px"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;font-weight:500;color:var(--text2)">Vista:</span>${_vBtn('mes','Mes')}${_vBtn('semestre','Semestre')}</div>${_monthSel}</div>`;
+  }
   const total=accounts.length;
   const activos=accounts.filter(a=>isActivo(a));
   const caidos=accounts.filter(a=>!isActivo(a));
@@ -1987,7 +1994,6 @@ function renderDashboard(){
   const kr11Obj      = {aa:100, b:90,  c:20};
   const _mesKey=`${selectedYear}-${String(selectedMonth+1).padStart(2,'0')}`;
   const _exportMes=EXPORTS_DATA[_mesKey]||null;
-  // Si no hay export para el mes seleccionado, usar TABLERO_DATA como fallback
   const _exportCuentas=_exportMes?_exportMes.cuentas:TABLERO_DATA;
   const cuentasConActividad=new Set(Object.keys(_exportCuentas));
   const ejecFilter = window._krEjecFilter || 'todos';
@@ -2017,11 +2023,39 @@ function renderDashboard(){
   const churnRate=total?Math.round(caidos.length/total*100):0;
   const allInts=getAllInteracciones();
 
-  // OKR 1
-  el('okr-grid-1').innerHTML=`
-    ${kr11Card('A+/A','#EEF2FF','#3730A3',pctAA,usoAA,totalAA,kr11Baseline.aa,kr11Obj.aa)}
-    ${kr11Card('B','#EFF6FF','#1D4ED8',pctBpct,usoB,totalB,kr11Baseline.b,kr11Obj.b)}
-    ${kr11Card('C','#F0FDF4','#166534',pctCpct,usoC,totalC,kr11Baseline.c,kr11Obj.c)}`;
+  // Semestre constants (Abr–Jun 2026)
+  const MESES_SEM=[
+    {key:'2026-04',label:'Abr 2026',mes:3,anio:2026},
+    {key:'2026-05',label:'May 2026',mes:4,anio:2026},
+    {key:'2026-06',label:'Jun 2026',mes:5,anio:2026},
+  ];
+  const _semTd=(v,suffix='%')=>v!==null?`<td style="text-align:center;font-size:14px;font-weight:600;color:#F4600C;padding:8px 12px">${v}${suffix}</td>`:`<td style="text-align:center;font-size:12px;color:var(--text3);padding:8px 12px">—</td>`;
+  const _semTable=(title,rows)=>`<div style="grid-column:1/-1;background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:18px 20px"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px">${title}</div><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;font-size:11px;color:var(--text3);padding:6px 12px;font-weight:500">Tier</th>${MESES_SEM.map(m=>`<th style="text-align:center;font-size:11px;color:var(--text3);padding:6px 12px;font-weight:500">${m.label}</th>`).join('')}<th style="text-align:center;font-size:11px;color:var(--text3);padding:6px 12px;font-weight:500">Obj. sem.</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const _semRow=(label,vals,obj,alt=false,suffix='%')=>`<tr${alt?' style="background:var(--surface2)"':''}><td style="padding:8px 12px;font-size:12px;font-weight:600">${label}</td>${vals.map(v=>_semTd(v,suffix)).join('')}<td style="text-align:center;font-size:12px;font-weight:600;color:#1A9E6A;padding:8px 12px">${obj}</td></tr>`;
+
+  // OKR 1 KR 1.1
+  if(_vista==='mes'){
+    el('okr-grid-1').innerHTML=`
+      ${kr11Card('A+/A','#EEF2FF','#3730A3',pctAA,usoAA,totalAA,kr11Baseline.aa,kr11Obj.aa)}
+      ${kr11Card('B','#EFF6FF','#1D4ED8',pctBpct,usoB,totalB,kr11Baseline.b,kr11Obj.b)}
+      ${kr11Card('C','#F0FDF4','#166534',pctCpct,usoC,totalC,kr11Baseline.c,kr11Obj.c)}`;
+  }else{
+    const kr11Sem=MESES_SEM.map(m=>{
+      const exp=EXPORTS_DATA[m.key];
+      const cuentas=exp?exp.cuentas:(m.key==='2026-04'?TABLERO_DATA:null);
+      if(!cuentas) return{label:m.label,aa:null,b:null,c:null};
+      const names=new Set(Object.keys(cuentas));
+      return{label:m.label,
+        aa:totalAA?parseFloat((cuentasAAA.filter(a=>names.has(a.nombre)).length/totalAA*100).toFixed(1)):0,
+        b :totalB ?parseFloat((cuentasBA.filter(a=>names.has(a.nombre)).length/totalB *100).toFixed(1)):0,
+        c :totalC ?parseFloat((cuentasCA.filter(a=>names.has(a.nombre)).length/totalC *100).toFixed(1)):0};
+    });
+    el('okr-grid-1').innerHTML=_semTable('KR 1.1 · Uso de plataforma — evolución semestral',
+      _semRow('A+/A',kr11Sem.map(m=>m.aa),'100%')+
+      _semRow('B',kr11Sem.map(m=>m.b),'90%',true)+
+      _semRow('C',kr11Sem.map(m=>m.c),'20%'));
+  }
+
   // KR 1.2 — Presentaciones e Informes
   const kr12Ejec = window._kr12EjecFilter || 'todos';
   const kr12EjMatch = a => kr12Ejec==='todos'||(a.ejecutivo||'').trim().includes(kr12Ejec);
@@ -2087,42 +2121,72 @@ function renderDashboard(){
       ${extra}
     </div>`;
 
-  el('okr-grid-12').innerHTML=`
-    ${kr12Card('A+/A','#EEF2FF','#3730A3',kr12AA_pct,kr12AA_num,kr12AA_den,_aaSubtexto,_aaSelector)}
-    ${kr12Card('B','#EFF6FF','#1D4ED8',kr12B_pct,kr12B_num,kr12B_den,'Presentaciones este mes · obj: 1/mes')}
-    ${kr12Card('C','#F0FDF4','#166534',kr12C_pct,kr12C_num,kr12C_den,'Informes Regional + Radar este mes')}`;
+  if(_vista==='mes'){
+    el('okr-grid-12').innerHTML=`
+      ${kr12Card('A+/A','#EEF2FF','#3730A3',kr12AA_pct,kr12AA_num,kr12AA_den,_aaSubtexto,_aaSelector)}
+      ${kr12Card('B','#EFF6FF','#1D4ED8',kr12B_pct,kr12B_num,kr12B_den,'Presentaciones este mes · obj: 1/mes')}
+      ${kr12Card('C','#F0FDF4','#166534',kr12C_pct,kr12C_num,kr12C_den,'Informes Regional + Radar este mes')}`;
+  }else{
+    const _kr12Match=(i,ejec)=>i.tipo==='Presentación / Insight'&&(!_validacionActiva||i.estadoValidacion==='aprobada')&&(ejec==='todos'||(i.cuentaEjecutivo||'').includes(ejec));
+    const kr12Sem=MESES_SEM.map(m=>{
+      const intsM=allIntsKR12.filter(i=>{const d=new Date(i.ts);return d.getMonth()===m.mes&&d.getFullYear()===m.anio;});
+      const aaNum=activasAA.filter(a=>intsM.some(i=>i.cuentaId===a.id&&_kr12Match(i,kr12Ejec))).length;
+      const bNum =activasB.filter(a=>intsM.some(i=>i.cuentaId===a.id&&_kr12Match(i,kr12Ejec))).length;
+      const cNum =activasC_kr12.filter(a=>{
+        const ci=intsM.filter(i=>i.cuentaId===a.id&&i.estadoValidacion==='aprobada');
+        return ci.some(i=>i.tipo==='Informe Regional')&&ci.some(i=>i.tipo==='Informe Radar');
+      }).length;
+      return{aa:kr12AA_den?Math.round(aaNum/kr12AA_den*100):0,b:kr12B_den?Math.round(bNum/kr12B_den*100):0,c:kr12C_den?Math.round(cNum/kr12C_den*100):0};
+    });
+    el('okr-grid-12').innerHTML=_semTable('KR 1.2 · Presentaciones e Informes — evolución semestral',
+      _semRow('A+/A',kr12Sem.map(m=>m.aa),'100%')+
+      _semRow('B',kr12Sem.map(m=>m.b),'100%',true)+
+      _semRow('C',kr12Sem.map(m=>m.c),'100%'));
+  }
 
   // OKR 2
   const caidosSemestre=accounts.filter(a=>isCaidoEsteSemestre(a));
-  el('okr-grid-2').innerHTML=`
-    <div class="okr-card">
-      <div class="okr-label">KR 2.1 · Churn rate</div>
-      <div class="okr-title">Tasa de churn en la cartera activa</div>
-      <div class="okr-progress-row"><span class="okr-pct" style="color:${churnRate>0?'var(--red)':'var(--green)'}">${churnRate}%</span><span style="font-size:12px;color:var(--text3)">/ objetivo 0%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar" style="width:${Math.min(churnRate*2,100)}%;background:${churnRate>10?'var(--red)':churnRate>5?'var(--amber)':'var(--green)'}"></div></div>
-      <div class="okr-target">Caídos: ${caidos.length} · Activos: ${activos.length}</div>
-    </div>
-    <div class="okr-card">
-      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span> Caídos semestre</div>
-      <div class="okr-title">Cuentas A+/A caídas Ene–Jun 2026</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥20%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length*20,100)}%"></div></div>
-      <div class="okr-target">Total caídos semestre: ${caidosSemestre.length} · Cargá fecha de baja en cada cuenta</div>
-    </div>
-    <div class="okr-card">
-      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span> Caídos semestre</div>
-      <div class="okr-title">Cuentas B caídas Ene–Jun 2026</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='B').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥25%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='B').length*10,100)}%"></div></div>
-      <div class="okr-target">Objetivo: ≥25% de recuperación</div>
-    </div>
-    <div class="okr-card">
-      <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span> Caídos semestre</div>
-      <div class="okr-title">Cuentas C caídas Ene–Jun 2026</div>
-      <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='C').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥35%</span></div>
-      <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='C').length*2,100)}%"></div></div>
-      <div class="okr-target">Objetivo: ≥35% de recuperación</div>
-    </div>`;
+  if(_vista==='mes'){
+    el('okr-grid-2').innerHTML=`
+      <div class="okr-card">
+        <div class="okr-label">KR 2.1 · Churn rate</div>
+        <div class="okr-title">Tasa de churn en la cartera activa</div>
+        <div class="okr-progress-row"><span class="okr-pct" style="color:${churnRate>0?'var(--red)':'var(--green)'}">${churnRate}%</span><span style="font-size:12px;color:var(--text3)">/ objetivo 0%</span></div>
+        <div class="okr-bar-wrap"><div class="okr-bar" style="width:${Math.min(churnRate*2,100)}%;background:${churnRate>10?'var(--red)':churnRate>5?'var(--amber)':'var(--green)'}"></div></div>
+        <div class="okr-target">Caídos: ${caidos.length} · Activos: ${activos.length}</div>
+      </div>
+      <div class="okr-card">
+        <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:#fef3c7;color:#92400e">A+/A</span> Caídos semestre</div>
+        <div class="okr-title">Cuentas A+/A caídas Ene–Jun 2026</div>
+        <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥20%</span></div>
+        <div class="okr-bar-wrap"><div class="okr-bar bar-orange" style="width:${Math.min(caidosSemestre.filter(a=>['A+','A'].includes(normTier(a.tier))).length*20,100)}%"></div></div>
+        <div class="okr-target">Total caídos semestre: ${caidosSemestre.length} · Cargá fecha de baja en cada cuenta</div>
+      </div>
+      <div class="okr-card">
+        <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--navy-dim2);color:var(--navy)">B</span> Caídos semestre</div>
+        <div class="okr-title">Cuentas B caídas Ene–Jun 2026</div>
+        <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='B').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥25%</span></div>
+        <div class="okr-bar-wrap"><div class="okr-bar bar-navy" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='B').length*10,100)}%"></div></div>
+        <div class="okr-target">Objetivo: ≥25% de recuperación</div>
+      </div>
+      <div class="okr-card">
+        <div class="okr-label">KR 2.2 · <span class="tier-badge-sm" style="background:var(--surface2);color:var(--text3)">C</span> Caídos semestre</div>
+        <div class="okr-title">Cuentas C caídas Ene–Jun 2026</div>
+        <div class="okr-progress-row"><span class="okr-pct">${caidosSemestre.filter(a=>normTier(a.tier)==='C').length}</span><span style="font-size:12px;color:var(--text3)"> · obj. ≥35%</span></div>
+        <div class="okr-bar-wrap"><div class="okr-bar bar-amber" style="width:${Math.min(caidosSemestre.filter(a=>normTier(a.tier)==='C').length*2,100)}%"></div></div>
+        <div class="okr-target">Objetivo: ≥35% de recuperación</div>
+      </div>`;
+  }else{
+    const kr2Sem=MESES_SEM.map(m=>{
+      const cm=accounts.filter(a=>{if(!a.fechaBaja||isActivo(a))return false;const d=new Date(a.fechaBaja);return d.getMonth()===m.mes&&d.getFullYear()===m.anio;});
+      return{aa:cm.filter(a=>['A+','A'].includes(normTier(a.tier))).length,b:cm.filter(a=>normTier(a.tier)==='B').length,c:cm.filter(a=>normTier(a.tier)==='C').length,tot:cm.length};
+    });
+    el('okr-grid-2').innerHTML=_semTable('OKR 2 · Churn y caídos — evolución semestral',
+      _semRow('A+/A caídos',kr2Sem.map(m=>m.aa===0?null:m.aa),'obj: 0',false,'')+
+      _semRow('B caídos',kr2Sem.map(m=>m.b===0?null:m.b),'obj: 0',true,'')+
+      _semRow('C caídos',kr2Sem.map(m=>m.c===0?null:m.c),'obj: 0',false,'')+
+      _semRow('Total caídos',kr2Sem.map(m=>m.tot===0?null:m.tot),'obj: 0',true,''));
+  }
 
   // Métricas operativas
   const conAnalytics=activos.filter(a=>(a.tipoServicio||'').includes('Analytics'));
