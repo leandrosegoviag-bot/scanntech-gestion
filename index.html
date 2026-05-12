@@ -1064,20 +1064,30 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
         <h3>Nueva solicitud de acceso</h3>
         <div class="form-grid">
           <div class="form-row">
-            <div class="field"><label>Empresa / Cliente</label><input type="text" id="nu-empresa"/></div>
-            <div class="field"><label>Ejecutivo</label><select id="nu-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option></select></div>
+            <div class="field"><label>Cliente</label><input type="text" id="nu-cliente" list="nu-cliente-list" placeholder="— Sin cliente específico —"/><datalist id="nu-cliente-list"></datalist></div>
+            <div class="field"><label>Empresa</label><input type="text" id="nu-empresa" placeholder="Nombre de empresa"/></div>
           </div>
           <div class="form-row">
-            <div class="field"><label>Nombre</label><input type="text" id="nu-nombre"/></div>
+            <div class="field"><label>Nombre <span style="color:var(--red)">*</span></label><input type="text" id="nu-nombre"/><div id="nu-nombre-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
             <div class="field"><label>Apellido</label><input type="text" id="nu-apellido"/></div>
           </div>
           <div class="form-row">
-            <div class="field"><label>Email</label><input type="email" id="nu-mail" placeholder="mail@empresa.com"/></div>
-            <div class="field"><label>Carpeta de acceso</label><input type="text" id="nu-carpeta"/></div>
+            <div class="field"><label>Email <span style="color:var(--red)">*</span></label><input type="email" id="nu-mail" placeholder="mail@empresa.com"/><div id="nu-mail-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
+            <div class="field"><label>Producto / Dashboard <span style="color:var(--red)">*</span></label><select id="nu-producto"><option value="">— Seleccioná —</option><option>8.2</option><option>MINI 2.0</option><option>SHOPPER</option><option>JBP</option><option>Multicadena</option><option>Precios Semanales</option><option>ScannOP</option><option>Perecederos</option><option>Marca Propia</option><option>Price Position</option></select><div id="nu-producto-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
           </div>
           <div class="form-row">
-            <div class="field"><label>Multicadena</label><select id="nu-multicadena"><option value="Si">Si</option><option value="No">No</option></select></div>
+            <div class="field"><label>Carpeta de acceso <span style="color:var(--red)">*</span></label><input type="text" id="nu-carpeta" placeholder="ej: Argentina Precios Multicadena"/><div id="nu-carpeta-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
             <div class="field"><label>Fecha solicitud</label><input type="date" id="nu-fecha"/></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Ejecutivo</label><select id="nu-ejec"><option value="AJG">AJG</option><option value="LS">LS</option><option value="EE">EE</option></select></div>
+            <div class="field"><label>Usuario listo</label><input type="text" id="nu-usuario-listo" placeholder="Fecha de confirmación BI"/></div>
+          </div>
+          <div class="field">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400">
+              <input type="checkbox" id="nu-acceso-ejec" style="width:14px;height:14px;accent-color:var(--navy)">
+              <span style="font-size:13px">Incluir acceso para el ejecutivo responsable</span>
+            </label>
           </div>
           <button class="btn btn-primary" onclick="addUsuarioJira()" style="width:fit-content">Agregar solicitud</button>
         </div>
@@ -3457,6 +3467,24 @@ let jiraTickets = [];
 let jiraUsuarios = [];
 let dragSrcIdx = null;
 
+const EJECUTIVOS_DATA = {
+  'AJG': {nombre:'Aimé',apellido:'Jurado García',email:'aime.juradogarcia@scanntech.com'},
+  'LS':  {nombre:'Leandro',apellido:'Segovia',email:'leandro.segovia@scanntech.com'},
+  'EE':  {nombre:'Ezequiel',apellido:'Ercoreca',email:'ezequiel.ercoreca@scanntech.com'},
+};
+function generarEmailSolicitudUsuario(solicitud){
+  const ejec=EJECUTIVOS_DATA[solicitud.ejecutivo];
+  const incluyeEjec=solicitud.accesoParaEjecutivo;
+  const total=incluyeEjec?2:1;
+  const para='santiago.bonavita@scanntech.com';
+  const cc='aime.juradogarcia@scanntech.com;ezequiel.ercoreca@scanntech.com;leandro.segovia@scanntech.com';
+  const asunto='RE: Altas y accesos a Analytics';
+  let filas=`${solicitud.cliente||''}\t${solicitud.empresa||''}\t${solicitud.nombre||''}\t${solicitud.apellido||''}\t${solicitud.email||''}\t${solicitud.carpeta||''}\tSi`;
+  if(incluyeEjec&&ejec) filas+=`\n\t\t${ejec.nombre}\t${ejec.apellido}\t${ejec.email}\t${solicitud.carpeta||''}\tSi`;
+  const cuerpo=`Buenos días,\n\nTe sumo ${total} ${total===1?'usuario que es acceso':'usuarios que son accesos'} a la carpeta de ${solicitud.producto||''}:\n\nCliente\tEmpresa\tNombre\tApellido\tMail\tCarpeta a dar Acceso\tMulticadena: Si/No\n${filas}\n\nGracias, saludos.`;
+  window.location.href=`mailto:${para}?cc=${encodeURIComponent(cc)}&subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+}
+
 // Load from Firebase or use initial data
 function initJirasData(){
   // We'll store in Firebase under 'jiras' collection
@@ -3511,8 +3539,20 @@ window.toggleSubtipo = function(){
   if(w) w.style.display=el('nj-categoria')?.value==='Nuevo dashboard'?'':'none';
 };
 window.toggleUsuarioForm = function(){
-  const f=el('usuario-form');
-  f.style.display=f.style.display==='none'?'block':'none';
+  const f=document.getElementById('usuario-form');
+  if(!f) return;
+  const show=f.style.display==='none';
+  f.style.display=show?'block':'none';
+  if(show){
+    const fechaEl=el('nu-fecha');
+    if(fechaEl&&!fechaEl.value) fechaEl.value=new Date().toISOString().split('T')[0];
+    const dl=el('nu-cliente-list');
+    if(dl){
+      const activas=accounts.filter(a=>a.estado!=='Inactivo').map(a=>a.nombre).sort();
+      dl.innerHTML=activas.map(n=>`<option value="${n}">`).join('');
+    }
+    f.scrollIntoView({behavior:'smooth',block:'start'});
+  }
 };
 
 window.renderJiras = function(){
@@ -4048,10 +4088,15 @@ window.renderUsuariosJira = function(){
       <div class="jira-body">
         <div class="jira-title">${u.nombre||''} ${u.apellido||''}</div>
         <div class="jira-meta">
-          <span class="jira-client">${u.empresa||'—'}</span>
-          <span class="jira-client" style="font-family:'DM Mono',monospace">${u.mail||''}</span>
-          ${u.carpeta?`<span class="jira-producto">${u.carpeta}</span>`:''}
-          ${u.multicadena==='Si'?'<span class="jira-area bi">Multicadena</span>':''}
+          ${u.cliente?`<span class="jira-client">${u.cliente}</span>`:''}
+          ${u.empresa?`<span class="jira-client">${u.empresa}</span>`:''}
+          <span class="jira-client" style="font-family:'DM Mono',monospace">${u.mail||u.email||''}</span>
+        </div>
+        <div class="jira-meta" style="margin-top:4px">
+          ${u.producto?`<span class="jira-producto">${u.producto}</span>`:''}
+          ${u.carpeta?`<span style="font-size:11px;color:var(--text3)">${u.carpeta}</span>`:''}
+          ${u.accesoParaEjecutivo?'<span class="jira-area bi" style="font-size:10px">+ Ejec.</span>':''}
+          ${u.fechaSolicitud?`<span style="font-size:11px;color:var(--text3)">Solicitado: ${u.fechaSolicitud}</span>`:''}
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0">
@@ -4062,25 +4107,41 @@ window.renderUsuariosJira = function(){
 };
 
 window.addUsuarioJira = async function(){
-  const mail = el('nu-mail')?.value.trim();
-  if(!mail) return;
-  const usr = {
+  const nombre=el('nu-nombre')?.value.trim();
+  const mail=el('nu-mail')?.value.trim();
+  const producto=el('nu-producto')?.value||'';
+  const carpeta=el('nu-carpeta')?.value.trim();
+  let valid=true;
+  const setErr=(id,msg)=>{const e=el(id);if(e){e.textContent=msg;e.style.display=msg?'':'none';}};
+  setErr('nu-nombre-err',nombre?'':'Campo obligatorio'); if(!nombre) valid=false;
+  const emailOk=mail&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
+  setErr('nu-mail-err',mail?(emailOk?'':'Email inválido'):'Campo obligatorio'); if(!emailOk) valid=false;
+  setErr('nu-producto-err',producto?'':'Campo obligatorio'); if(!producto) valid=false;
+  setErr('nu-carpeta-err',carpeta?'':'Campo obligatorio'); if(!carpeta) valid=false;
+  if(!valid) return;
+  const usr={
+    cliente: el('nu-cliente')?.value||'',
     empresa: el('nu-empresa')?.value.trim()||'',
-    nombre: el('nu-nombre')?.value.trim()||'',
+    nombre,
     apellido: el('nu-apellido')?.value.trim()||'',
-    mail,
-    carpeta: el('nu-carpeta')?.value.trim()||'',
-    multicadena: el('nu-multicadena')?.value||'No',
+    email: mail,
+    producto,
+    carpeta,
     fechaSolicitud: el('nu-fecha')?.value||new Date().toISOString().split('T')[0],
-    usuarioListo: '',
     ejecutivo: el('nu-ejec')?.value||'',
+    usuarioListo: el('nu-usuario-listo')?.value.trim()||'',
+    accesoParaEjecutivo: document.getElementById('nu-acceso-ejec')?.checked||false,
   };
   setSyncStatus('syncing');
   try{
     await addDoc(collection(db,'jiraUsuarios'),{...usr,createdAt:serverTimestamp()});
-    ['nu-empresa','nu-nombre','nu-apellido','nu-mail','nu-carpeta','nu-fecha'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    ['nu-cliente','nu-empresa','nu-nombre','nu-apellido','nu-mail','nu-carpeta','nu-fecha','nu-usuario-listo'].forEach(id=>{const e=el(id);if(e)e.value='';});
+    const ps=el('nu-producto');if(ps)ps.value='';
+    const cb=document.getElementById('nu-acceso-ejec');if(cb)cb.checked=false;
+    ['nu-nombre-err','nu-mail-err','nu-producto-err','nu-carpeta-err'].forEach(id=>setErr(id,''));
     el('usuario-form').style.display='none';
     setSyncStatus('ok');
+    generarEmailSolicitudUsuario(usr);
   }catch{setSyncStatus('error');}
 };
 
