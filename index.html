@@ -627,6 +627,14 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       </div>
       <button id="config-toggle-btn" onclick="toggleValidacion()" style="flex-shrink:0;min-width:72px;padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">○ OFF</button>
     </div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:20px 0 14px">Exports del tablero</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5">Subir export mensual del tablero Scanntech.<br>El sistema detecta el mes automáticamente.</div>
+    <label style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:12px">
+      <input type="file" accept=".xlsx" onchange="procesarExportTablero(this.files[0])" style="display:none">
+      📂 Seleccionar archivo Excel
+    </label>
+    <div id="config-exports-status" style="font-size:12px;color:var(--text3);margin-bottom:4px"></div>
+    <div id="config-exports-list" style="display:flex;flex-direction:column;gap:4px"></div>
     <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:20px 0 14px">Equipo</div>
     <div style="font-size:12px;color:var(--text3);padding:0 4px">(vacío por ahora)</div>
     <div style="margin-top:24px;display:flex;justify-content:flex-end;gap:10px">
@@ -1973,10 +1981,16 @@ function renderDashboard(){
   const total=accounts.length;
   const activos=accounts.filter(a=>isActivo(a));
   const caidos=accounts.filter(a=>!isActivo(a));
-  // KR 1.1 — denominador: activos con Analytics por tier; numerador: los que aparecen en TABLERO_DATA
+  // KR 1.1 — denominador: activos con Analytics por tier; numerador: los que aparecen en el export del mes
   const kr11Baseline = {aa:40, b:15.4, c:4.3};
   const kr11Obj      = {aa:100, b:90,  c:20};
-  const cuentasConActividad = new Set(Object.keys(TABLERO_DATA));
+  const _mesKey=`${selectedYear}-${String(selectedMonth+1).padStart(2,'0')}`;
+  const _exportMes=EXPORTS_DATA[_mesKey]||null;
+  // Fallback: TABLERO_DATA cubre abril 2026 (2026-04)
+  const _fallbackKey='2026-04';
+  const _usarFallback=!_exportMes&&_mesKey===_fallbackKey;
+  const _exportCuentas=_exportMes?_exportMes.cuentas:(_usarFallback?TABLERO_DATA:null);
+  const cuentasConActividad=_exportCuentas?new Set(Object.keys(_exportCuentas)):new Set();
   const ejecFilter = window._krEjecFilter || 'todos';
   const _ejMatch = a => ejecFilter === 'todos' || (a.ejecutivo||'').trim().includes(ejecFilter);
   const cuentasAAA = activos.filter(a=>['A+','A'].includes(normTier(a.tier))&&(a.tipoServicio||'').includes('Analytics')&&_ejMatch(a));
@@ -2232,6 +2246,9 @@ window.openConfig = async function(){
     _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
   }catch{ _validacionActiva = true; }
   _actualizarToggle();
+  _renderExportsList();
+  const statusEl=el('config-exports-status');
+  if(statusEl) statusEl.textContent='';
 };
 
 window.closeConfig = async function(){
@@ -3944,6 +3961,83 @@ onSnapshot(collection(db,'jiraUsuarios'), snap=>{
   if(jiraUsuarios.length===0) jiraUsuarios=INIT_USUARIOS.map((u,i)=>({...u,id:'local-u-'+i}));
   if(currentTab==='jiras') window.renderUsuariosJira();
 });
+
+// ── EXPORTS DEL TABLERO
+let EXPORTS_DATA = {};
+onSnapshot(collection(db,'exports'),snap=>{
+  EXPORTS_DATA={};
+  snap.docs.forEach(d=>{EXPORTS_DATA[d.id]=d.data();});
+  if(currentTab==='dashboard') renderDashboard();
+  _renderExportsList();
+},()=>{});
+
+function _renderExportsList(){
+  const list=el('config-exports-list');
+  if(!list)return;
+  const SEMESTRE=[{key:'2026-04',label:'Abril 2026'},{key:'2026-05',label:'Mayo 2026'},{key:'2026-06',label:'Junio 2026'}];
+  const meses_es=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  list.innerHTML=SEMESTRE.map(m=>{
+    const exp=EXPORTS_DATA[m.key];
+    if(exp){
+      const cargadoEl=exp.cargadoEl?.toDate?.();
+      const fechaStr=cargadoEl?`${cargadoEl.getDate()} ${meses_es[cargadoEl.getMonth()]}`:'';
+      return`<div style="display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0">
+        <span style="color:#166534;font-weight:600">✓</span>
+        <span style="color:var(--text1);font-weight:500">${m.label}</span>
+        <span style="color:var(--text3)">— ${exp.totalCuentas||0} cuentas${fechaStr?' — cargado el '+fechaStr:''}</span>
+      </div>`;
+    }
+    return`<div style="display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0">
+      <span style="color:var(--text3)">─</span>
+      <span style="color:var(--text3)">${m.label}</span>
+      <span style="color:var(--text3)">— pendiente</span>
+    </div>`;
+  }).join('');
+}
+
+window.procesarExportTablero=async function(file){
+  if(!file)return;
+  const statusEl=el('config-exports-status');
+  if(statusEl){statusEl.textContent='Procesando...';statusEl.style.color='var(--text3)';}
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const data=XLSX.utils.sheet_to_json(ws,{defval:null});
+    // Detect month from 'Mes, Año de Data' column
+    const mesRawStr=(data.map(r=>r['Mes, Año de Data']).find(v=>v&&String(v).toLowerCase().includes(' de '))||'').toString().toLowerCase().trim();
+    const MESES={'enero':1,'febrero':2,'marzo':3,'abril':4,'mayo':5,'junio':6,'julio':7,'agosto':8,'septiembre':9,'octubre':10,'noviembre':11,'diciembre':12};
+    const partes=mesRawStr.split(' de ');
+    const mesNum=MESES[partes[0]?.trim()];
+    const anio=parseInt(partes[1]?.trim());
+    if(!mesNum||!anio){
+      if(statusEl){statusEl.textContent='❌ No se pudo detectar el mes. Verificá la columna "Mes, Año de Data".';statusEl.style.color='#D93025';}
+      return;
+    }
+    const mesKey=`${anio}-${String(mesNum).padStart(2,'0')}`;
+    const cuentas={};
+    data.forEach(row=>{
+      const id=row['Industria/Cliente'];
+      if(!id)return;
+      cuentas[String(id)]={
+        usuarios:row['Cantidad de Usuarios']||0,
+        accesos:row['Cantidad de Accesos']||0,
+        accesoUnico:row['Acceso único']||0,
+        usuariosActivos:row['Quant usuarios activos']||0,
+        mediaVisitas:row['Media de visitas por usuario']||0,
+      };
+    });
+    await setDoc(doc(db,'exports',mesKey),{
+      mesKey,mesLabel:partes[0]?.trim()+' de '+anio,anio,mes:mesNum,cuentas,
+      cargadoEl:serverTimestamp(),totalCuentas:Object.keys(cuentas).length,
+    });
+    const label=`${partes[0]?.charAt(0).toUpperCase()+partes[0]?.slice(1)} ${anio}`;
+    if(statusEl){statusEl.textContent=`✅ Export de ${label} cargado — ${Object.keys(cuentas).length} cuentas`;statusEl.style.color='#166534';}
+  }catch(e){
+    console.error(e);
+    if(statusEl){statusEl.textContent='❌ Error al procesar el archivo.';statusEl.style.color='#D93025';}
+  }
+};
 </script>
 </body>
 </html>
