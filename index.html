@@ -4117,7 +4117,9 @@ window.renderUsuariosJira = function(){
   const list = el('jira-usuarios-list');
   if(!list) return;
   if(!jiraUsuarios.length){list.innerHTML='<div class="empty-state">Sin solicitudes de acceso</div>';return;}
-  list.innerHTML=jiraUsuarios.map(u=>`
+  list.innerHTML=jiraUsuarios.map(u=>{
+    const puedeEliminar = currentRole==='admin' || u.ejecutivo===ROLES[currentUser?.email]?.ejecutivo;
+    return `
     <div class="jira-row">
       <div class="usr-avatar">${((u.nombre||'?').slice(0,1)+(u.apellido||'?').slice(0,1)).toUpperCase()}</div>
       <div class="jira-body">
@@ -4139,8 +4141,22 @@ window.renderUsuariosJira = function(){
           ?`<span style="font-size:11px;background:rgba(26,158,106,.12);color:#1A9E6A;padding:3px 10px;border-radius:10px;font-weight:500">✓ Listo · ${u.usuarioListo}</span>`
           :`<button onclick="marcarUsuarioListo('${u.id}')" style="font-size:11px;padding:4px 12px;border-radius:8px;border:1.5px solid #1A9E6A;background:transparent;color:#1A9E6A;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;white-space:nowrap">✓ Marcar como listo</button>`}
         <div style="font-size:10px;color:var(--text3)">${u.ejecutivo||''}</div>
+        ${puedeEliminar?`<button onclick="eliminarSolicitudUsuario('${u.id}')" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:4px 8px;border-radius:4px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'" title="Eliminar solicitud">✕</button>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+};
+
+window.eliminarSolicitudUsuario = async function(id){
+  if(!confirm('¿Eliminás esta solicitud? Esta acción no se puede deshacer.')) return;
+  setSyncStatus('syncing');
+  try{
+    await deleteDoc(doc(db,'jiraUsuarios',id));
+    setSyncStatus('ok');
+  }catch(e){
+    setSyncStatus('error');
+    console.error(e);
+  }
 };
 
 window.addUsuarioJira = async function(){
