@@ -2234,31 +2234,24 @@ let currentRole = null;
 
 // ── CONFIGURACIÓN
 let _validacionActiva = true;
+let _savedValidacionActiva = true; // último valor confirmado en Firebase
 const _configDocRef = () => doc(db, 'config', 'sistema');
 
-window.openConfig = async function(){
+window.openConfig = function(){
   el('config-overlay').style.display='block';
   el('config-modal').style.display='block';
   const saveBtn = el('config-save-btn');
   if(saveBtn){ saveBtn.textContent='Guardar'; saveBtn.disabled=false; }
-  try{
-    const snap = await getDoc(_configDocRef());
-    _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
-  }catch{ _validacionActiva = true; }
   _actualizarToggle();
   _renderExportsList();
   const statusEl=el('config-exports-status');
   if(statusEl) statusEl.textContent='';
 };
 
-window.closeConfig = async function(){
+window.closeConfig = function(){
+  _validacionActiva = _savedValidacionActiva; // descartar cambios no guardados
   el('config-overlay').style.display='none';
   el('config-modal').style.display='none';
-  // restore saved value so unsaved toggle changes don't linger in memory
-  try{
-    const snap = await getDoc(_configDocRef());
-    _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
-  }catch{ /* keep current */ }
 };
 
 window.toggleValidacion = function(){
@@ -2271,13 +2264,15 @@ window.guardarConfig = async function(){
   if(btn){ btn.textContent='Guardando...'; btn.disabled=true; }
   try{
     await setDoc(_configDocRef(), {validacionActiva: _validacionActiva}, {merge: true});
-    // Cerrar modal directamente sin re-leer Firebase (para no pisar _validacionActiva)
-    el('config-overlay').style.display='none';
-    el('config-modal').style.display='none';
-    if(currentTab==='dashboard') renderDashboard();
+    _savedValidacionActiva = _validacionActiva;
   }catch{
     if(btn){ btn.textContent='Guardar'; btn.disabled=false; }
+    return;
   }
+  el('config-overlay').style.display='none';
+  el('config-modal').style.display='none';
+  _dashboardRendering = false;
+  if(currentTab==='dashboard') renderDashboard();
 };
 
 function _actualizarToggle(){
@@ -3916,7 +3911,8 @@ window.enviarEmailPrioridades = function(){
 // Load config before first render so _validacionActiva is correct from the start
 const _configReady = getDoc(_configDocRef()).then(snap=>{
   _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
-}).catch(()=>{ _validacionActiva = true; });
+  _savedValidacionActiva = _validacionActiva;
+}).catch(()=>{ _validacionActiva = true; _savedValidacionActiva = true; });
 
 setSyncStatus('syncing');
 onSnapshot(collection(db,'tasks'),snap=>{
