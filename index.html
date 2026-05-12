@@ -1063,9 +1063,9 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div class="add-panel" id="usuario-form" style="display:none;margin-top:14px">
         <h3>Nueva solicitud de acceso</h3>
         <div class="form-grid">
-          <div class="field"><label>Cliente</label>
-            <input type="text" id="nu-cliente" placeholder="Escribí el nombre del cliente..." list="nu-cliente-list" autocomplete="off"/>
-            <datalist id="nu-cliente-list"></datalist>
+          <div class="field" style="position:relative"><label>Cliente</label>
+            <input type="text" id="nu-cliente" placeholder="Escribí el nombre del cliente..." autocomplete="off" oninput="filtrarClientesSolicitud(this.value)"/>
+            <div id="nu-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;max-height:220px;overflow-y:auto;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
           </div>
           <div class="form-row">
             <div class="field"><label>Nombre <span style="color:var(--red)">*</span></label><input type="text" id="nu-nombre"/><div id="nu-nombre-err" style="color:var(--red);font-size:11px;margin-top:2px;display:none"></div></div>
@@ -3535,14 +3535,32 @@ window.toggleSubtipo = function(){
   const w=el('nj-subtipo-wrapper');
   if(w) w.style.display=el('nj-categoria')?.value==='Nuevo dashboard'?'':'none';
 };
-function _poblarClientesSolicitud(){
-  const dl=el('nu-cliente-list');
-  console.log('[nu-cliente] accounts:', accounts.length, 'datalist:', !!dl);
-  if(!dl||!accounts.length) return;
-  const nombres=[...new Set(accounts.filter(a=>a.nombre).map(a=>a.nombre))].sort();
-  console.log('[nu-cliente] opciones cargadas:', nombres.length, nombres.slice(0,5));
-  dl.innerHTML=nombres.map(n=>`<option value="${n.replace(/"/g,'&quot;')}"></option>`).join('');
-}
+window.filtrarClientesSolicitud = function(q){
+  console.log('filtrarClientesSolicitud called, q:', q, 'accounts:', accounts.length);
+  const dd = document.getElementById('nu-cliente-dropdown');
+  if(!dd){ console.log('dropdown not found'); return; }
+  if(!q || q.length < 2){ dd.style.display='none'; return; }
+  const matches = accounts
+    .filter(a => a.nombre?.toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 10);
+  console.log('matches:', matches.length);
+  if(!matches.length){ dd.style.display='none'; return; }
+  dd.innerHTML = matches.map(a =>
+    `<div onclick="seleccionarClienteSolicitud('${a.nombre.replace(/'/g,"\\'")}')"
+      style="padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text)"
+      onmouseover="this.style.background='var(--surface2)'"
+      onmouseout="this.style.background=''">
+      ${a.nombre}
+    </div>`
+  ).join('');
+  dd.style.display = 'block';
+};
+window.seleccionarClienteSolicitud = function(nombre){
+  const input = document.getElementById('nu-cliente');
+  if(input) input.value = nombre;
+  const dd = document.getElementById('nu-cliente-dropdown');
+  if(dd) dd.style.display = 'none';
+};
 window.toggleUsuarioForm = function(){
   const f=document.getElementById('usuario-form');
   if(!f) return;
@@ -3659,6 +3677,13 @@ document.addEventListener('click',function(e){
   const dd=el('status-dropdown');
   const btn=el('status-filter-btn');
   if(dd&&!dd.contains(e.target)&&btn&&!btn.contains(e.target)) dd.style.display='none';
+});
+document.addEventListener('click', function(e){
+  const dd = document.getElementById('nu-cliente-dropdown');
+  const input = document.getElementById('nu-cliente');
+  if(dd && input && !dd.contains(e.target) && e.target !== input){
+    dd.style.display = 'none';
+  }
 });
 window.getSelectedStatuses = function(){
   const cbs=[...document.querySelectorAll('.status-cb:checked')];
