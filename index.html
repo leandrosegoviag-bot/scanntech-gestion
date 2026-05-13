@@ -735,6 +735,30 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
     <!-- DASHBOARD -->
     <div class="tab-content active" id="tab-dashboard">
       <div id="month-selector-wrap" style="margin-bottom:16px"></div>
+
+      <div class="dash-section-title" style="margin-top:8px">Métricas operativas de gestión</div>
+      <div class="ops-grid" id="ops-grid"></div>
+
+      <div class="dash-charts-row" id="dash-charts-row">
+        <div class="dash-chart-wrap">
+          <div class="dash-chart-title">Activos vs Caídos</div>
+          <canvas id="chart-estado" height="180"></canvas>
+        </div>
+        <div class="dash-chart-wrap">
+          <div class="dash-chart-title">Tier · Activos con Analytics</div>
+          <canvas id="chart-tier" height="180"></canvas>
+        </div>
+        <div class="dash-chart-wrap">
+          <div class="dash-chart-title">Distribución por Ejecutivo</div>
+          <canvas id="chart-ejec" height="180"></canvas>
+        </div>
+      </div>
+      <div class="dash-section-title" style="margin-top:8px">Evolutivo semanal de interacciones</div>
+      <div class="dash-chart-wrap" style="margin-bottom:20px">
+        <div class="dash-chart-title">Interacciones por semana (últimas 12 semanas)</div>
+        <canvas id="chart-evolutivo" height="90"></canvas>
+      </div>
+
       <div class="dash-section-title">OKR 1 · Maximizar el valor que los clientes obtienen de Scanntech</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
         <span style="font-size:11px;color:var(--text3);font-weight:500">Ejecutivo:</span>
@@ -783,29 +807,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 
       <div class="dash-section-title" style="margin-top:8px">OKR 2 · Fortalecer la retención y reducir riesgos en la cartera</div>
       <div class="dash-grid" id="okr-grid-2"></div>
-
-      <div class="dash-section-title" style="margin-top:8px">Métricas operativas de gestión</div>
-      <div class="ops-grid" id="ops-grid"></div>
-
-      <div class="dash-charts-row" id="dash-charts-row">
-        <div class="dash-chart-wrap">
-          <div class="dash-chart-title">Activos vs Caídos</div>
-          <canvas id="chart-estado" height="180"></canvas>
-        </div>
-        <div class="dash-chart-wrap">
-          <div class="dash-chart-title">Tier · Activos con Analytics</div>
-          <canvas id="chart-tier" height="180"></canvas>
-        </div>
-        <div class="dash-chart-wrap">
-          <div class="dash-chart-title">Distribución por Ejecutivo</div>
-          <canvas id="chart-ejec" height="180"></canvas>
-        </div>
-      </div>
-      <div class="dash-section-title" style="margin-top:8px">Evolutivo semanal de interacciones</div>
-      <div class="dash-chart-wrap" style="margin-bottom:20px">
-        <div class="dash-chart-title">Interacciones por semana (últimas 12 semanas)</div>
-        <canvas id="chart-evolutivo" height="90"></canvas>
-      </div>
     </div>
 
     <!-- CUENTAS -->
