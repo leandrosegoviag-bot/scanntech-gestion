@@ -2943,9 +2943,12 @@ function renderMonthView(events, today){
     if(!eventMap[k]) eventMap[k]=[];
     eventMap[k].push(e);
   });
-  // Add generated meeting tasks
+  // Add generated meeting tasks (filtered by ejecutivo)
+  const _calEjecFiltro = el('cal-ejecutivo-filter')?.value||'todos';
+  const _calNombresEjec = {'AJG':'Aime','LS':'Leandro','EE':'Ezequiel'};
   tasks.filter(t=>t.esReunion&&t.fechaReunion&&
-    t.fechaReunion.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`))
+    t.fechaReunion.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`)&&
+    (_calEjecFiltro==='todos'||t.assignee===_calNombresEjec[_calEjecFiltro]))
     .forEach(t=>{
       const d=new Date(t.fechaReunion+'T12:00:00');
       const k=dateKey(d);
@@ -3008,9 +3011,12 @@ function renderWeekView(events, today){
   }
 
   // Map events to days
+  const _calEjecFiltroW = el('cal-ejecutivo-filter')?.value||'todos';
+  const _calNombresEjecW = {'AJG':'Aime','LS':'Leandro','EE':'Ezequiel'};
   const reunionesByDay = days.map(d=>{
     const dk = dateKey(d);
-    return tasks.filter(t=>t.esReunion&&t.fechaReunion)
+    return tasks.filter(t=>t.esReunion&&t.fechaReunion&&
+      (_calEjecFiltroW==='todos'||t.assignee===_calNombresEjecW[_calEjecFiltroW]))
       .filter(t=>dateKey(new Date(t.fechaReunion+'T12:00:00'))===dk)
       .map(t=>({nombre:`📅 ${t.cuentaNombre||''}${t.turno?' · '+t.turno:''}`,cls:'reunion',tier:t.tier||'',ejecutivo:t.assignee||'',taskId:t.id,_isReunion:true}));
 
