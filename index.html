@@ -615,7 +615,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 
   <!-- Modal configuración -->
   <div id="config-overlay" onclick="closeConfig()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000"></div>
-  <div id="config-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(480px,92vw);background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:28px;z-index:1001;font-family:'DM Sans',sans-serif">
+  <div id="config-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(480px,92vw);max-height:80vh;overflow-y:auto;background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:28px;z-index:1001;font-family:'DM Sans',sans-serif">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
       <span style="font-size:16px;font-weight:700;color:var(--text1)">⚙️ Configuración del sistema</span>
       <button onclick="closeConfig()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);line-height:1">✕</button>
@@ -643,13 +643,14 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
       <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:14px">Genera una tarea de preparación y una reunión por cada<br>cuenta A+/A (semanal) y B (mensual) para el mes seleccionado.</div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
         <label style="font-size:12px;font-weight:500;color:var(--text2)">Mes:</label>
-        <select id="config-tareas-mes" style="font-size:12px;padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif">
+        <select id="config-tareas-mes" onchange="window._actualizarBotonEliminar()" style="font-size:12px;padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif">
           <option value="2026-4">Abril 2026</option>
           <option value="2026-5" selected>Mayo 2026</option>
           <option value="2026-6">Junio 2026</option>
         </select>
       </div>
       <button onclick="window._generarTareasFromConfig()" style="padding:7px 16px;border-radius:8px;border:1.5px solid var(--navy);background:var(--navy);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📋 Generar tareas del mes</button>
+      <button id="config-tareas-eliminar-btn" onclick="window._eliminarTareasFromConfig()" style="display:none;margin-top:8px;width:100%;padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500">🗑 Eliminar tareas generadas de este mes</button>
       <div id="config-tareas-status" style="font-size:11px;color:var(--text3);margin-top:10px">Última generación: —</div>
     </div>
     <div style="margin-top:24px;display:flex;justify-content:flex-end;gap:10px">
@@ -2426,6 +2427,7 @@ window.openConfig = function(){
   const statusEl=el('config-exports-status');
   if(statusEl) statusEl.textContent='';
   _cargarStatusTareasGeneradas();
+  _actualizarBotonEliminar();
 };
 
 window.closeConfig = function(){
@@ -2490,7 +2492,52 @@ window._generarTareasFromConfig = async function(){
   const LABELS = {'2026-4':'Abril 2026','2026-5':'Mayo 2026','2026-6':'Junio 2026'};
   await generarTareasPresentacion(LABELS[sel.value]||sel.value, anio, mes);
   _cargarStatusTareasGeneradas();
+  _actualizarBotonEliminar();
 };
+
+window._actualizarBotonEliminar = function(){
+  const sel = el('config-tareas-mes');
+  const btn = el('config-tareas-eliminar-btn');
+  if(!sel||!btn) return;
+  const [anio, mes] = sel.value.split('-').map(Number);
+  const mesKey = `${anio}-${String(mes).padStart(2,'0')}`;
+  const hay = tasks.some(t=>t.mesGenerado===mesKey&&(t.tag==='Presentación mensual'||t.tag==='Reunión cliente'));
+  btn.style.display = hay ? 'block' : 'none';
+};
+
+window._eliminarTareasFromConfig = async function(){
+  const sel = el('config-tareas-mes');
+  if(!sel) return;
+  const [anio, mes] = sel.value.split('-').map(Number);
+  const LABELS = {'2026-4':'Abril 2026','2026-5':'Mayo 2026','2026-6':'Junio 2026'};
+  await eliminarTareasGeneradas(LABELS[sel.value]||sel.value, anio, mes);
+  _cargarStatusTareasGeneradas();
+  _actualizarBotonEliminar();
+};
+
+async function eliminarTareasGeneradas(mesLabel, anio, mes){
+  const mesKey = `${anio}-${String(mes).padStart(2,'0')}`;
+  if(!confirm(`¿Eliminás todas las tareas generadas para ${mesLabel}? Esta acción no se puede deshacer.`)) return;
+  setSyncStatus('syncing');
+  try{
+    const tareasDelMes = tasks.filter(t=>
+      t.mesGenerado===mesKey &&
+      (t.tag==='Presentación mensual'||t.tag==='Reunión cliente')
+    );
+    for(const t of tareasDelMes){
+      if(t.id) await deleteDoc(doc(db,'tasks',t.id));
+    }
+    await setDoc(doc(db,'config','tareasGeneradas'),{
+      ultimaGeneracion:null,mesLabel:null,mesKey:null,tareasCreadas:0,
+    },{merge:true});
+    setSyncStatus('ok');
+    const msg = document.createElement('div');
+    msg.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--red);color:#fff;padding:12px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:9999;box-shadow:var(--shadow)';
+    msg.textContent=`🗑 ${tareasDelMes.length} tareas eliminadas para ${mesLabel}`;
+    document.body.appendChild(msg);
+    setTimeout(()=>msg.remove(),4000);
+  }catch(e){ setSyncStatus('error'); console.error(e); }
+}
 
 async function generarTareasPresentacion(mesLabel, anio, mes){
   const mesKey = `${anio}-${String(mes).padStart(2,'0')}`;
