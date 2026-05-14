@@ -2799,8 +2799,76 @@ onAuthStateChanged(auth, user=>{
     el('config-btn').style.display=info.role==='admin'?'inline-block':'none';
     // Apply role restrictions
     applyRoleUI();
+
+    if(!window._listenersStarted){
+      window._listenersStarted = true;
+
+      // Load config before first render so _validacionActiva is correct from the start
+      getDoc(_configDocRef()).then(snap=>{
+        _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
+        _savedValidacionActiva = _validacionActiva;
+      }).catch(()=>{ _validacionActiva = true; _savedValidacionActiva = true; });
+
+      setSyncStatus('syncing');
+      onSnapshot(collection(db,'tasks'),snap=>{
+        tasks=snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderTasks();updateAccountSelect();
+        if(currentTab==='dashboard')renderDashboard();
+        setSyncStatus('ok');
+      },()=>setSyncStatus('error'));
+
+      onSnapshot(collection(db,'accounts'),snap=>{
+        accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderAccounts();updateAccountSelect();updateFichaSelect();
+        if(currentTab==='dashboard')renderDashboard();
+        if(currentTab==='historial')renderHistorial();
+        if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{const puedeEliminar=currentRole==='admin'||(a.ejecutivo||'').includes(window.currentEjecutivo||'__');const tsEsc=(i.ts||'').replace(/'/g,"\\'");const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${tsEsc}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';const esInsight=i.tipo==='Presentación / Insight';const estado=i.estadoValidacion||'pendiente';const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';const aprobarBtn=esInsight&&_validacionActiva&&currentRole==='admin'&&!i.validada?`<button onclick="validarInteraccion('${a.id}','${tsEsc}')" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;border:1.5px solid #166534;background:#F0FDF4;color:#166534;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Aprobar</button>`:'';return `<div class="history-item" style="align-items:flex-start"><div class="history-dot" style="background:var(--navy);margin-top:4px"></div><div style="flex:1;min-width:0"><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}${esInsight?`<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">${i.link?`<a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px;font-weight:500;text-decoration:none">🔗 Ver</a>`:''}<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>${aprobarBtn}</div>`:''}</div>${delBtn}</div>`;}).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
+        setSyncStatus('ok');
+      },()=>setSyncStatus('error'));
+
+      onSnapshot(collection(db,'jiras'), snap=>{
+        jiraTickets = snap.docs.map(d=>({id:d.id,...d.data()}));
+        if(jiraTickets.length===0 && INIT_TICKETS.length>0 && !jiraSeeded){
+          jiraSeeded=true;
+          INIT_TICKETS.forEach(t=>addDoc(collection(db,'jiras'),{...t,createdAt:serverTimestamp()}).catch(()=>{}));
+        }
+        if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();window.renderMetricas();}
+      },()=>{
+        if(jiraTickets.length===0) jiraTickets=INIT_TICKETS.map((t,i)=>({...t,id:'local-'+i}));
+        if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();window.renderMetricas();}
+      });
+
+      onSnapshot(collection(db,'jiraUsuarios'), snap=>{
+        jiraUsuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
+        if(jiraUsuarios.length===0 && INIT_USUARIOS.length>0 && !usuarioSeeded){
+          usuarioSeeded=true;
+          INIT_USUARIOS.forEach(u=>addDoc(collection(db,'jiraUsuarios'),{...u,createdAt:serverTimestamp()}).catch(()=>{}));
+        }
+        if(currentTab==='jiras') window.renderUsuariosJira();
+      },()=>{
+        if(jiraUsuarios.length===0) jiraUsuarios=INIT_USUARIOS.map((u,i)=>({...u,id:'local-u-'+i}));
+        if(currentTab==='jiras') window.renderUsuariosJira();
+      });
+
+      onSnapshot(doc(db,'config','sistema'), snap=>{
+        const val = snap.exists() ? snap.data().validacionActiva !== false : true;
+        _savedValidacionActiva = val;
+        if(!_configModalOpen){
+          _validacionActiva = val;
+          if(currentTab==='dashboard' && accounts.length) renderDashboard();
+        }
+      },()=>{});
+
+      onSnapshot(collection(db,'exports'),snap=>{
+        EXPORTS_DATA={};
+        snap.docs.forEach(d=>{EXPORTS_DATA[d.id]=d.data();});
+        if(currentTab==='dashboard') renderDashboard();
+        _renderExportsList();
+      },()=>{});
+    }
   } else {
     currentUser=null; currentRole=null;
+    window._listenersStarted = false;
     el('login-overlay').classList.add('show');
     el('main-app').style.display='none';
     el('user-info').style.display='none';
@@ -3643,6 +3711,8 @@ const INIT_USUARIOS = [{"empresa": "La banderita", "nombre": "Ximena", "apellido
 
 let jiraTickets = [];
 let jiraUsuarios = [];
+let jiraSeeded = false, usuarioSeeded = false;
+let EXPORTS_DATA = {};
 let dragSrcIdx = null;
 
 const EJECUTIVOS_DATA = {
@@ -4504,76 +4574,6 @@ window.enviarEmailPrioridades = function(){
   window.location.href = 'mailto:?subject='+subject+'&body='+body;
 };
 
-// Load config before first render so _validacionActiva is correct from the start
-const _configReady = getDoc(_configDocRef()).then(snap=>{
-  _validacionActiva = snap.exists() ? snap.data().validacionActiva !== false : true;
-  _savedValidacionActiva = _validacionActiva;
-}).catch(()=>{ _validacionActiva = true; _savedValidacionActiva = true; });
-
-setSyncStatus('syncing');
-onSnapshot(collection(db,'tasks'),snap=>{
-  tasks=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderTasks();updateAccountSelect();
-  _configReady.then(()=>{ if(currentTab==='dashboard')renderDashboard(); });
-  setSyncStatus('ok');
-},()=>setSyncStatus('error'));
-
-onSnapshot(collection(db,'accounts'),snap=>{
-  accounts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderAccounts();updateAccountSelect();updateFichaSelect();
-  _configReady.then(()=>{
-    if(currentTab==='dashboard')renderDashboard();
-    if(currentTab==='historial')renderHistorial();
-  });
-  if(currentDrawerAccId){const a=accounts.find(a=>a.id===currentDrawerAccId);if(a){const ints=(a.interacciones||[]).slice().reverse();el('drawer-interacciones').innerHTML=ints.length?ints.map(i=>{const puedeEliminar=currentRole==='admin'||(a.ejecutivo||'').includes(window.currentEjecutivo||'__');const tsEsc=(i.ts||'').replace(/'/g,"\\'");const delBtn=puedeEliminar&&i.ts?`<button onclick="eliminarInteraccion('${a.id}','${tsEsc}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1" title="Eliminar">✕</button>`:'';const esInsight=i.tipo==='Presentación / Insight';const estado=i.estadoValidacion||'pendiente';const estadoColor=estado==='aprobada'?'#166534':estado==='rechazada'?'#D93025':'#92400E';const estadoBg=estado==='aprobada'?'#F0FDF4':estado==='rechazada'?'#FEF2F2':'#FFFBEB';const aprobarBtn=esInsight&&_validacionActiva&&currentRole==='admin'&&!i.validada?`<button onclick="validarInteraccion('${a.id}','${tsEsc}')" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;border:1.5px solid #166534;background:#F0FDF4;color:#166534;cursor:pointer;font-family:'DM Sans',sans-serif">✓ Aprobar</button>`:'';return `<div class="history-item" style="align-items:flex-start"><div class="history-dot" style="background:var(--navy);margin-top:4px"></div><div style="flex:1;min-width:0"><div class="history-text"><strong>${i.tipo||'Nota'}</strong> · ${i.autor||'—'} — ${i.texto}</div><div class="history-time">${i.ts?new Date(i.ts).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</div>${i.descripcion?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${i.descripcion}</div>`:''}${esInsight?`<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">${i.link?`<a href="${i.link}" target="_blank" style="color:var(--blue);font-size:11px;font-weight:500;text-decoration:none">🔗 Ver</a>`:''}<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${estadoBg};color:${estadoColor}">${estado}</span>${aprobarBtn}</div>`:''}</div>${delBtn}</div>`;}).join(''):'<div style="font-size:12px;color:var(--text3)">Sin interacciones aún</div>';}}
-  setSyncStatus('ok');
-},()=>setSyncStatus('error'));
-
-// ── JIRAS FIREBASE LISTENERS
-let jiraSeeded=false, usuarioSeeded=false;
-
-onSnapshot(collection(db,'jiras'), snap=>{
-  jiraTickets = snap.docs.map(d=>({id:d.id,...d.data()}));
-  if(jiraTickets.length===0 && INIT_TICKETS.length>0 && !jiraSeeded){
-    jiraSeeded=true;
-    INIT_TICKETS.forEach(t=>addDoc(collection(db,'jiras'),{...t,createdAt:serverTimestamp()}).catch(()=>{}));
-  }
-  if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();window.renderMetricas();}
-},()=>{
-  if(jiraTickets.length===0) jiraTickets=INIT_TICKETS.map((t,i)=>({...t,id:'local-'+i}));
-  if(currentTab==='jiras'){window.renderJiras();window.renderBacklog();window.renderMetricas();}
-});
-
-onSnapshot(collection(db,'jiraUsuarios'), snap=>{
-  jiraUsuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
-  if(jiraUsuarios.length===0 && INIT_USUARIOS.length>0 && !usuarioSeeded){
-    usuarioSeeded=true;
-    INIT_USUARIOS.forEach(u=>addDoc(collection(db,'jiraUsuarios'),{...u,createdAt:serverTimestamp()}).catch(()=>{}));
-  }
-  if(currentTab==='jiras') window.renderUsuariosJira();
-},()=>{
-  if(jiraUsuarios.length===0) jiraUsuarios=INIT_USUARIOS.map((u,i)=>({...u,id:'local-u-'+i}));
-  if(currentTab==='jiras') window.renderUsuariosJira();
-});
-
-// Config real-time listener — actualiza _validacionActiva cuando cambia en Firebase
-onSnapshot(doc(db,'config','sistema'), snap=>{
-  const val = snap.exists() ? snap.data().validacionActiva !== false : true;
-  _savedValidacionActiva = val;
-  if(!_configModalOpen){
-    _validacionActiva = val;
-    if(currentTab==='dashboard' && accounts.length) renderDashboard();
-  }
-},()=>{});
-
-// ── EXPORTS DEL TABLERO
-let EXPORTS_DATA = {};
-onSnapshot(collection(db,'exports'),snap=>{
-  EXPORTS_DATA={};
-  snap.docs.forEach(d=>{EXPORTS_DATA[d.id]=d.data();});
-  if(currentTab==='dashboard') renderDashboard();
-  _renderExportsList();
-},()=>{});
 
 function _renderExportsList(){
   const list=el('config-exports-list');
