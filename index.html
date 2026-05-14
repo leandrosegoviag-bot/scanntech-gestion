@@ -2499,6 +2499,7 @@ async function generarTareasPresentacion(mesLabel, anio, mes){
     (t.tag==='Presentación mensual' || t.tag==='Reunión cliente') &&
     t.mesGenerado===mesKey
   );
+
   if(yaExisten){
     alert(`Ya se generaron las tareas de presentación para ${mesLabel}.`);
     return;
@@ -2563,17 +2564,20 @@ async function generarTareasPresentacion(mesLabel, anio, mes){
         creadas++;
         idxB++;
       }
+
     }
   }
 
   await setDoc(doc(db,'config','tareasGeneradas'),{
     ultimaGeneracion:serverTimestamp(),
     mesLabel,mesKey,tareasCreadas:creadas,
+
   },{merge:true});
 
   const msg = document.createElement('div');
   msg.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:9999;box-shadow:var(--shadow)';
   msg.textContent=`✅ ${creadas} tareas generadas para ${mesLabel}`;
+
   document.body.appendChild(msg);
   setTimeout(()=>msg.remove(),5000);
 }
@@ -2900,6 +2904,7 @@ function renderMonthView(events, today){
       const k=dateKey(d);
       if(!eventMap[k]) eventMap[k]=[];
       eventMap[k].push({nombre:`📅 ${t.cuentaNombre||''}${t.turno?' · '+t.turno:''}`,cls:'reunion',tier:t.tier||'',ejecutivo:t.assignee||'',taskId:t.id,_isReunion:true});
+
     });
 
   // First day of month
@@ -2961,6 +2966,7 @@ function renderWeekView(events, today){
     return tasks.filter(t=>t.esReunion&&t.fechaReunion)
       .filter(t=>dateKey(new Date(t.fechaReunion+'T12:00:00'))===dk)
       .map(t=>({nombre:`📅 ${t.cuentaNombre||''}${t.turno?' · '+t.turno:''}`,cls:'reunion',tier:t.tier||'',ejecutivo:t.assignee||'',taskId:t.id,_isReunion:true}));
+
   });
   const eventsByDay = days.map((d,i)=>{
     return [...events.filter(e=>e.nextDate && sameDay(e.nextDate, d)), ...reunionesByDay[i]];
