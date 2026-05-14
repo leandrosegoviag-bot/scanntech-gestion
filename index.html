@@ -2494,91 +2494,90 @@ window._generarTareasFromConfig = async function(){
 
 async function generarTareasPresentacion(mesLabel, anio, mes){
   const mesKey = `${anio}-${String(mes).padStart(2,'0')}`;
-  const yaExisten = tasks.some(t => t.tag==='Presentación mensual' && t.mesGenerado===mesKey);
+
+  const yaExisten = tasks.some(t =>
+    (t.tag==='Presentación mensual' || t.tag==='Reunión cliente') &&
+    t.mesGenerado===mesKey
+  );
+
   if(yaExisten){
     alert(`Ya se generaron las tareas de presentación para ${mesLabel}.`);
     return;
   }
 
-  const semanas = semanasDelMes(anio, mes - 1);
-
   const NOMBRES_EJECUTIVOS = {'AJG':'Aime','LS':'Leandro','EE':'Ezequiel'};
-
-  const cuentasTarget = accounts.filter(a =>
-    a.estado?.includes('Activo') &&
-    (a.tier==='A+' || a.tier==='A' || a.tier==='B')
-  );
-
+  const semanas = semanasDelMes(anio, mes - 1);
   let creadas = 0;
 
-  for(const cuenta of cuentasTarget){
-    const isAA = cuenta.tier==='A+' || cuenta.tier==='A';
-    const semanasTarget = isAA ? semanas : [semanas[semanas.length-1]];
+  for(const [codigo, nombre] of Object.entries(NOMBRES_EJECUTIVOS)){
+    const cuentasAA = accounts.filter(a=>
+      a.estado?.includes('Activo') &&
+      (a.tier==='A+'||a.tier==='A') &&
+      a.ejecutivo===codigo
+    );
+    const cuentasB = accounts.filter(a=>
+      a.estado?.includes('Activo') &&
+      a.tier==='B' &&
+      a.ejecutivo===codigo
+    );
 
-    for(const semana of semanasTarget){
-      const {lunes, domingo} = semana;
-      const miercoles = new Date(lunes);
-      miercoles.setDate(lunes.getDate()+2);
+    let idxAA = 0;
+    let idxB = 0;
 
-      const labelSemana = `${lunes.toLocaleDateString('es-AR',{day:'numeric',month:'short'})} — ${domingo.toLocaleDateString('es-AR',{day:'numeric',month:'short'})}`;
+    for(const semana of semanas){
+      const {lunes} = semana;
+      const lun = new Date(lunes);
+      const mar = new Date(lunes); mar.setDate(lun.getDate()+1);
+      const mie = new Date(lunes); mie.setDate(lun.getDate()+2);
+      const jue = new Date(lunes); jue.setDate(lun.getDate()+3);
+      const vie = new Date(lunes); vie.setDate(lun.getDate()+4);
+      const labelSemana = `${lun.toLocaleDateString('es-AR',{day:'numeric',month:'short'})} — ${vie.toLocaleDateString('es-AR',{day:'numeric',month:'short'})}`;
 
-      await addDoc(collection(db,'tasks'),{
-        title:`Preparar presentación — ${cuenta.nombre} — ${labelSemana}`,
-        desc:`Preparar insight accionable para presentar al cliente. KR 1.2 — ${isAA?'1 por semana':'1 por mes'}.`,
-        status:'pendiente',
-        assignee:NOMBRES_EJECUTIVOS[cuenta.ejecutivo]||cuenta.ejecutivo||'',
-        tag:'Presentación mensual',
-        mesGenerado:mesKey,
-        cuentaId:cuenta.id||'',
-        cuentaNombre:cuenta.nombre,
-        tier:cuenta.tier,
-        due:lunes.toISOString().split('T')[0],
-        steps:[
-          {texto:'Revisar datos del tablero',done:false},
-          {texto:'Preparar PPT o mail con insight',done:false},
-          {texto:'Validar con ejecutivo',done:false},
-        ],
-        comments:[],
-        createdAt:serverTimestamp(),
-      });
-      creadas++;
+      // ── CUENTA A+/A ──
+      const cuentaAA = cuentasAA.length>0 ? cuentasAA[idxAA%cuentasAA.length] : null;
+      if(cuentaAA){
+        await addDoc(collection(db,'tasks'),{title:`Preparar presentación — ${cuentaAA.nombre} (día 1/2) — ${labelSemana}`,desc:`Primer día de preparación del insight para ${cuentaAA.nombre}. KR 1.2 — 1 por semana.`,status:'pendiente',assignee:nombre,tag:'Presentación mensual',mesGenerado:mesKey,cuentaId:cuentaAA.id||'',cuentaNombre:cuentaAA.nombre,tier:cuentaAA.tier,due:lun.toISOString().split('T')[0],steps:[{texto:'Revisar datos del tablero',done:false},{texto:'Identificar insight accionable',done:false}],comments:[],createdAt:serverTimestamp()});
+        creadas++;
+        await addDoc(collection(db,'tasks'),{title:`Preparar presentación — ${cuentaAA.nombre} (día 2/2) — ${labelSemana}`,desc:`Segundo día de preparación. Armar PPT o mail con el insight para ${cuentaAA.nombre}.`,status:'pendiente',assignee:nombre,tag:'Presentación mensual',mesGenerado:mesKey,cuentaId:cuentaAA.id||'',cuentaNombre:cuentaAA.nombre,tier:cuentaAA.tier,due:mar.toISOString().split('T')[0],steps:[{texto:'Armar PPT o mail con insight',done:false},{texto:'Validar con ejecutivo',done:false}],comments:[],createdAt:serverTimestamp()});
+        creadas++;
+        await addDoc(collection(db,'tasks'),{title:`Reunión — ${cuentaAA.nombre} — ${labelSemana}`,desc:`Presentar insight al cliente y registrar feedback. KR 1.2.`,status:'pendiente',assignee:nombre,tag:'Reunión cliente',mesGenerado:mesKey,cuentaId:cuentaAA.id||'',cuentaNombre:cuentaAA.nombre,tier:cuentaAA.tier,due:mie.toISOString().split('T')[0],esReunion:true,fechaReunion:mie.toISOString().split('T')[0],turno:'mañana',steps:[{texto:'Confirmar reunión con cliente',done:false},{texto:'Presentar insight',done:false},{texto:'Registrar feedback',done:false},{texto:'Registrar interacción en el gestor',done:false}],comments:[],createdAt:serverTimestamp()});
+        creadas++;
+        idxAA++;
+      }
 
-      await addDoc(collection(db,'tasks'),{
-        title:`Reunión — ${cuenta.nombre} — ${labelSemana}`,
-        desc:`Presentar insight al cliente y registrar feedback. KR 1.2.`,
-        status:'pendiente',
-        assignee:NOMBRES_EJECUTIVOS[cuenta.ejecutivo]||cuenta.ejecutivo||'',
-        tag:'Reunión cliente',
-        mesGenerado:mesKey,
-        cuentaId:cuenta.id||'',
-        cuentaNombre:cuenta.nombre,
-        tier:cuenta.tier,
-        due:domingo.toISOString().split('T')[0],
-        esReunion:true,
-        fechaReunion:miercoles.toISOString().split('T')[0],
-        steps:[
-          {texto:'Confirmar reunión con cliente',done:false},
-          {texto:'Presentar insight',done:false},
-          {texto:'Registrar feedback del cliente',done:false},
-          {texto:'Registrar interacción en el gestor',done:false},
-        ],
-        comments:[],
-        createdAt:serverTimestamp(),
-      });
-      creadas++;
+      // ── CUENTA B #1 ──
+      const cuentaB1 = cuentasB.length>0 ? cuentasB[idxB%cuentasB.length] : null;
+      if(cuentaB1){
+        await addDoc(collection(db,'tasks'),{title:`Preparar presentación — ${cuentaB1.nombre} — ${labelSemana}`,desc:`Preparar insight para ${cuentaB1.nombre}. KR 1.2 — 1 por mes.`,status:'pendiente',assignee:nombre,tag:'Presentación mensual',mesGenerado:mesKey,cuentaId:cuentaB1.id||'',cuentaNombre:cuentaB1.nombre,tier:cuentaB1.tier,due:mie.toISOString().split('T')[0],turno:'tarde',steps:[{texto:'Revisar datos del tablero',done:false},{texto:'Armar PPT o mail con insight',done:false},{texto:'Validar con ejecutivo',done:false}],comments:[],createdAt:serverTimestamp()});
+        creadas++;
+        await addDoc(collection(db,'tasks'),{title:`Reunión — ${cuentaB1.nombre} — ${labelSemana}`,desc:`Presentar insight al cliente y registrar feedback. KR 1.2.`,status:'pendiente',assignee:nombre,tag:'Reunión cliente',mesGenerado:mesKey,cuentaId:cuentaB1.id||'',cuentaNombre:cuentaB1.nombre,tier:cuentaB1.tier,due:jue.toISOString().split('T')[0],esReunion:true,fechaReunion:jue.toISOString().split('T')[0],turno:'mañana',steps:[{texto:'Confirmar reunión con cliente',done:false},{texto:'Presentar insight',done:false},{texto:'Registrar feedback',done:false},{texto:'Registrar interacción en el gestor',done:false}],comments:[],createdAt:serverTimestamp()});
+        creadas++;
+        idxB++;
+      }
+
+      // ── CUENTA B #2 ──
+      const cuentaB2 = cuentasB.length>1 ? cuentasB[idxB%cuentasB.length] : null;
+      if(cuentaB2){
+        await addDoc(collection(db,'tasks'),{title:`Preparar presentación — ${cuentaB2.nombre} — ${labelSemana}`,desc:`Preparar insight para ${cuentaB2.nombre}. KR 1.2 — 1 por mes.`,status:'pendiente',assignee:nombre,tag:'Presentación mensual',mesGenerado:mesKey,cuentaId:cuentaB2.id||'',cuentaNombre:cuentaB2.nombre,tier:cuentaB2.tier,due:jue.toISOString().split('T')[0],turno:'tarde',steps:[{texto:'Revisar datos del tablero',done:false},{texto:'Armar PPT o mail con insight',done:false},{texto:'Validar con ejecutivo',done:false}],comments:[],createdAt:serverTimestamp()});
+        creadas++;
+        await addDoc(collection(db,'tasks'),{title:`Reunión — ${cuentaB2.nombre} — ${labelSemana}`,desc:`Presentar insight al cliente y registrar feedback. KR 1.2.`,status:'pendiente',assignee:nombre,tag:'Reunión cliente',mesGenerado:mesKey,cuentaId:cuentaB2.id||'',cuentaNombre:cuentaB2.nombre,tier:cuentaB2.tier,due:vie.toISOString().split('T')[0],esReunion:true,fechaReunion:vie.toISOString().split('T')[0],turno:null,steps:[{texto:'Confirmar reunión con cliente',done:false},{texto:'Presentar insight',done:false},{texto:'Registrar feedback',done:false},{texto:'Registrar interacción en el gestor',done:false}],comments:[],createdAt:serverTimestamp()});
+        creadas++;
+        idxB++;
+      }
+
     }
   }
 
   await setDoc(doc(db,'config','tareasGeneradas'),{
     ultimaGeneracion:serverTimestamp(),
-    mesLabel,
-    mesKey,
-    tareasCreadas:creadas,
+    mesLabel,mesKey,tareasCreadas:creadas,
+
   },{merge:true});
 
   const msg = document.createElement('div');
   msg.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:9999;box-shadow:var(--shadow)';
-  msg.textContent=`✅ ${creadas} tareas generadas para ${mesLabel} (presentaciones + reuniones)`;
+  msg.textContent=`✅ ${creadas} tareas generadas para ${mesLabel}`;
+
   document.body.appendChild(msg);
   setTimeout(()=>msg.remove(),5000);
 }
@@ -2904,7 +2903,8 @@ function renderMonthView(events, today){
       const d=new Date(t.fechaReunion+'T12:00:00');
       const k=dateKey(d);
       if(!eventMap[k]) eventMap[k]=[];
-      eventMap[k].push({nombre:`📅 ${t.cuentaNombre||''}`,cls:'reunion',tier:t.tier||'',ejecutivo:t.assignee||'',taskId:t.id,_isReunion:true});
+      eventMap[k].push({nombre:`📅 ${t.cuentaNombre||''}${t.turno?' · '+t.turno:''}`,cls:'reunion',tier:t.tier||'',ejecutivo:t.assignee||'',taskId:t.id,_isReunion:true});
+
     });
 
   // First day of month
@@ -2965,7 +2965,8 @@ function renderWeekView(events, today){
     const dk = dateKey(d);
     return tasks.filter(t=>t.esReunion&&t.fechaReunion)
       .filter(t=>dateKey(new Date(t.fechaReunion+'T12:00:00'))===dk)
-      .map(t=>({nombre:`📅 ${t.cuentaNombre||''}`,cls:'reunion',tier:t.tier||'',ejecutivo:t.assignee||'',taskId:t.id,_isReunion:true}));
+      .map(t=>({nombre:`📅 ${t.cuentaNombre||''}${t.turno?' · '+t.turno:''}`,cls:'reunion',tier:t.tier||'',ejecutivo:t.assignee||'',taskId:t.id,_isReunion:true}));
+
   });
   const eventsByDay = days.map((d,i)=>{
     return [...events.filter(e=>e.nextDate && sameDay(e.nextDate, d)), ...reunionesByDay[i]];
