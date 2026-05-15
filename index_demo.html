@@ -145,8 +145,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
 .estado-pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
 .estado-activo{background:var(--green-dim);color:var(--green)}
 .estado-caido{background:var(--red-dim);color:var(--red)}
-.estado-inactivo{background:var(--surface3);color:var(--text3)}
-.estado-enproceso{background:#FEF3C7;color:#92400E}
 .svc-pill{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--purple-dim);color:var(--purple);white-space:nowrap}
 .date-cell{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
 .del-btn{background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:11px;width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}
@@ -840,8 +838,6 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
             <div class="filter-option active" id="fo-estado-todos" onclick="setAccFilter('estado','todos')">Todos <span class="filter-count" id="fc-estado-todos">0</span></div>
             <div class="filter-option" id="fo-estado-activo" onclick="setAccFilter('estado','activo')">Activos <span class="filter-count" id="fc-estado-activo">0</span></div>
             <div class="filter-option" id="fo-estado-caido" onclick="setAccFilter('estado','caido')">Caídos <span class="filter-count" id="fc-estado-caido">0</span></div>
-            <div class="filter-option" id="fo-estado-inactivo" onclick="setAccFilter('estado','inactivo')">Inactivos <span class="filter-count" id="fc-estado-inactivo">0</span></div>
-            <div class="filter-option" id="fo-estado-enproceso" onclick="setAccFilter('estado','enproceso')">En proceso <span class="filter-count" id="fc-estado-enproceso">0</span></div>
           </div>
           <div class="filter-divider"></div>
           <div class="filter-group">
@@ -890,7 +886,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
                 <div class="field"><label>Cliente</label><input type="text" id="na-nombre" placeholder="Nombre"/></div>
                 <div class="field"><label>N ID</label><input type="text" id="na-nid" placeholder="13xxx"/></div>
                 <div class="field"><label>Tier</label><select id="na-tier"><option value="A+">A+</option><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></div>
-                <div class="field"><label>Estado</label><select id="na-estado"><option value="Activo">Activo</option><option value="Caído">Caído</option><option value="Inactivo">Inactivo</option><option value="En proceso">En proceso</option></select></div>
+                <div class="field"><label>Estado</label><select id="na-estado"><option value="Activo">Activo</option><option value="Caído">Caído</option></select></div>
               </div>
               <div class="form-row">
                 <div class="field"><label>Ejecutivo</label><select id="na-ejecutivo"><option value="">Sin asignar</option><option value="LS">LS</option><option value="AJG">AJG</option><option value="EE">EE</option></select></div>
@@ -898,9 +894,7 @@ tbody tr:hover td{background:var(--navy-dim);cursor:pointer}
               </div>
               <div class="form-row">
                 <div class="field"><label>Provincia</label><input type="text" id="na-localidad" placeholder="ej: BUENOS AIRES"/></div>
-                <div class="field"><label>Locales</label><input type="number" id="na-locales" placeholder="0"/></div>
-                <div class="field"><label>Locales totales</label><input type="number" id="na-locales-totales" placeholder="0"/></div>
-                <div class="field"><label>Fecha firma contrato</label><input type="date" id="na-fecha-firma"/></div>
+                <div class="field"><label>Cant. locales</label><input type="number" id="na-locales" placeholder="0"/></div>
               </div>
               <div class="field"><label>Notas</label><textarea id="na-notas" placeholder="Detalle del estado..."></textarea></div>
               <button class="btn btn-primary" onclick="addAccount()" style="width:fit-content">Agregar cuenta</button>
@@ -1327,7 +1321,7 @@ function duePill(f){
   const txt=diff<0?`Venció ${fmtDate(f)}`:diff===0?'Hoy':diff===1?'Mañana':`${fmtDate(f)}`;
   return`<span class="due-pill ${cls}">${txt}</span>`;
 }
-function isActivo(a){return(a.estado||a.segmento||'').trim()==='Activo';}
+function isActivo(a){return(a.estado||a.segmento||'').toLowerCase().includes('activo');}
 function normTier(t){
   const v=(t||'').toString().trim().toUpperCase();
   if(v==='A+'||v==='A+')return'A+';
@@ -1513,18 +1507,16 @@ window.addAccount=async function(){
   const nombre=el('na-nombre').value.trim();if(!nombre)return;
   setSyncStatus('syncing');
   try{
-    await addDoc(collection(db,'accounts'),{nombre,nid:el('na-nid').value.trim(),ejecutivo:el('na-ejecutivo').value,tipoServicio:el('na-servicio').value,tier:el('na-tier').value,estado:el('na-estado').value,segmento:el('na-estado').value,localidad:el('na-localidad').value.trim(),locales:el('na-locales').value.trim(),localesTotales:el('na-locales-totales').value.trim(),fechaFirmaContrato:el('na-fecha-firma').value||'',notas:el('na-notas').value.trim(),history:[{action:'Cuenta creada manualmente',ts:new Date().toISOString()}],interacciones:[],createdAt:serverTimestamp()});
-    ['na-nombre','na-nid','na-localidad','na-locales','na-locales-totales','na-fecha-firma','na-notas'].forEach(id=>el(id).value='');
+    await addDoc(collection(db,'accounts'),{nombre,nid:el('na-nid').value.trim(),ejecutivo:el('na-ejecutivo').value,tipoServicio:el('na-servicio').value,tier:el('na-tier').value,estado:el('na-estado').value,segmento:el('na-estado').value,localidad:el('na-localidad').value.trim(),locales:el('na-locales').value.trim(),notas:el('na-notas').value.trim(),history:[{action:'Cuenta creada manualmente',ts:new Date().toISOString()}],interacciones:[],createdAt:serverTimestamp()});
+    ['na-nombre','na-nid','na-localidad','na-locales','na-notas'].forEach(id=>el(id).value='');
     el('acc-add-panel').style.display='none';setSyncStatus('ok');
   }catch{setSyncStatus('error');}
 };
 
 function getFilteredAccounts(){
   let data=[...accounts];
-  if(accFilters.estado==='activo')data=data.filter(a=>(a.estado||a.segmento||'').trim()==='Activo');
-  else if(accFilters.estado==='caido')data=data.filter(a=>(a.estado||a.segmento||'').trim()==='Caído');
-  else if(accFilters.estado==='inactivo')data=data.filter(a=>(a.estado||a.segmento||'').trim()==='Inactivo');
-  else if(accFilters.estado==='enproceso')data=data.filter(a=>(a.estado||a.segmento||'').trim()==='En proceso');
+  if(accFilters.estado==='activo')data=data.filter(a=>isActivo(a));
+  else if(accFilters.estado==='caido')data=data.filter(a=>!isActivo(a));
   if(accFilters.tier!=='todos')data=data.filter(a=>normTier(a.tier)===accFilters.tier);
   if(accFilters.ejecutivo!=='todos')data=data.filter(a=>(a.ejecutivo||'').trim()===accFilters.ejecutivo);
   if(accFilters.servicio!=='todos')data=data.filter(a=>(a.tipoServicio||'').trim()===accFilters.servicio);
@@ -1544,10 +1536,8 @@ function buildDynamicFilters(){
   function countForGroup(group, val){
     return accounts.filter(a=>{
       const f = {...accFilters, [group]: val};
-      if(f.estado==='activo' && (a.estado||a.segmento||'').trim()!=='Activo') return false;
-      if(f.estado==='caido' && (a.estado||a.segmento||'').trim()!=='Caído') return false;
-      if(f.estado==='inactivo' && (a.estado||a.segmento||'').trim()!=='Inactivo') return false;
-      if(f.estado==='enproceso' && (a.estado||a.segmento||'').trim()!=='En proceso') return false;
+      if(f.estado==='activo' && !isActivo(a)) return false;
+      if(f.estado==='caido' && isActivo(a)) return false;
       if(f.tier!=='todos' && normTier(a.tier)!==f.tier) return false;
       if(f.ejecutivo!=='todos' && !(a.ejecutivo||'').includes(f.ejecutivo)) return false;
       if(f.servicio!=='todos' && (a.tipoServicio||'').trim()!==f.servicio) return false;
@@ -1581,10 +1571,8 @@ function updateCounts(){
   function countWith(overrides){
     return accounts.filter(a=>{
       const f = {...accFilters, ...overrides};
-      if(f.estado==='activo' && (a.estado||a.segmento||'').trim()!=='Activo') return false;
-      if(f.estado==='caido' && (a.estado||a.segmento||'').trim()!=='Caído') return false;
-      if(f.estado==='inactivo' && (a.estado||a.segmento||'').trim()!=='Inactivo') return false;
-      if(f.estado==='enproceso' && (a.estado||a.segmento||'').trim()!=='En proceso') return false;
+      if(f.estado==='activo' && !isActivo(a)) return false;
+      if(f.estado==='caido' && isActivo(a)) return false;
       if(f.tier!=='todos' && normTier(a.tier)!==f.tier) return false;
       if(f.ejecutivo!=='todos' && !(a.ejecutivo||'').includes(f.ejecutivo)) return false;
       if(f.servicio!=='todos' && (a.tipoServicio||'').trim()!==f.servicio) return false;
@@ -1597,8 +1585,6 @@ function updateCounts(){
   el('fc-estado-todos')&&(el('fc-estado-todos').textContent=countWith({estado:'todos'}));
   el('fc-estado-activo')&&(el('fc-estado-activo').textContent=countWith({estado:'activo'}));
   el('fc-estado-caido')&&(el('fc-estado-caido').textContent=countWith({estado:'caido'}));
-  el('fc-estado-inactivo')&&(el('fc-estado-inactivo').textContent=countWith({estado:'inactivo'}));
-  el('fc-estado-enproceso')&&(el('fc-estado-enproceso').textContent=countWith({estado:'enproceso'}));
 
   // Tier group (ignore tier filter itself)
   el('fc-tier-todos')&&(el('fc-tier-todos').textContent=countWith({tier:'todos'}));
@@ -1641,8 +1627,7 @@ function renderAccounts(){
     <th class="sortable${accSortCol==='tier'?' sort-active':''}" onclick="sortAcc('tier')">Tier</th>
     <th>Estado</th>
     <th class="sortable${accSortCol==='localidad'?' sort-active':''}" onclick="sortAcc('localidad')">Provincia</th>
-    <th class="sortable${accSortCol==='locales'?' sort-active':''}" onclick="sortAcc('locales')" style="text-align:right">Locales ↕</th>
-    <th style="text-align:right">Locales totales</th>`;
+    <th class="sortable${accSortCol==='locales'?' sort-active':''}" onclick="sortAcc('locales')" style="text-align:right">Locales ↕</th>`;
   if(showActivo)headCols+=`<th>Último contacto</th><th>Última presentación</th>`;
   if(showCaido)headCols+=`<th>Últ. movimiento</th><th>Motivo baja</th>`;
   headCols+=`<th>Notas</th><th></th>`;
@@ -1658,10 +1643,9 @@ function renderAccounts(){
       <td style="font-size:12px">${a.ejecutivo||'—'}</td>
       <td>${a.tipoServicio&&a.tipoServicio!=='-'?`<span class="svc-pill">${a.tipoServicio}</span>`:'—'}</td>
       <td><span class="tier-pill ${tierClass(tier)}">${tier}</span></td>
-      <td><span class="estado-pill ${{'Activo':'estado-activo','Caído':'estado-caido','Inactivo':'estado-inactivo','En proceso':'estado-enproceso'}[a.estado||a.segmento||'']||'estado-caido'}">${a.estado||a.segmento||'—'}</span></td>
+      <td><span class="estado-pill ${activo?'estado-activo':'estado-caido'}">${activo?'Activo':'Caído'}</span></td>
       <td style="font-size:12px">${a.localidad||'—'}</td>
-      <td style="font-size:12px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmtLocales(a.locales)}</td>
-      <td style="font-size:12px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${a.localesTotales||'—'}</td>`;
+      <td style="font-size:12px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmtLocales(a.locales)}</td>`;
     if(showActivo)cols+=`<td class="date-cell">${fmtDate(a.ultimoContacto)||'—'}</td><td class="date-cell">${fmtDate(a.ultimaPresentacion)||'—'}</td>`;
     if(showCaido)cols+=`<td class="date-cell">${fmtDate(a.ultimoMovimiento)||'—'}</td><td style="font-size:11px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${a.motivoBaja||''}">${a.motivoBaja||'—'}</td>`;
     cols+=`<td style="font-size:11px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text3)" title="${a.notas||''}">${a.notas||'—'}</td>
@@ -1867,7 +1851,7 @@ window.openDrawer=function(id){
   el('drawer-name').textContent=a.nombre;
   el('drawer-sub').innerHTML=`
     <span class="tier-pill ${tierClass(tier)}" style="font-size:10px">${tier}</span>
-    <span class="estado-pill ${{'Activo':'estado-activo','Caído':'estado-caido','Inactivo':'estado-inactivo','En proceso':'estado-enproceso'}[a.estado||a.segmento||'']||'estado-caido'}" style="font-size:10px">${a.estado||a.segmento||'—'}</span>
+    <span class="estado-pill ${activo?'estado-activo':'estado-caido'}" style="font-size:10px">${activo?'Activo':'Caído'}</span>
     ${a.tipoServicio&&a.tipoServicio!=='-'?`<span class="svc-pill" style="font-size:10px">${a.tipoServicio}</span>`:''}
     ${a.nid?`<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">#${a.nid}</span>`:''}`;
   el('drawer-fields-general').innerHTML=`
@@ -1878,14 +1862,10 @@ window.openDrawer=function(id){
     <div class="field-item"><label>Tier</label>
       <select id="df-tier">${['A+','A','B','C'].map(v=>`<option value="${v}"${tier===v?' selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field-item"><label>Estado</label>
-      <select id="df-estado">${['Activo','Caído','Inactivo','En proceso'].map(v=>`<option value="${v}"${(a.estado||a.segmento)===v?' selected':''}>${v}</option>`).join('')}</select></div>
+      <select id="df-estado">${['Activo','Caído'].map(v=>`<option value="${v}"${(a.estado||a.segmento)===v?' selected':''}>${v}</option>`).join('')}</select></div>
 
     <div class="field-item"><label>Provincia</label><input id="df-localidad" type="text" value="${a.localidad||''}" placeholder="—"/></div>
-    <div class="field-item"><label>Locales</label><input id="df-locales" type="number" value="${a.locales?Math.round(parseFloat(a.locales)):''}" placeholder="—"/></div>
-    <div class="field-item"><label>Locales totales</label><input id="df-locales-totales" type="number" value="${a.localesTotales||''}" placeholder="—"/></div>
-    <div class="field-item"><label>Fecha firma contrato</label><input id="df-fecha-firma" type="date" value="${a.fechaFirmaContrato||''}"/></div>
-    <div class="field-item"><label>Fecha solicitud dashboard</label><input id="df-fecha-dashboard" type="date" value="${a.fechaSolicitudDashboard||''}"/>
-      ${(()=>{const ticketDash=jiraTickets.filter(t=>t.categoria==='Nuevo dashboard'&&(t.cliente||'').toLowerCase().includes((a.nombre||'').toLowerCase().split(' ')[0].toLowerCase())&&t.fechaInicio).sort((x,y)=>x.fechaInicio.localeCompare(y.fechaInicio))[0];return ticketDash?`<div style="font-size:10px;color:var(--text3);margin-top:3px">Origen: Ticket ${ticketDash.jira||'—'} (${ticketDash.fechaInicio})</div>`:'';})()}</div>
+    <div class="field-item"><label>Cant. locales</label><input id="df-locales" type="number" value="${a.locales?Math.round(parseFloat(a.locales)):''}" placeholder="—"/></div>
     <div class="field-item"><label>Contacto</label><input id="df-contacto" type="text" value="${a.contacto||''}" placeholder="—"/></div>
     <div class="field-item"><label>Email</label><input id="df-email" type="text" value="${a.email||''}" placeholder="—"/></div>
     <div class="field-item full"><label>Notas</label><textarea id="df-notas" rows="2">${a.notas||''}</textarea></div>`;
@@ -1961,7 +1941,7 @@ window.saveDrawer=async function(){
   if(newTier!==normTier(a.tier))changes.push(`Tier: ${normTier(a.tier)}→${newTier}`);
   if(newEstado!==(a.estado||a.segmento))changes.push(`Estado: ${a.estado||a.segmento}→${newEstado}`);
   const histEntries=changes.map(c=>({action:c,ts:new Date().toISOString()}));
-  const upd={ejecutivo:el('df-ejecutivo').value,tipoServicio:el('df-servicio').value,tier:newTier,estado:newEstado,segmento:newEstado,localidad:el('df-localidad').value.trim(),locales:el('df-locales').value.trim(),localesTotales:el('df-locales-totales')?.value.trim()||'',fechaFirmaContrato:el('df-fecha-firma')?.value||'',fechaSolicitudDashboard:el('df-fecha-dashboard')?.value||'',contacto:el('df-contacto').value.trim(),email:el('df-email').value.trim(),notas:el('df-notas').value.trim()};
+  const upd={ejecutivo:el('df-ejecutivo').value,tipoServicio:el('df-servicio').value,tier:newTier,estado:newEstado,segmento:newEstado,localidad:el('df-localidad').value.trim(),locales:el('df-locales').value.trim(),contacto:el('df-contacto').value.trim(),email:el('df-email').value.trim(),notas:el('df-notas').value.trim()};
   if(activo){upd.ultimoContacto=el('df-ultimoContacto')?.value||'';upd.ultimaPresentacion=el('df-ultimaPresentacion')?.value||'';}
   else{
     upd.fechaBaja=el('df-fechaBaja')?.value||'';
@@ -3464,7 +3444,7 @@ function renderFicha(){
         <div class="ficha-nombre">${a.nombre}</div>
         <div class="ficha-meta">
           <span class="tier-pill tier-${tier.replace('+','plus')}" style="font-size:11px">${tier}</span>
-          <span class="estado-pill ${{'Activo':'estado-activo','Caído':'estado-caido','Inactivo':'estado-inactivo','En proceso':'estado-enproceso'}[a.estado||a.segmento||'']||'estado-caido'}" style="font-size:11px">${a.estado||a.segmento||'—'}</span>
+          <span class="estado-pill ${isActivo(a)?'estado-activo':'estado-caido'}" style="font-size:11px">${isActivo(a)?'Activo':'Caído'}</span>
           ${a.tipoServicio&&a.tipoServicio!=='-'?`<span class="svc-pill" style="font-size:11px">${a.tipoServicio}</span>`:''}
           ${a.nid?`<span style="font-size:11px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace">#${a.nid}</span>`:''}
           <span style="font-size:11px;color:rgba(255,255,255,.5)">${a.ejecutivo||''}</span>
